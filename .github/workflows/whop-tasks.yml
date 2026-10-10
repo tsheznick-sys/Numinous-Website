@@ -25,36 +25,104 @@ jobs:
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
         run: |
-          # List apps lives on API v1 (api/v5/apps does not exist -> HTTP 404).
+          # First hit wins:
+          #  1. list the key's companies (proves which account the key belongs to)
+          #  2. list apps: filtered, unfiltered, then per-company via account_id
+          #  3. scrape the live site HTML for embedded app_* ids
+          #  4. best-effort: the Whop CLI's own apps list
           # Docs: https://docs.whop.com/api-reference/apps/list-apps
+          match_apps() {
+            jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]?
+              | select(((.route? // "") + " " + (.hosted_url? // "") + " " + (.short_name? // "") + " " + (.name? // ""))
+                | test("jointhenuminouses|numinous"; "i"))
+              | "\(.id)\tname=\(.name // .short_name // "?")\troute=\(.route // "?")"' "$1"
+          }
+          count_items() {
+            jq -r '(.data // .items // []) | if type == "array" then length else 1 end' "$1" 2>/dev/null || echo "?"
+          }
+          FOUND=""
+          try_match() {
+            local m
+            m=$(match_apps "$1")
+            if [ -n "$m" ]; then
+              echo "MATCH ($2):"
+              echo "$m"
+              FOUND=1
+            else
+              echo "no match ($2; $(count_items "$1") items returned)"
+            fi
+          }
+
+          echo "== 1. key's companies =="
+          cstatus=$(curl -sS -o companies.json -w '%{http_code}' \
+            "https://api.whop.com/api/v1/companies?first=100" \
+            -H "Authorization: Bearer $WHOP_API_KEY")
+          echo "companies HTTP $cstatus"
+          if [ "$cstatus" = "200" ]; then
+            jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]?
+              | "\(.id)\troute=\(.route // "?")\ttitle=\(.title // .name // "?")"' companies.json
+          else
+            head -c 500 companies.json; echo
+          fi
+
+          echo "== 2a. apps (filtered) =="
           status=$(curl -sS -o apps.json -w '%{http_code}' \
             "https://api.whop.com/api/v1/apps?first=100&query=jointhenuminouses" \
             -H "Authorization: Bearer $WHOP_API_KEY")
-          if [ "$status" != "200" ]; then
-            echo "Filtered request failed (HTTP $status). Retrying without the query filter…"
-            status=$(curl -sS -o apps.json -w '%{http_code}' \
-              "https://api.whop.com/api/v1/apps?first=100" \
-              -H "Authorization: Bearer $WHOP_API_KEY")
-          fi
           echo "GET HTTP $status"
           if [ "$status" != "200" ]; then
             echo "::error::Could not list apps (HTTP $status). Check that the WHOP_API_KEY repo secret holds a valid Account API key (the apik_… value only, no WHOP_API_KEY= prefix, no spaces)."
             head -c 2000 apps.json
             exit 1
           fi
-          echo "Apps matching Numinous / jointhenuminouses:"
-          matches=$(jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]?
-            | select(((.route? // "") + " " + (.short_name? // "") + " " + (.name? // ""))
-              | test("jointhenuminouses|numinous"; "i"))
-            | "\(.id)\tname=\(.name // .short_name // "?")\troute=\(.route // "?")"' apps.json)
-          if [ -z "$matches" ]; then
-            echo "(no match — full account app list:)"
-            jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]?
-              | "\(.id)\tname=\(.name // .short_name // "?")\troute=\(.route // "?")"' apps.json
-          else
-            echo "$matches"
+          try_match apps.json "filtered"
+          if [ -z "$FOUND" ]; then
+            echo "== 2b. apps (unfiltered) =="
+            status=$(curl -sS -o apps.json -w '%{http_code}' \
+              "https://api.whop.com/api/v1/apps?first=100" \
+              -H "Authorization: Bearer $WHOP_API_KEY")
+            echo "GET HTTP $status"
+            [ "$status" = "200" ] || { head -c 500 apps.json; exit 1; }
+            try_match apps.json "unfiltered"
           fi
+          if [ -z "$FOUND" ] && [ "$cstatus" = "200" ]; then
+            echo "== 2c. apps per company (account_id) =="
+            for biz in $(jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]? | .id' companies.json); do
+              [ -n "$FOUND" ] && break
+              astatus=$(curl -sS -o apps-biz.json -w '%{http_code}' \
+                "https://api.whop.com/api/v1/apps?first=100&account_id=${biz}" \
+                -H "Authorization: Bearer $WHOP_API_KEY") || astatus="000"
+              echo "company $biz -> HTTP $astatus"
+              [ "$astatus" = "200" ] && try_match apps-biz.json "account_id=$biz"
+            done
+          fi
+
+          if [ -z "$FOUND" ]; then
+            echo "== 3. live-site HTML scrape =="
+            if curl -sS "https://jointhenuminouses.whop.site/" -o home.html; then
+              ids=$(grep -o 'app_[A-Za-z0-9]\{8,\}' home.html | sort -u || true)
+              if [ -n "$ids" ]; then
+                echo "MATCH (embedded in live homepage HTML):"
+                echo "$ids"
+                FOUND=1
+              else
+                echo "no app_* id embedded in the live homepage HTML"
+              fi
+            else
+              echo "could not fetch the live homepage"
+            fi
+          fi
+
+          if [ -z "$FOUND" ]; then
+            echo "== 4. Whop CLI apps list (best effort) =="
+            npx -y @whop/cli@0.25.0 apps list 2>&1 | head -n 30 || true
+          fi
+
           echo "---"
+          if [ -z "$FOUND" ]; then
+            echo "::error::No Numinous app found. Likely causes: (a) the WHOP_API_KEY was generated under a different Whop user than the thenuminouses owner — check which account is logged in at whop.com/dashboard/developer and regenerate there; (b) the app lives under another company — see the company list above. Manual fallback: open the Numinous app at whop.com/dashboard → Developer → Apps — the app_* id is in the page URL."
+            exit 1
+          fi
           echo "Next: put the app_* id above into whop.app.json (copy whop.app.example.json),"
           echo "commit it, then run this workflow with task=deploy."
 
@@ -62,17 +130,18 @@ jobs:
     if: ${{ inputs.task == 'watcher-plan' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Set the Watcher plan to $28 / 28 days with no free trial
+      - name: Set the Watcher plan to $28 / 28 days with 7-day trial
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
         run: |
           # Plans are "variants" on API v1 (ids stay plan_-prefixed).
           # Docs: https://docs.whop.com/api-reference/beta/variants/update-variant
+          # House truth: 7-day free trial, then $28 every 28 days. No discounts.
           status=$(curl -sS -o patch-response.json -w '%{http_code}' \
             -X PATCH "https://api.whop.com/api/v1/variants/plan_PQnMYNixMTjRQ" \
             -H "Authorization: Bearer $WHOP_API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{"trial_period_days": 0, "renewal_price": 28, "billing_period": 28, "currency": "usd"}')
+            -d '{"trial_period_days": 7, "renewal_price": 28, "billing_period": 28, "currency": "usd"}')
           echo "PATCH HTTP $status"
           head -c 2000 patch-response.json; echo
           [ "$status" -ge 200 ] && [ "$status" -lt 300 ] || exit 1
@@ -83,11 +152,11 @@ jobs:
           echo "GET HTTP $status"
           [ "$status" -ge 200 ] && [ "$status" -lt 300 ] || { cat plan.json; exit 1; }
           jq '(.data // .) | {id, trial_period_days, renewal_price, billing_period, currency}' plan.json
-          jq -e '(.data // .) | ((.trial_period_days == 0) or (.trial_period_days == null))
+          jq -e '(.data // .) | (.trial_period_days == 7)
             and ((.renewal_price == 28) or (.renewal_price == "28") or (.renewal_price == "28.00"))
             and (.billing_period == 28)' plan.json \
             || { echo "::error::Plan does not match the House terms after the PATCH."; exit 1; }
-          echo "Watcher plan verified: no trial, \$28.00, every 28 days."
+          echo "Watcher plan verified: 7-day trial, \$28.00, every 28 days."
 
   deploy:
     if: ${{ inputs.task == 'deploy' }}
