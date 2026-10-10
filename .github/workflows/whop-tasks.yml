@@ -25,25 +25,35 @@ jobs:
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
         run: |
+          # List apps lives on API v1 (api/v5/apps does not exist -> HTTP 404).
+          # Docs: https://docs.whop.com/api-reference/apps/list-apps
           status=$(curl -sS -o apps.json -w '%{http_code}' \
-            "https://api.whop.com/api/v5/apps?first=100&query=jointhenuminouses" \
+            "https://api.whop.com/api/v1/apps?first=100&query=jointhenuminouses" \
             -H "Authorization: Bearer $WHOP_API_KEY")
           if [ "$status" != "200" ]; then
+            echo "Filtered request failed (HTTP $status). Retrying without the query filter…"
             status=$(curl -sS -o apps.json -w '%{http_code}' \
-              "https://api.whop.com/api/v5/apps?first=100" \
+              "https://api.whop.com/api/v1/apps?first=100" \
               -H "Authorization: Bearer $WHOP_API_KEY")
           fi
           echo "GET HTTP $status"
           if [ "$status" != "200" ]; then
-            echo "::error::Could not list apps (HTTP $status). Is the WHOP_API_KEY repo secret set?"
+            echo "::error::Could not list apps (HTTP $status). Check that the WHOP_API_KEY repo secret holds a valid Account API key (the apik_… value only, no WHOP_API_KEY= prefix, no spaces)."
             head -c 2000 apps.json
             exit 1
           fi
           echo "Apps matching Numinous / jointhenuminouses:"
-          jq -r '(.data // .items // .)[]
+          matches=$(jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]?
             | select(((.route? // "") + " " + (.short_name? // "") + " " + (.name? // ""))
               | test("jointhenuminouses|numinous"; "i"))
-            | "\(.id)\tname=\(.name // .short_name // "?")\troute=\(.route // "?")"' apps.json
+            | "\(.id)\tname=\(.name // .short_name // "?")\troute=\(.route // "?")"' apps.json)
+          if [ -z "$matches" ]; then
+            echo "(no match — full account app list:)"
+            jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]?
+              | "\(.id)\tname=\(.name // .short_name // "?")\troute=\(.route // "?")"' apps.json
+          else
+            echo "$matches"
+          fi
           echo "---"
           echo "Next: put the app_* id above into whop.app.json (copy whop.app.example.json),"
           echo "commit it, then run this workflow with task=deploy."
@@ -56,23 +66,25 @@ jobs:
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
         run: |
+          # Plans are "variants" on API v1 (ids stay plan_-prefixed).
+          # Docs: https://docs.whop.com/api-reference/beta/variants/update-variant
           status=$(curl -sS -o patch-response.json -w '%{http_code}' \
-            -X PATCH "https://api.whop.com/api/v5/plans/plan_PQnMYNixMTjRQ" \
+            -X PATCH "https://api.whop.com/api/v1/variants/plan_PQnMYNixMTjRQ" \
             -H "Authorization: Bearer $WHOP_API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{"trial_period_days": 0, "renewal_price": "28.00", "billing_period": 28, "currency": "usd"}')
+            -d '{"trial_period_days": 0, "renewal_price": 28, "billing_period": 28, "currency": "usd"}')
           echo "PATCH HTTP $status"
           head -c 2000 patch-response.json; echo
           [ "$status" -ge 200 ] && [ "$status" -lt 300 ] || exit 1
 
           status=$(curl -sS -o plan.json -w '%{http_code}' \
-            "https://api.whop.com/api/v5/plans/plan_PQnMYNixMTjRQ" \
+            "https://api.whop.com/api/v1/variants/plan_PQnMYNixMTjRQ" \
             -H "Authorization: Bearer $WHOP_API_KEY")
           echo "GET HTTP $status"
           [ "$status" -ge 200 ] && [ "$status" -lt 300 ] || { cat plan.json; exit 1; }
           jq '(.data // .) | {id, trial_period_days, renewal_price, billing_period, currency}' plan.json
-          jq -e '(.data // .) | (.trial_period_days == 0)
-            and ((.renewal_price == "28.00") or (.renewal_price == 28) or (.renewal_price == "28"))
+          jq -e '(.data // .) | ((.trial_period_days == 0) or (.trial_period_days == null))
+            and ((.renewal_price == 28) or (.renewal_price == "28") or (.renewal_price == "28.00"))
             and (.billing_period == 28)' plan.json \
             || { echo "::error::Plan does not match the House terms after the PATCH."; exit 1; }
           echo "Watcher plan verified: no trial, \$28.00, every 28 days."
