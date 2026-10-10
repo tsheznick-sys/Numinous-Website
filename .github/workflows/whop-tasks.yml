@@ -13,7 +13,9 @@ on:
         type: choice
         options:
           - find-app
+          - find-plans
           - watcher-plan
+          - deploy-preview
           - deploy
 
 jobs:
@@ -158,12 +160,77 @@ jobs:
             || { echo "::error::Plan does not match the House terms after the PATCH."; exit 1; }
           echo "Watcher plan verified: 7-day trial, \$28.00, every 28 days."
 
+  find-plans:
+    if: ${{ inputs.task == 'find-plans' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: List every plan on the account (find the annual Watcher)
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+        run: |
+          # The variants list requires account_id, resolved here from the companies list.
+          # Docs: https://docs.whop.com/api-reference/beta/variants/list-variants
+          cstatus=$(curl -sS -o companies.json -w '%{http_code}' \
+            "https://api.whop.com/api/v1/companies?first=100" \
+            -H "Authorization: Bearer $WHOP_API_KEY")
+          [ "$cstatus" = "200" ] || { echo "::error::companies HTTP $cstatus"; head -c 500 companies.json; exit 1; }
+          for biz in $(jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]? | .id' companies.json); do
+            vstatus=$(curl -sS -o plans.json -w '%{http_code}' \
+              "https://api.whop.com/api/v1/variants?first=100&account_id=${biz}" \
+              -H "Authorization: Bearer $WHOP_API_KEY") || vstatus="000"
+            echo "== company $biz -> HTTP $vstatus =="
+            if [ "$vstatus" != "200" ]; then head -c 500 plans.json; echo; continue; fi
+            jq -r '(.data // [])[]?
+              | "\(.id)\tproduct=\(.product.title // "?")\ttitle=\(.title // "?")\ttype=\(.plan_type // "?")\tbilling_days=\(.billing_period // "-")\ttrial=\(.trial_period_days // "-")\trenewal=\(.renewal_price // "-") \(.currency // "")\t\(.purchase_url // "")"' plans.json
+          done
+          echo "---"
+          echo "Copy the annual Watcher plan_* id + purchase_url above for wiring it into the site."
+
+  deploy-preview:
+    if: ${{ inputs.task == 'deploy-preview' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the storefront
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Require a real app manifest
+        run: |
+          if [ ! -f whop.app.json ]; then
+            echo "::error::whop.app.json is missing. Put the real app_* id for the Numinous app (route jointhenuminouses) in it and commit."
+            exit 1
+          fi
+          if grep -q "app_xxxxxxxx" whop.app.json; then
+            echo "::error::whop.app.json still contains the placeholder app_xxxxxxxx id."
+            exit 1
+          fi
+
+      - name: Upload a preview build (does NOT go live)
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+        run: |
+          npx whop apps deploy --preview
+          echo "---"
+          echo "Preview uploaded. Inspect the build id above, then run this workflow"
+          echo "with task=deploy to promote it to jointhenuminouses.whop.site."
+
   deploy:
     if: ${{ inputs.task == 'deploy' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out the storefront
         uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
 
       - name: Use Node 22
         uses: actions/setup-node@v4
