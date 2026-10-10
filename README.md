@@ -1,1 +1,47 @@
-# Numinous-Website
+# Numinous
+
+Storefront for [jointhenuminouses.whop.site](https://jointhenuminouses.whop.site), the House of Numinous on Whop.
+
+The live site is the source of truth for copy, prices, and gates. This repository is the onboarded copy an agent can build and check. Payments stay on Whop. This site does not collect card details.
+
+## Gates
+
+| Work | Price | Where it opens |
+| --- | --- | --- |
+| The Signal | Free, forever | [checkout](https://whop.com/checkout/ch_wYXFulML0v6LIoJ/) |
+| The Watcher | $28 / 28 days, seven-night return | [plan_PQnMYNixMTjRQ](https://jointhenuminouses.whop.site/checkout/plan_PQnMYNixMTjRQ?quantity=1&items=plan_PQnMYNixMTjRQ:1) |
+| Wallpaper Vault | $12, final when opened | [plan_Aew5DdipP3fKY](https://jointhenuminouses.whop.site/checkout/plan_Aew5DdipP3fKY?quantity=1&items=plan_Aew5DdipP3fKY:1) |
+| Herald app | Free | [plan_hIKLCR4hGiv9B](https://jointhenuminouses.whop.site/checkout/plan_hIKLCR4hGiv9B?quantity=1&items=plan_hIKLCR4hGiv9B:1) |
+
+## Developer actions
+
+```bash
+npm install
+npm run developer-actions   # coldstorage onboard checks, typecheck, Whop pack
+npm run dev                 # local site
+```
+
+`npm run developer-actions` is what the agent runs. It:
+
+1. Applies the cold-storage onboard checks in `coldstorage/onboard.json` — the live storefront must still honour the House terms and Whop’s payment terms.
+2. Typechecks the site modules.
+3. Builds with the Whop Vite plugin and packs `dist/whop-build.zip`.
+4. If `WHOP_API_KEY` is set, or `whop auth login` has already succeeded, lists Economic Intelligence for `thenuminouses` and executes a ready recommendation whose title is the coldstorage onboard.
+
+The sandbox cannot finish Whop’s browser login. Put the Account API key in `.env` as `WHOP_API_KEY=` (that file is gitignored). The developer-action script loads it. Do not commit the key or paste it into chat.
+
+## Asking for changes
+
+Changes have to stay inside both sets of terms.
+
+- House terms: Signal stays free. Watcher stays $28 every 28 days with the seven-night return. Other works are final when they open. Seats are not resold. Support is numinous.support@gmail.com. The September 8, 2026 Vault records stay available.
+- Whop terms: checkout, refunds, and the first-party pixel stay on Whop. Do not add a card form. Do not store the Herald email on this site. [Whop terms](https://whop.com/tos/) · [Whop privacy](https://whop.com/privacy/).
+
+To link this directory to the hosted app once you are signed in:
+
+```bash
+cp whop.app.example.json whop.app.json
+# put the real app_ id in whop.app.json, then
+whop apps dev
+whop apps deploy
+```

@@ -1,0 +1,9 @@
+node_modules
+dist
+.vite
+*.log
+.DS_Store
+.whop
+.env
+.env.*
+!.env.example
