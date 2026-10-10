@@ -57,7 +57,7 @@ jobs:
 
           echo "== 1. key's companies =="
           cstatus=$(curl -sS -o companies.json -w '%{http_code}' \
-            "https://api.whop.com/api/v1/companies?first=100" \
+            "https://api.whop.com/api/v1/companies" \
             -H "Authorization: Bearer $WHOP_API_KEY")
           echo "companies HTTP $cstatus"
           if [ "$cstatus" = "200" ]; then
@@ -87,9 +87,19 @@ jobs:
             [ "$status" = "200" ] || { head -c 500 apps.json; exit 1; }
             try_match apps.json "unfiltered"
           fi
-          if [ -z "$FOUND" ] && [ "$cstatus" = "200" ]; then
+          BIZ_IDS=""
+          [ "$cstatus" = "200" ] && BIZ_IDS=$(jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]? | .id' companies.json)
+          kv=$(curl -sS -o known-plan.json -w '%{http_code}' \
+            "https://api.whop.com/api/v1/variants/plan_PQnMYNixMTjRQ" \
+            -H "Authorization: Bearer $WHOP_API_KEY") || kv="000"
+          if [ "$kv" = "200" ]; then
+            ka=$(jq -r '.data.account.id // .account.id // empty' known-plan.json) || ka=""
+            [ -n "$ka" ] && BIZ_IDS="$BIZ_IDS $ka"
+          fi
+          BIZ_IDS=$(echo "$BIZ_IDS" | tr ' ' '\n' | grep -v '^\s*$' | sort -u) || true
+          if [ -z "$FOUND" ] && [ -n "$BIZ_IDS" ]; then
             echo "== 2c. apps per company (account_id) =="
-            for biz in $(jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]? | .id' companies.json); do
+            for biz in $BIZ_IDS; do
               [ -n "$FOUND" ] && break
               astatus=$(curl -sS -o apps-biz.json -w '%{http_code}' \
                 "https://api.whop.com/api/v1/apps?first=100&account_id=${biz}" \
@@ -168,18 +178,44 @@ jobs:
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
         run: |
-          # The variants list requires account_id, resolved here from the companies list.
+          # The variants list requires account_id. Resolve it from the known
+          # Watcher plan (a single retrieve carries account.id), falling back
+          # to the companies list.
           # Docs: https://docs.whop.com/api-reference/beta/variants/list-variants
+          BIZ_IDS=""
+          vstatus=$(curl -sS -o known-plan.json -w '%{http_code}' \
+            "https://api.whop.com/api/v1/variants/plan_PQnMYNixMTjRQ" \
+            -H "Authorization: Bearer $WHOP_API_KEY") || vstatus="000"
+          echo "known-plan HTTP $vstatus"
+          if [ "$vstatus" = "200" ]; then
+            vacct=$(jq -r '.data.account.id // .account.id // empty' known-plan.json) || vacct=""
+            vprod=$(jq -r '.data.product.title // .product.title // "?"' known-plan.json) || vprod="?"
+            echo "Watcher plan account: ${vacct:-?} (product: $vprod)"
+            BIZ_IDS="$vacct"
+          else
+            head -c 1000 known-plan.json; echo
+          fi
           cstatus=$(curl -sS -o companies.json -w '%{http_code}' \
-            "https://api.whop.com/api/v1/companies?first=100" \
-            -H "Authorization: Bearer $WHOP_API_KEY")
-          [ "$cstatus" = "200" ] || { echo "::error::companies HTTP $cstatus"; head -c 500 companies.json; exit 1; }
-          for biz in $(jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]? | .id' companies.json); do
+            "https://api.whop.com/api/v1/companies" \
+            -H "Authorization: Bearer $WHOP_API_KEY") || cstatus="000"
+          echo "companies HTTP $cstatus"
+          if [ "$cstatus" = "200" ]; then
+            extra=$(jq -r '(.data // .items // [] | if type == "array" then . else [.] end)[]? | .id' companies.json) || extra=""
+            BIZ_IDS="$BIZ_IDS $extra"
+          else
+            head -c 1000 companies.json; echo
+          fi
+          BIZ_IDS=$(echo "$BIZ_IDS" | tr ' ' '\n' | grep -v '^\s*$' | sort -u) || true
+          if [ -z "$BIZ_IDS" ]; then
+            echo "::error::Could not resolve any account id. Paste this full log back for diagnosis."
+            exit 1
+          fi
+          for biz in $BIZ_IDS; do
             vstatus=$(curl -sS -o plans.json -w '%{http_code}' \
               "https://api.whop.com/api/v1/variants?first=100&account_id=${biz}" \
               -H "Authorization: Bearer $WHOP_API_KEY") || vstatus="000"
             echo "== company $biz -> HTTP $vstatus =="
-            if [ "$vstatus" != "200" ]; then head -c 500 plans.json; echo; continue; fi
+            if [ "$vstatus" != "200" ]; then head -c 1000 plans.json; echo; continue; fi
             jq -r '(.data // [])[]?
               | "\(.id)\tproduct=\(.product.title // "?")\ttitle=\(.title // "?")\ttype=\(.plan_type // "?")\tbilling_days=\(.billing_period // "-")\ttrial=\(.trial_period_days // "-")\trenewal=\(.renewal_price // "-") \(.currency // "")\t\(.purchase_url // "")"' plans.json
           done
@@ -228,9 +264,6 @@ jobs:
     steps:
       - name: Check out the storefront
         uses: actions/checkout@v4
-
-      - name: Use Node 22
-        uses: actions/setup-node@v4
 
       - name: Use Node 22
         uses: actions/setup-node@v4
