@@ -1,0 +1,112 @@
+name: Whop one-off tasks
+
+# Deliberate, manual Whop-side actions (runners have unrestricted egress,
+# unlike the Arena sandbox). Requires the WHOP_API_KEY repo secret.
+# Trigger: Actions tab -> "Whop one-off tasks" -> Run workflow -> pick a task.
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Which one-off task to run
+        required: true
+        type: choice
+        options:
+          - find-app
+          - watcher-plan
+          - deploy
+
+jobs:
+  find-app:
+    if: ${{ inputs.task == 'find-app' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find the Numinous app id (for whop.app.json)
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+        run: |
+          status=$(curl -sS -o apps.json -w '%{http_code}' \
+            "https://api.whop.com/api/v5/apps?first=100&query=jointhenuminouses" \
+            -H "Authorization: Bearer $WHOP_API_KEY")
+          if [ "$status" != "200" ]; then
+            status=$(curl -sS -o apps.json -w '%{http_code}' \
+              "https://api.whop.com/api/v5/apps?first=100" \
+              -H "Authorization: Bearer $WHOP_API_KEY")
+          fi
+          echo "GET HTTP $status"
+          if [ "$status" != "200" ]; then
+            echo "::error::Could not list apps (HTTP $status). Is the WHOP_API_KEY repo secret set?"
+            head -c 2000 apps.json
+            exit 1
+          fi
+          echo "Apps matching Numinous / jointhenuminouses:"
+          jq -r '(.data // .items // .)[]
+            | select(((.route? // "") + " " + (.short_name? // "") + " " + (.name? // ""))
+              | test("jointhenuminouses|numinous"; "i"))
+            | "\(.id)\tname=\(.name // .short_name // "?")\troute=\(.route // "?")"' apps.json
+          echo "---"
+          echo "Next: put the app_* id above into whop.app.json (copy whop.app.example.json),"
+          echo "commit it, then run this workflow with task=deploy."
+
+  watcher-plan:
+    if: ${{ inputs.task == 'watcher-plan' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set the Watcher plan to $28 / 28 days with no free trial
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+        run: |
+          status=$(curl -sS -o patch-response.json -w '%{http_code}' \
+            -X PATCH "https://api.whop.com/api/v5/plans/plan_PQnMYNixMTjRQ" \
+            -H "Authorization: Bearer $WHOP_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"trial_period_days": 0, "renewal_price": "28.00", "billing_period": 28, "currency": "usd"}')
+          echo "PATCH HTTP $status"
+          head -c 2000 patch-response.json; echo
+          [ "$status" -ge 200 ] && [ "$status" -lt 300 ] || exit 1
+
+          status=$(curl -sS -o plan.json -w '%{http_code}' \
+            "https://api.whop.com/api/v5/plans/plan_PQnMYNixMTjRQ" \
+            -H "Authorization: Bearer $WHOP_API_KEY")
+          echo "GET HTTP $status"
+          [ "$status" -ge 200 ] && [ "$status" -lt 300 ] || { cat plan.json; exit 1; }
+          jq '(.data // .) | {id, trial_period_days, renewal_price, billing_period, currency}' plan.json
+          jq -e '(.data // .) | (.trial_period_days == 0)
+            and ((.renewal_price == "28.00") or (.renewal_price == 28) or (.renewal_price == "28"))
+            and (.billing_period == 28)' plan.json \
+            || { echo "::error::Plan does not match the House terms after the PATCH."; exit 1; }
+          echo "Watcher plan verified: no trial, \$28.00, every 28 days."
+
+  deploy:
+    if: ${{ inputs.task == 'deploy' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the storefront
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Require a real app manifest
+        run: |
+          if [ ! -f whop.app.json ]; then
+            echo "::error::whop.app.json is missing. Run: cp whop.app.example.json whop.app.json, then put the real app_* id for the Numinous app (route jointhenuminouses) in it and commit."
+            exit 1
+          fi
+          if grep -q "app_xxxxxxxx" whop.app.json; then
+            echo "::error::whop.app.json still contains the placeholder app_xxxxxxxx id."
+            exit 1
+          fi
+
+      - name: Deploy to jointhenuminouses.whop.site
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+        run: |
+          npx whop auth status --format json || true
+          npx whop apps deploy

@@ -1,0 +1,46 @@
+{
+  "name": "coldstorage-onboard",
+  "on_behalf_of": "Whop AI",
+  "live_site": "https://jointhenuminouses.whop.site",
+  "company_route": "thenuminouses",
+  "company_page": "https://whop.com/thenuminouses/",
+  "support": "numinous.support@gmail.com",
+  "instagram": "https://www.instagram.com/numinous2.0/",
+  "whop_terms": "https://whop.com/tos/",
+  "whop_privacy": "https://whop.com/privacy/",
+  "records_updated": "September 8, 2026",
+  "changes": [
+    "Onboard the live Numinous storefront into this repository.",
+    "Do not rewrite the House terms or Whop payment terms while onboarding.",
+    "Keep The Signal free forever, with no card.",
+    "Keep Watcher at $28 every 28 days, covered by the seven-night return.",
+    "Keep Wallpaper Vault a one-time $12 work, final the moment it opens.",
+    "Keep the Herald free. Do not store the Herald email on this site. Submitting it opens The Signal.",
+    "Send every paid or free gate through the existing Whop checkout. This site never collects card details.",
+    "Keep the September 8, 2026 Numinous Vault records (terms, privacy, refund, EULA) beside the public pact.",
+    "Disclose that Whop injects its own first-party pixel before this site's code runs."
+  ],
+  "checkout": {
+    "signal": "https://whop.com/checkout/ch_wYXFulML0v6LIoJ/",
+    "watcher": "https://jointhenuminouses.whop.site/checkout/plan_PQnMYNixMTjRQ?quantity=1&items=plan_PQnMYNixMTjRQ:1",
+    "vault": "https://jointhenuminouses.whop.site/checkout/plan_Aew5DdipP3fKY?quantity=1&items=plan_Aew5DdipP3fKY:1",
+    "herald": "https://jointhenuminouses.whop.site/checkout/plan_hIKLCR4hGiv9B?quantity=1&items=plan_hIKLCR4hGiv9B:1"
+  },
+  "required_in_source": [
+    "free, forever",
+    "seven nights",
+    "$28",
+    "$12",
+    "plan_PQnMYNixMTjRQ",
+    "plan_Aew5DdipP3fKY",
+    "plan_hIKLCR4hGiv9B",
+    "ch_wYXFulML0v6LIoJ",
+    "numinous.support@gmail.com",
+    "Card details never sit on this site",
+    "Numinous Vault",
+    "State of Wyoming",
+    "GDPR",
+    "CCPA",
+    "_wuid"
+  ]
+}

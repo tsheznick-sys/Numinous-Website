@@ -1,0 +1,28 @@
+{
+  "name": "website-developer-actions",
+  "on_behalf_of": "Whop AI",
+  "ran_at": "2026-10-10T13:45:23.912Z",
+  "live_site": "https://jointhenuminouses.whop.site",
+  "actions": [
+    {
+      "name": "coldstorage-onboard",
+      "status": "passed",
+      "detail": "Live storefront onboarded. House terms, seven-night pact, free Signal, and Whop checkouts left intact."
+    },
+    {
+      "name": "typecheck",
+      "status": "passed",
+      "detail": "source parsed"
+    },
+    {
+      "name": "build",
+      "status": "passed",
+      "detail": "dist/client/assets/index-CN1GYKpZ.css  10.01 kB │ gzip:  3.04 kB dist/client/assets/index-BmvqXe3I.js   38.34 kB │ gzip: 11.96 kB ✓ built in 164ms [whop] packed 16 files → dist/whop-build.zip (sha256 4d05c5421248…)"
+    },
+    {
+      "name": "whop-economic-intelligence",
+      "status": "blocked",
+      "detail": "No Whop session in this sandbox. OAuth callbacks to localhost cannot finish from the preview browser, and WHOP_API_KEY is not set. Live recommended actions were not marked running or executed."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "numinous-website",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Numinous storefront, kept in step with https://jointhenuminouses.whop.site",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4173 --strictPort",
+    "typecheck": "node --check src/site.js && node --check src/records.js && node --check scripts/developer-actions.mjs",
+    "developer-actions": "node scripts/developer-actions.mjs"
+  },
+  "devDependencies": {
+    "@whop/cli": "0.25.0",
+    "vite": "^6.3.5"
+  }
+}

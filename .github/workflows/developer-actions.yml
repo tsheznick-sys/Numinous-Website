@@ -1,0 +1,27 @@
+name: Website developer actions
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  developer-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the storefront
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Run developer actions
+        run: npm run developer-actions
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
