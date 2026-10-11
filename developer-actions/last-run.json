@@ -1,7 +1,7 @@
 {
   "name": "website-developer-actions",
   "on_behalf_of": "Whop AI",
-  "ran_at": "2026-10-10T13:45:23.912Z",
+  "ran_at": "2026-10-11T02:22:11.330Z",
   "live_site": "https://jointhenuminouses.whop.site",
   "actions": [
     {
@@ -17,7 +17,7 @@
     {
       "name": "build",
       "status": "passed",
-      "detail": "dist/client/assets/index-CN1GYKpZ.css  10.01 kB │ gzip:  3.04 kB dist/client/assets/index-BmvqXe3I.js   38.34 kB │ gzip: 11.96 kB ✓ built in 164ms [whop] packed 16 files → dist/whop-build.zip (sha256 4d05c5421248…)"
+      "detail": "dist/client/assets/index-CN1GYKpZ.css  10.01 kB │ gzip:  3.04 kB dist/client/assets/index-BmvqXe3I.js   38.34 kB │ gzip: 11.96 kB ✓ built in 214ms [whop] packed 17 files → dist/whop-build.zip (sha256 c3f1ae1c2d18…)"
     },
     {
       "name": "whop-economic-intelligence",

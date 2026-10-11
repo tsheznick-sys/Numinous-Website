@@ -1,0 +1,18 @@
+// Cloudflare Workers config for Whop hosting.
+// Whop runs the build on Cloudflare Workers: `vite build` emits dist/client
+// (static assets) and dist/server (this worker), packed by the whop() Vite
+// plugin from @whop/cli/vite. Keep the top-level "name" equal to the app's
+// route — the Whop CLI rewrites it otherwise.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jointhenuminouses",
+  "compatibility_date": "2026-10-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/worker.js",
+  "assets": {
+    // The plugin injects the built client directory (dist/client); these flags
+    // govern how the asset layer answers paths with no matching file.
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  }
+}
