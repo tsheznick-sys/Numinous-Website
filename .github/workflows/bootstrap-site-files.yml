@@ -1,9 +1,9 @@
 name: Bootstrap site files (one-time)
 
-# Adding this file with a commit starts everything by itself: it installs the kit
-# into main, deletes this workflow, then starts the deploy run that finds the
-# website app for jointhenuminouses and ships the site. No further clicks.
-# (Also runnable by hand from the Actions tab if ever needed.)
+# FIXED version. The previous content could not push: GitHub refuses to let a
+# workflow's own token create or update files under .github/workflows. This
+# version ships no workflow files (the kit excludes them) and starts the deploy
+# with the workflow that already exists on main. Committing it starts it.
 
 on:
   workflow_dispatch:
@@ -17,72 +17,49 @@ permissions:
   actions: write
 
 jobs:
-  bootstrap:
+  go:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out main
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           ref: main
-
-      - name: Download the prepared files
-        env:
-          KIT_DRIVE: "https://drive.usercontent.google.com/download?id=1_9gDsFv30SYofSuUOF1uU2fBn80PfVdb&export=download&confirm=t"
-          KIT_DRIVE_ALT: "https://drive.google.com/uc?export=download&id=1_9gDsFv30SYofSuUOF1uU2fBn80PfVdb"
-          KIT_SANDBOX: "https://8099-im3t09yup5zhtau03hbma.e2b.app/site-files.zip"
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
         run: |
           set -euo pipefail
           ok=""
-          for url in "$KIT_DRIVE" "$KIT_DRIVE_ALT" "$KIT_SANDBOX"; do
-            curl -fsSL --retry 2 --max-time 120 "$url" -o /tmp/kit.zip || { echo "miss: $url"; continue; }
-            python3 -c "import zipfile,sys; sys.exit(zipfile.ZipFile('/tmp/kit.zip').testzip() is not None)" \
-              && { echo "kit from: $url"; ok=yes; break; } || echo "bad zip: $url"
+          for u in \
+            "https://drive.usercontent.google.com/download?id=15jCm4YpR2wqZUKXLoOFu6XwDWVyqvs-1&export=download&confirm=t" \
+            "https://drive.google.com/uc?export=download&id=15jCm4YpR2wqZUKXLoOFu6XwDWVyqvs-1" \
+            "https://8099-im3t09yup5zhtau03hbma.e2b.app/site-files.zip"; do
+            if curl -fsSL --retry 2 --max-time 120 "$u" -o /tmp/k.zip \
+               && python3 -c "import zipfile,sys; z=zipfile.ZipFile('/tmp/k.zip'); n=z.namelist(); sys.exit(0 if z.testzip() is None and not any(x.startswith('.github/') for x in n) else 1)"; then ok="$u"; break; fi
           done
-          [ -n "$ok" ] || { echo "::error::no valid kit zip from any source"; exit 1; }
-
-      - name: Apply the files (verified first)
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import zipfile
-          z = zipfile.ZipFile("/tmp/kit.zip")
-          names = [n for n in z.namelist() if not n.endswith("/")]
-          needed = ["src/site.js", "vite.config.js",
-                    ".github/workflows/whop-site-app.yml",
-                    ".github/workflows/whop-tasks.yml",
-                    ".github/workflows/developer-actions.yml",
-                    "fix-live-site.sh", "reference/gate-pages.raw.html",
-                    "developer-actions/last-run.json"]
-          missing = [n for n in needed if n not in names]
-          assert not missing, f"kit missing {missing}"
-          assert z.testzip() is None, "corrupt zip"
-          z.extractall(".")
-          print(f"applied {len(names)} files")
-          PY
-          grep -q "checkout.watcher" src/site.js
-          grep -q "find-and-deploy" .github/workflows/whop-site-app.yml
-          grep -q "@cloudflare/vite-plugin" vite.config.js
-          echo "guards passed"
-
-      - name: Commit and push to main
-        run: |
-          set -euo pipefail
+          test -n "$ok" || { echo "::error::could not download a valid kit"; exit 1; }
+          echo "kit from: $ok"
+          python3 -c "import zipfile; zipfile.ZipFile('/tmp/k.zip').extractall('.')"
+          grep -q checkout.watcher src/site.js
+          if grep -q "/products/" src/site.js; then echo "::error::kit still links product pages"; exit 1; fi
+          test -z "$(git status --porcelain -- .github)" || { echo "::error::kit touched .github"; exit 1; }
+          npx -y @whop/cli@0.25.0 apps list --app_type website --first 50 --format json > /tmp/apps.json || true
+          jq -r '(.data // .apps // .items // [])[]? | "\(.id)  route=\(.route // "?")  \(.name // "?")"' /tmp/apps.json 2>/dev/null | head -5 || true
+          APP="$(jq -r '(.data // .apps // .items // [])[]? | select(((.route // "") | ascii_downcase) == "jointhenuminouses") | .id' /tmp/apps.json 2>/dev/null | head -1 || true)"
+          if [ -z "$APP" ] || [ "$APP" = null ]; then
+            npx -y @whop/cli@0.25.0 apps get jointhenuminouses --format json > /tmp/one.json || true
+            APP="$(jq -r '.id // .data.id // empty' /tmp/one.json 2>/dev/null | head -1 || true)"
+          fi
+          echo "website app: ${APP:-not found}"
+          if [ -n "$APP" ] && [ "$APP" != null ]; then
+            jq --arg a "$APP" '.app_id = $a' whop.app.json > /tmp/w.json && mv /tmp/w.json whop.app.json
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -q .github/workflows/bootstrap-site-files.yml
-          git add -A
-          git commit -m "Site: checkout-only storefront, website-app deploy task, CI on Node 24 actions"
+          git add src/site.js vite.config.js fix-live-site.sh reference developer-actions whop.app.json
+          git commit -m "Site: checkouts-only storefront; point whop.app.json at the website app" || echo "nothing new to commit"
           git push origin HEAD:main
-
-      - name: Start the deploy run (find the website app + ship the site)
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          for i in 1 2 3 4 5; do
-            if gh workflow run "Whop site app (find + deploy the website)" -f task=find-and-deploy; then
-              echo "deploy run started - watch it under the Actions tab"; exit 0
-            fi
-            echo "workflow not visible yet, retry $i"; sleep 20
-          done
-          echo "::warning::Start it yourself: Actions -> Whop site app (find + deploy the website) -> Run workflow -> find-and-deploy"
+          if [ -n "$APP" ] && [ "$APP" != null ] && gh workflow run "Whop one-off tasks" -f task=deploy; then
+            echo "deploy run started - watch Actions -> Whop one-off tasks"
+          else
+            echo "::warning::now run Actions -> Whop one-off tasks -> Run workflow -> deploy"
+          fi
