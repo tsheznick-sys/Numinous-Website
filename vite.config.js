@@ -5,11 +5,6 @@ import { defineConfig } from "vite";
 import { whop } from "@whop/cli/vite";
 
 const routes = [
-  "products/the-signal-e6",
-  "products/the-numinary-3e",
-  "products/herald-app",
-  "products/wallpaper-vault",
-  "collections/all",
   "returns",
   "terms",
   "privacy",

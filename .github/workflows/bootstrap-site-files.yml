@@ -1,0 +1,65 @@
+name: Bootstrap site files (one-time)
+
+# FIXED version. The previous content could not push: GitHub refuses to let a
+# workflow's own token create or update files under .github/workflows. This
+# version ships no workflow files (the kit excludes them) and starts the deploy
+# with the workflow that already exists on main. Committing it starts it.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/bootstrap-site-files.yml"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+        run: |
+          set -euo pipefail
+          ok=""
+          for u in \
+            "https://drive.usercontent.google.com/download?id=15jCm4YpR2wqZUKXLoOFu6XwDWVyqvs-1&export=download&confirm=t" \
+            "https://drive.google.com/uc?export=download&id=15jCm4YpR2wqZUKXLoOFu6XwDWVyqvs-1" \
+            "https://8099-im3t09yup5zhtau03hbma.e2b.app/site-files.zip"; do
+            if curl -fsSL --retry 2 --max-time 120 "$u" -o /tmp/k.zip \
+               && python3 -c "import zipfile,sys; z=zipfile.ZipFile('/tmp/k.zip'); n=z.namelist(); sys.exit(0 if z.testzip() is None and not any(x.startswith('.github/') for x in n) else 1)"; then ok="$u"; break; fi
+          done
+          test -n "$ok" || { echo "::error::could not download a valid kit"; exit 1; }
+          echo "kit from: $ok"
+          python3 -c "import zipfile; zipfile.ZipFile('/tmp/k.zip').extractall('.')"
+          grep -q checkout.watcher src/site.js
+          if grep -q "/products/" src/site.js; then echo "::error::kit still links product pages"; exit 1; fi
+          test -z "$(git status --porcelain -- .github)" || { echo "::error::kit touched .github"; exit 1; }
+          npx -y @whop/cli@0.25.0 apps list --app_type website --first 50 --format json > /tmp/apps.json || true
+          jq -r '(.data // .apps // .items // [])[]? | "\(.id)  route=\(.route // "?")  \(.name // "?")"' /tmp/apps.json 2>/dev/null | head -5 || true
+          APP="$(jq -r '(.data // .apps // .items // [])[]? | select(((.route // "") | ascii_downcase) == "jointhenuminouses") | .id' /tmp/apps.json 2>/dev/null | head -1 || true)"
+          if [ -z "$APP" ] || [ "$APP" = null ]; then
+            npx -y @whop/cli@0.25.0 apps get jointhenuminouses --format json > /tmp/one.json || true
+            APP="$(jq -r '.id // .data.id // empty' /tmp/one.json 2>/dev/null | head -1 || true)"
+          fi
+          echo "website app: ${APP:-not found}"
+          if [ -n "$APP" ] && [ "$APP" != null ]; then
+            jq --arg a "$APP" '.app_id = $a' whop.app.json > /tmp/w.json && mv /tmp/w.json whop.app.json
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/site.js vite.config.js fix-live-site.sh reference developer-actions whop.app.json
+          git commit -m "Site: checkouts-only storefront; point whop.app.json at the website app" || echo "nothing new to commit"
+          git push origin HEAD:main
+          if [ -n "$APP" ] && [ "$APP" != null ] && gh workflow run "Whop one-off tasks" -f task=deploy; then
+            echo "deploy run started - watch Actions -> Whop one-off tasks"
+          else
+            echo "::warning::now run Actions -> Whop one-off tasks -> Run workflow -> deploy"
+          fi
