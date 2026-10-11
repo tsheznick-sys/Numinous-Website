@@ -459,6 +459,200 @@ function prosePage({ kicker, title, paragraphs, links = [] }) {
   `;
 }
 
+// Where Whop sends a Traveller once an offering has passed. The pulled build
+// keeps this page at /order-complete; the house keeps it in the same voice.
+// Whop hands back what it can (?status=, ?plan=) and anything missing is read
+// as a finished checkout. The rooms and files live in the Whop library, never
+// on this storefront — this page is only the threshold.
+const HOUSE_LIBRARY = "https://whop.com/thenuminouses/";
+
+const completions = [
+  {
+    key: "signal",
+    slug: "the-signal-e6",
+    title: "The Signal",
+    cta: "Open your library",
+    library: "https://whop.com/joined/the-signal-e6",
+    poster: "/assets/signal.jpg",
+    film: "/assets/briefing/films/signal-briefing-1440.mp4",
+    lede:
+      "The Signal is free, forever — nothing was asked of the card. The rooms and the files wait in your Whop library; this page was only the threshold.",
+    holds: [
+      ["I · The gate", "Free, forever", "No card, no renewal. The Signal stays open."],
+      ["II · The rooms", "Six chambers", "The Signal, The Realm, The Process, The Records, The Session, Field Journal."],
+      ["III · The files", "Yours to keep", "The First Vision, and every realm drop that follows."],
+    ],
+    steps: [
+      ["I", "Open your library", "The rooms and the files wait on Whop, not on this storefront. This page was only the threshold."],
+      ["II", "Read The First Vision tonight", "Ten pages, six chambers. If it names what you saw, the Watcher gate is here when you are ready."],
+      ["III", "Keep Dispatches close", "New realms are posted in the rooms twenty-four hours before the open feed."],
+      ["IV", "Write if you need a hand", "numinous.support@gmail.com — answered by a person, not a form."],
+    ],
+  },
+  {
+    key: "watcher",
+    slug: "the-numinary-3e",
+    title: "Watcher",
+    cta: "Open your seat",
+    library: "https://whop.com/joined/the-numinary-3e",
+    poster: "/assets/watcher.jpg",
+    film: "/assets/briefing/films/watcher-briefing-1440.mp4",
+    lede:
+      "The seat is taken; the moon has started. The rooms and the files wait in your Whop library — this page was only the threshold.",
+    holds: [
+      ["I · The cycle", "Every 28 days", "The Realm, The Process, The Records, The Session — a new being with each moon."],
+      ["II · The trial", "Seven nights", "Seven days from the first payment the return is open. After that the cycle is final for that moon."],
+      ["III · The files", "Inside the rooms", "The sealed editions are shown inside the rooms, never on the open feed."],
+    ],
+    steps: [
+      ["I", "Open your seat", "Week I, The Realm, is live the moment you sit. The month's new being is already waiting."],
+      ["II", "Walk the cycle", "Four weeks: The Realm, The Process, The Records, The Session. Cancel any moon."],
+      ["III", "Meet The Numinary Agent", "When the Creator is away, The Numinary Agent is the room's first voice. It does not speak for the Creator."],
+      ["IV", "Write if you need a hand", "numinous.support@gmail.com — answered by a person, not a form."],
+    ],
+  },
+  {
+    key: "vault",
+    slug: "wallpaper-vault",
+    title: "Wallpaper Vault",
+    cta: "Open the vault on Whop",
+    library: HOUSE_LIBRARY,
+    lede:
+      "The vault is open. Fifteen realms, cropped for every screen — a one-time $12 work, final the moment it opens. The files wait in your Whop library.",
+    holds: [
+      ["I · The realms", "Fifteen sets", "Every screen: phone, tablet, desktop."],
+      ["II · The offering", "$12, once", "One-time. No renewal, no cycle, no card kept on this site."],
+      ["III · The works", "Later gates", "The Signal is free forever; the Watcher room turns with the moon."],
+    ],
+    steps: [
+      ["I", "Open your library", "The vault's files sit with everything else you have taken from the house."],
+      ["II", "Unseal them", "Each file is named for its realm. Take them to any screen."],
+      ["III", "Write if you need a hand", "numinous.support@gmail.com — answered by a person, not a form."],
+    ],
+  },
+  {
+    key: "herald",
+    slug: "herald-app",
+    title: "The Herald",
+    cta: "Open the Herald on Whop",
+    library: HOUSE_LIBRARY,
+    lede:
+      "The Herald is free, forever. Open it and let the next realm find you; submitting the address opens The Signal, the first gate.",
+    holds: [
+      ["I · The herald", "Free, forever", "No card. The next realm is delivered first."],
+      ["II · The Signal", "The first gate", "Every realm drops in The Signal before the open feed."],
+      ["III · The house", "Later gates", "The Watcher room turns with the moon; the Wallpaper Vault is a one-time $12 work."],
+    ],
+    steps: [
+      ["I", "Open the Herald", "It waits in your Whop library with the rest of the house."],
+      ["II", "Walk to the Signal", "The first gate is free forever — and nothing else is required to stay."],
+      ["III", "Write if you need a hand", "numinous.support@gmail.com — answered by a person, not a form."],
+    ],
+  },
+];
+
+function orderCompletePage() {
+  const search = window.location.search.toLowerCase();
+  const status = new URLSearchParams(window.location.search).get("status") || "";
+  const held = ["failed", "error", "canceled", "cancelled", "declined"].includes(status.toLowerCase());
+  const idOf = (url) => (String(url).match(/checkout\/([A-Za-z0-9_]+)/) || [])[1] || "";
+  const taken = completions.find((c) => {
+    const id = idOf(checkout[c.key]).toLowerCase();
+    return (id && search.includes(id)) || search.includes(c.slug) || search.includes(c.key);
+  });
+
+  document.title = held
+    ? "The gate held · Numinous"
+    : taken
+      ? `${taken.title} · Numinous`
+      : "The gate has opened · Numinous";
+
+  if (held) {
+    const retry = taken ? checkout[taken.key] : "/collections/all";
+    return `
+    <section>
+      <div class="wrap" style="max-width:780px">
+        <p class="kicker">${taken ? taken.title : "The offering"}</p>
+        <h1 style="font-size:clamp(2.8rem,6.4vw,4.4rem)">The gate held.</h1>
+        <p class="lede">The offering did not pass${taken ? ` for ${taken.title}` : ""}. Nothing was taken. You may try the gate again, or walk back to the works.</p>
+        <p>
+          <a class="btn solid" href="${retry}">Try the gate again →</a>
+          <a class="btn" href="/collections/all">The Works</a>
+          <a class="btn" href="/">Return to Numinous</a>
+        </p>
+        <p class="note">Card details never sit on this site. Whop processes every offering; if a payment looks wrong, write to numinous.support@gmail.com and a person answers.</p>
+      </div>
+    </section>`;
+  }
+
+  const library = taken ? taken.library : HOUSE_LIBRARY;
+  const cta = taken ? taken.cta : "Open your library";
+  const holds = taken
+    ? `
+    <section>
+      <div class="wrap">
+        <div class="chapter"><p class="kicker">What you hold</p><h2>YOUR ROOMS AND FILES</h2></div>
+        <div class="steps">
+          ${taken.holds
+            .map(([k, t, d]) => `<article class="step"><b>${k}</b><div><strong>${t}</strong><p>${d}</p></div></article>`)
+            .join("")}
+        </div>
+      </div>
+    </section>
+    <section>
+      <div class="wrap">
+        <div class="chapter"><p class="kicker">What happens next</p><h2>THE FIRST STEPS</h2></div>
+        <div class="steps">
+          ${taken.steps
+            .map(
+              ([k, t, d]) =>
+                `<article class="step"><b>${k}</b><div><strong>${t}</strong><p>${d}</p></div></article>`,
+            )
+            .join("")}
+        </div>
+        <div class="chapter" style="margin-top:2.6rem">
+          <p class="kicker">The gate beside this one</p>
+          <h2>THE HOUSE KEEPS THREE WORKS.</h2>
+          <p>The Signal is free, forever. Watcher turns every 28 days. The Wallpaper Vault is a one-time $12 work. Nothing else is required to stay.</p>
+          <p><a class="btn" href="/collections/all">See the works →</a></p>
+        </div>
+      </div>
+    </section>`
+    : `
+    <section>
+      <div class="wrap">
+        <div class="chapter"><p class="kicker">Every gate that is open now</p><h2>THE WORKS</h2></div>
+        <div class="works">${workCards()}</div>
+        <p class="note" style="text-align:center;margin-top:1.4rem">The Herald app is free as well: <a href="${gate("herald-app")}">open that gate</a>, and the next realm is delivered first.</p>
+      </div>
+    </section>`;
+
+  return `
+    <section>
+      <div class="wrap" style="max-width:820px">
+        <p class="kicker">${taken ? taken.title : "The gate opened"}</p>
+        <h1 style="font-size:clamp(2.8rem,6.4vw,4.6rem)">Traveller, you are inside.</h1>
+        <p class="lede">${taken ? taken.lede : "Whatever you took, the rooms and files wait in your Whop library, not on this storefront. This page was only the threshold."}</p>
+        <p>
+          <a class="btn solid" href="${library}" rel="noopener">${cta} →</a>
+          <a class="btn" href="/">Return to Numinous</a>
+        </p>
+        <p class="note">Card details never sit on this site. Whop processes every offering; the house never sees a card.</p>
+        ${
+          taken && taken.film
+            ? `<div class="films" style="margin-top:2.4rem">
+          <figure class="film">
+            <video controls playsinline preload="metadata" poster="${taken.poster}" src="${taken.film}" title="${taken.title} · the briefing"></video>
+            <figcaption>The briefing that opens ${taken.title}</figcaption>
+          </figure>
+        </div>`
+            : ""
+        }
+      </div>
+    </section>
+    ${holds}`;
+}
+
 const routes = {
   "/": { title: "NUMINOUS · The Realms, Opened", render: home },
   [gate("the-signal-e6")]: { title: "The Signal · Numinous", render: signalPage },
@@ -466,6 +660,7 @@ const routes = {
   [gate("herald-app")]: { title: "Herald app · Numinous", render: heraldPage },
   [gate("wallpaper-vault")]: { title: "Wallpaper Vault · Numinous", render: vaultPage },
   "/collections/all": { title: "The Works · Numinous", render: collectionPage },
+  "/order-complete": { title: "The gate has opened · Numinous", render: orderCompletePage },
   "/returns": {
     title: "Seven Nights · Numinous",
     render: () =>

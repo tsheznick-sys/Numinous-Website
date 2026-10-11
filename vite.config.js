@@ -18,6 +18,7 @@ const routes = [
   "products/herald-app",
   "products/wallpaper-vault",
   "collections/all",
+  "order-complete",
   "returns",
   "terms",
   "privacy",
@@ -137,6 +138,26 @@ function copyRef(from, to) {
 // keeps the same pact, the same notes and the same shake — but the handoff
 // opens the canonical free Signal checkout directly, so no traveller is
 // ever trapped by a form whose server is gone.
+/* house merge: every gate and the works index are linked from the home's foot.
+   The pulled footer names some of them; this is self-contained (its own styles,
+   the house tokens) so it renders the same whatever the home's CSS does. */
+function houseGates() {
+  const link = (href, label) =>
+    `    <a style="color:#d4af37;text-decoration:none" href="${href}">${label}</a>`;
+  return `<nav aria-label="The gates of Numinous" class="house-gates" style="display:flex;flex-wrap:wrap;gap:10px 26px;justify-content:center;align-items:center;padding:22px 18px;background:#05060a;border-top:1px solid rgba(212,175,55,.28);font:500 12px/1.4 Cinzel,Georgia,serif;letter-spacing:.16em;text-transform:uppercase">
+<style>.house-gates a:hover{color:#f0d98c;text-decoration:underline;text-underline-offset:3px}</style>
+${[
+  ["/collections/all", "The works"],
+  ["/products/the-signal-e6", "The Signal · free"],
+  ["/products/the-numinary-3e", "Watcher · $28 / moon"],
+  ["/products/wallpaper-vault", "Wallpaper Vault · $12"],
+  ["/products/herald-app", "Herald · free"],
+]
+  .map(([href, label]) => link(href, label))
+  .join("\n")}
+</nav>`;
+}
+
 function heraldOverride(freeCheckout) {
   const free = JSON.stringify(freeCheckout);
   return `<script>
@@ -223,6 +244,11 @@ function mergeHome(html, freeCheckout) {
     .replaceAll(`https://${LIVE_HOST}/checkout/`, "https://whop.com/checkout/")
     .replaceAll(`https://${REF_HOST}/checkout/`, "https://whop.com/checkout/")
     .replaceAll(REF_HOST, LIVE_HOST)
+    // The live host contains the reference host ("join|thenuminouses"), so the
+    // pass above double-prefixes any URL that was already on the live host:
+    // canonical and og:image came back as "joinjointhenuminouses.whop.site".
+    // Collapse that back to the one true host.
+    .replaceAll(`join${LIVE_HOST}`, LIVE_HOST)
     .replaceAll('"/checkout/', '"https://whop.com/checkout/')
     .replaceAll("'/checkout/", "'https://whop.com/checkout/")
     .replaceAll("numinous-consent", COOKIE_KEY)
@@ -237,7 +263,7 @@ function mergeHome(html, freeCheckout) {
     );
   // The marker lets a later build pass recognise the merged home; appending at
   // the very end also covers a home whose closing </body> is missing.
-  const tail = `${MERGED_MARK}\n${heraldOverride(freeCheckout)}\n`;
+  const tail = `${MERGED_MARK}\n${houseGates()}\n${heraldOverride(freeCheckout)}\n`;
   out = /<\/body>/i.test(out) ? out.replace(/<\/body>/i, `${tail}</body>`) : `${out}\n${tail}`;
   // The boot rides in the home's head: sync, so it runs before anything paints.
   const bootTag = `<script src="${GATE_BOOT}"></script>`;
