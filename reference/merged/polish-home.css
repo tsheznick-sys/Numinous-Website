@@ -1,0 +1,36 @@
+/* home only: richer ritual black behind the living canvas, and the
+   home's own plate chrome (it carries its own nav and foot markup).
+   Injected at the very end of the merged home, after every revision
+   block of the home's own styles. Never reaches the routed pages. */
+
+body::before,
+body.no-velaris::before{
+  background:
+    radial-gradient(58% 42% at 5% 7%,rgba(212,175,55,.06),transparent 64%),
+    radial-gradient(58% 42% at 95% 9%,rgba(201,160,84,.05),transparent 64%),
+    radial-gradient(120% 90% at 50% 10%,rgba(212,175,55,.2) 0%,rgba(64,52,110,.11) 42%,transparent 80%),
+    radial-gradient(90% 60% at 50% 108%,rgba(212,175,55,.07),transparent 66%),
+    #05060a;
+}
+
+/* the nav floats as a plate, nothing touching the screen edge */
+#nav{
+  top:12px;
+  left:clamp(10px,2vw,24px);
+  right:clamp(10px,2vw,24px);
+  border:1px solid rgba(197,164,100,.36);
+  border-radius:var(--radius-panel);
+  background:rgba(8,9,11,.76);
+  box-shadow:inset 0 1px 0 rgba(255,246,214,.06);
+}
+
+/* the foot becomes the home's rounded plate */
+footer{
+  margin:1rem clamp(10px,2vw,24px) 1.6rem;
+  border:1px solid rgba(197,164,100,.36);
+  border-radius:var(--radius-panel);
+  overflow:hidden;
+  background:linear-gradient(145deg,rgba(255,255,255,.02),transparent 52%),#0b0d12;
+  box-shadow:inset 0 1px 0 rgba(255,246,214,.06);
+}
+footer>.wrap{padding-inline:clamp(1.2rem,3vw,2.2rem)}

@@ -1,0 +1,62 @@
+/* ============================================================
+   NUMINOUS · house polish — elegant curves, richer ritual black
+   Loaded AFTER the home theme and the bridge on every routed
+   page, and injected last into the merged home, so it always
+   wins ties against every earlier revision block of the home.
+   Palette untouched: void, ivory, antique gold, sepia.
+   ============================================================ */
+
+/* the curve scale, raised into the 16–28px band */
+:root{
+  --radius-control:18px;
+  --radius-card:22px;
+  --radius-panel:28px;
+}
+
+/* cards, tiles and voices take the softer curve */
+.card{border-radius:var(--radius-card)}
+.card .frame{border-radius:calc(var(--radius-card) - 10px)}
+.card .badge{border-radius:999px}
+.pact-card,.herald-box,.doc-panel{border-radius:var(--radius-panel)}
+.pact-card::before,.herald-box::before,.doc-panel::before{border-radius:calc(var(--radius-panel) - 11px)}
+.path-card{border-radius:var(--radius-card)}
+.path-card::before,.voice::before{border-radius:calc(var(--radius-card) - 9px)}
+.voice{border-radius:var(--radius-card)}
+#cookiebar{border-radius:var(--radius-card)}
+
+/* media keeps the panel curve, home and routed alike */
+.num-art img,.gate img,.film video,.film,.film-wrap,.pdp-frame{border-radius:var(--radius-panel)}
+
+/* chips, prices and fields join the pills */
+.card .price,.num-price,.chip,.num-art .chip,.week-tabs button{border-radius:999px}
+input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-radius:999px}
+label.consent input{border-radius:50%}
+
+/* softer layered shadows, and a gentle lift where a hover exists */
+.card{box-shadow:inset 0 1px 0 rgba(255,246,214,.08),0 26px 60px -36px rgba(0,0,0,.85),0 0 54px -30px rgba(212,175,55,.32)}
+@media (hover:hover) and (pointer:fine){
+  .card:hover{
+    transform:translateY(-4px);
+    border-color:rgba(231,213,166,.5);
+    box-shadow:inset 0 1px 0 rgba(255,246,214,.1),0 34px 80px -40px rgba(0,0,0,.9),0 0 80px -30px rgba(212,175,55,.5);
+  }
+  .voice:hover{transform:translateY(-4px)}
+  .qa:hover{border-color:rgba(231,213,166,.4)}
+}
+
+/* the bands float: marquee and stat strip become inset plates */
+.marquee,.stats{
+  width:min(1180px,calc(100% - clamp(1.4rem,4vw,3.2rem)));
+  margin:clamp(.9rem,2vw,1.4rem) auto;
+  border:1px solid rgba(197,164,100,.22);
+  border-radius:var(--radius-panel);
+  overflow:hidden;
+  -webkit-mask-image:none;mask-image:none;
+  box-shadow:inset 0 1px 0 rgba(255,246,214,.05),0 24px 60px -46px rgba(0,0,0,.9);
+}
+.marquee{padding-inline:clamp(.9rem,2vw,1.4rem)}
+.stats{padding:clamp(1.9rem,4vw,2.6rem) clamp(1rem,3vw,2rem)}
+
+/* deeper vignette, a finer film grain */
+.vignette{background:radial-gradient(ellipse at 50% 42%,transparent 48%,rgba(3,4,7,.6) 100%)}
+.grain{opacity:.042;background-size:220px 220px}

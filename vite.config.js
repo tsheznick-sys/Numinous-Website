@@ -36,6 +36,14 @@ const THEME = join("reference", "merged", "theme.css");
 // routed pages link, so every gate page carries the home's own design language.
 const HOME_THEME = "/assets/numinous-theme.css";
 const BRIDGE = "/assets/numinous-bridge.css";
+// The polish pass rides after both: the shared layer plus the shell-only layer
+// become one stylesheet the routed pages link last, and the shared layer plus
+// the home-only layer are injected at the end of the merged home, so the curve
+// scale and the plate chrome win every tie against the theme and the bridge.
+const POLISH = join("reference", "merged", "polish.css");
+const POLISH_HOME = join("reference", "merged", "polish-home.css");
+const POLISH_SHELL = join("reference", "merged", "polish-shell.css");
+const POLISH_CSS = "/assets/numinous-polish.css";
 const COOKIE_KEY = "numinous-record";
 // Stamped into the merged home so later build passes can tell it from the shell.
 const MERGED_MARK = "<!-- numinous-merged-home -->";
@@ -117,6 +125,12 @@ function hasTextExt(path) {
   return TEXT_EXT.has(extname(path).toLowerCase());
 }
 
+// A polish layer that has not been authored yet is simply left out: the build
+// stays green and the house falls back to the theme and the bridge alone.
+function readIf(path) {
+  return existsSync(path) ? readFileSync(path, "utf8").trim() : "";
+}
+
 // Copy one path out of the pulled build, never over anything the storefront
 // already ships itself, and never leaving the old host in a text file.
 function copyRef(from, to) {
@@ -149,7 +163,7 @@ function copyRef(from, to) {
 function houseGates() {
   const link = (href, label) =>
     `    <a style="color:#d4af37;text-decoration:none" href="${href}">${label}</a>`;
-  return `<nav aria-label="The gates of Numinous" class="house-gates" style="display:flex;flex-wrap:wrap;gap:10px 26px;justify-content:center;align-items:center;padding:22px 18px;background:#05060a;border-top:1px solid rgba(212,175,55,.28);font:500 12px/1.4 Cinzel,Georgia,serif;letter-spacing:.16em;text-transform:uppercase">
+  return `<nav aria-label="The gates of Numinous" class="house-gates" style="display:flex;flex-wrap:wrap;gap:10px 26px;justify-content:center;align-items:center;width:min(1180px,calc(100% - clamp(1.4rem,4vw,3.2rem)));margin:clamp(1rem,2vw,1.5rem) auto 1.4rem;padding:20px 18px;background:linear-gradient(145deg,rgba(255,255,255,.02),transparent 52%),#0b0d12;border:1px solid rgba(212,175,55,.28);border-radius:28px;font:500 12px/1.4 Cinzel,Georgia,serif;letter-spacing:.16em;text-transform:uppercase">
 <style>.house-gates a:hover{color:#f0d98c;text-decoration:underline;text-underline-offset:3px}</style>
 ${[
   ["/collections/all", "The works"],
@@ -252,7 +266,7 @@ function homeThemeCss(html) {
     .trim();
 }
 
-function mergeHome(html, freeCheckout) {
+function mergeHome(html, freeCheckout, housePolish = "") {
   if (!html.includes('id="velaris"') || !html.includes('id="heraldForm"')) {
     throw new Error(
       "[numinous] reference/web-version/src/home.html is missing the expected house markup " +
@@ -282,7 +296,10 @@ function mergeHome(html, freeCheckout) {
     );
   // The marker lets a later build pass recognise the merged home; appending at
   // the very end also covers a home whose closing </body> is missing.
-  const tail = `${MERGED_MARK}\n${houseGates()}\n${heraldOverride(freeCheckout)}\n`;
+  // The polish rides at the very end of the document, after every style block
+  // the home carries, so its curves and its background always win their ties.
+  const polishTag = housePolish ? `<style data-house="polish">\n${housePolish}\n</style>\n` : "";
+  const tail = `${MERGED_MARK}\n${polishTag}${houseGates()}\n${heraldOverride(freeCheckout)}\n`;
   out = /<\/body>/i.test(out) ? out.replace(/<\/body>/i, `${tail}</body>`) : `${out}\n${tail}`;
   // The boot rides in the home's head: sync, so it runs before anything paints.
   const bootTag = `<script src="${GATE_BOOT}"></script>`;
@@ -353,9 +370,16 @@ function houseMerge() {
       // followed by the house bridge that maps the routed pages' own classes.
       const homeCss = homeThemeCss(readFileSync(join(root, REF_HOME), "utf8"));
       const bridgeCss = readFileSync(join(root, THEME), "utf8");
+      const polishCss = readIf(POLISH);
+      const polishShell = readIf(POLISH_SHELL);
+      const polishHome = readIf(POLISH_HOME);
+      const routedPolish = [polishCss, polishShell].filter(Boolean).join("\n");
       mkdirSync(join(clientDir, "assets"), { recursive: true });
       writeFileSync(join(clientDir, ...HOME_THEME.split("/").filter(Boolean)), homeCss);
       writeFileSync(join(clientDir, "assets", "numinous-bridge.css"), bridgeCss);
+      if (routedPolish) {
+        writeFileSync(join(clientDir, "assets", "numinous-polish.css"), routedPolish);
+      }
 
       // 2 · the house shell: the built shell plus the house theme and the
       // self-hosted type. closeBundle fires once per environment build; by a
@@ -373,6 +397,7 @@ function houseMerge() {
           '<link rel="preload" href="/fonts/CormorantGaramond-400-latin.woff2" as="font" type="font/woff2" crossorigin>',
           `<link rel="stylesheet" href="${HOME_THEME}">`,
           `<link rel="stylesheet" href="${BRIDGE}">`,
+          ...(routedPolish ? [`<link rel="stylesheet" href="${POLISH_CSS}">`] : []),
         ].join("\n");
         themedShell = shellHtml
           .replace(/[ \t]*<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com" \/>\s*/, "")
@@ -403,7 +428,11 @@ function houseMerge() {
       }
 
       // 4 · the pulled home becomes the storefront home
-      const merged = mergeHome(readFileSync(join(root, REF_HOME), "utf8"), freeCheckout);
+      const merged = mergeHome(
+        readFileSync(join(root, REF_HOME), "utf8"),
+        freeCheckout,
+        [polishCss, polishHome].filter(Boolean).join("\n"),
+      );
       writeFileSync(shell, merged);
 
       // 5 · the clean route URLs are answered with that home (exact file paths
@@ -416,6 +445,7 @@ function houseMerge() {
       writeFileSync(bootFile, gateBootScript());
       console.log(
         `[numinous] house merge: ${staged} pulled paths staged, theme on ${routes.length} routed pages, ` +
+          `polish ${routedPolish ? `${routedPolish.length} bytes` : "absent"}, ` +
           `home adopted (${merged.length} bytes, herald hands off to ${freeCheckout || "the Signal gate"}), ` +
           `_redirects + gate boot written`,
       );
