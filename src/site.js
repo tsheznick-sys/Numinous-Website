@@ -4,6 +4,11 @@ import { RECORD_STAMP, records } from "./records.js";
 const { checkout } = onboard;
 const COOKIE_KEY = "numinous-record";
 
+// The pre-checkout gate pages live under one prefix: the routes map below
+// and copySpaRoutes() in vite.config.js must agree on it.
+const GATE = "/products";
+const gate = (slug) => `${GATE}/${slug}`;
+
 const works = [
   {
     id: "signal",
@@ -13,7 +18,7 @@ const works = [
     text: "Every realm drops here first.",
     price: "Free: $0, no renewal.",
     cta: "Open the gate",
-    href: checkout.signal,
+    href: gate("the-signal-e6"),
     image: "/assets/signal.jpg",
     alt: "A winged eye of light emerging from storm clouds: The Signal",
   },
@@ -25,7 +30,7 @@ const works = [
     text: "The room. The community, the process, the live session, every 28-day cycle.",
     price: "7-night trial, then $28 every 28 days.",
     cta: "Enter the room",
-    href: checkout.watcher,
+    href: gate("the-numinary-3e"),
     image: "/assets/watcher.jpg",
     alt: "The Watcher, the room that runs on the moon",
   },
@@ -79,13 +84,14 @@ function nav(active) {
       <strong>NUMINOUS</strong>
     </a>
     <nav class="links" aria-label="Primary">
-      ${item("/#works", "The Works")}
-      ${item("/#numinary", "The Watcher")}
+      ${item("/collections/all", "The Works")}
+      ${item(gate("the-numinary-3e"), "The Watcher")}
       ${item("/returns", "The Pact")}
       ${item("/#faq", "FAQ")}
     </nav>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile">Menu</button>
-    <a class="enter" href="${checkout.signal}">Enter the Signal →</a>
+    <button class="ghost cart-btn" type="button" id="open-cart">Cart</button>
+    <a class="enter" href="${gate("the-signal-e6")}">Enter the Signal →</a>
   `;
 }
 
@@ -99,10 +105,10 @@ function footer() {
     <div>
       <h4>The gates</h4>
       <ul>
-        <li><a href="${checkout.signal}">The Signal · Free</a></li>
-        <li><a href="${checkout.watcher}">The Watcher · $28 / moon</a></li>
+        <li><a href="${gate("the-signal-e6")}">The Signal · Free</a></li>
+        <li><a href="${gate("the-numinary-3e")}">The Watcher · $28 / moon</a></li>
         <li><a href="${checkout.vault}">Wallpaper Vault · $12</a></li>
-        <li><a href="${checkout.herald}">Herald app · Free</a></li>
+        <li><a href="${gate("herald-app")}">Herald app · Free</a></li>
       </ul>
     </div>
     <div>
@@ -156,7 +162,7 @@ function home() {
         <h1>NUMINOUS</h1>
         <p class="lede">Witness the <em>impossible</em>.<br />Cinematic visions of the divine and mythical.<br />New realms every week.</p>
         <div class="cta-row">
-          <a class="btn solid" href="${checkout.signal}">Enter the Signal</a>
+          <a class="btn solid" href="${gate("the-signal-e6")}">Enter the Signal</a>
           <a class="btn" href="${checkout.watcher}">Become a Watcher</a>
         </div>
       </div>
@@ -263,8 +269,135 @@ function home() {
       <h2>The realms are open.</h2>
       <p class="lede">New realms every week. Start free. Walk further only if the first vision names what you saw.</p>
       <div class="cta-row">
-        <a class="btn solid" href="${checkout.signal}">Enter the Signal</a>
+        <a class="btn solid" href="${gate("the-signal-e6")}">Enter the Signal</a>
         <a class="btn" href="${checkout.watcher}">Become a Watcher</a>
+      </div>
+    </section>
+  `;
+}
+
+function signalPage() {
+  return `
+    <section>
+      <div class="wrap gate">
+        <div>
+          <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / The Signal</p>
+          <p class="kicker">I / III · The first gate</p>
+          <h1 style="font-size:clamp(3rem,7vw,5.4rem)">Every realm drops here first</h1>
+          <p class="meta">$0 · no renewal</p>
+          <p>Free, forever. No card. The first vision waits in your library.</p>
+          <p><a class="btn solid" href="${checkout.signal}">Enter the Signal →</a></p>
+          <p class="note">After you enter, a briefing opens the rooms. They wait in your library. Card details never sit on this site. Whop processes the offering.</p>
+        </div>
+        <img src="/assets/signal.jpg" alt="A winged eye of light emerging from storm clouds" />
+      </div>
+    </section>
+    <section>
+      <div class="wrap">
+        <p class="kicker">The gate · how it works</p>
+        <div class="steps">
+          ${[
+            ["The first gate", "The Signal is open.", "Free, forever. No card. This is the threshold. The rooms wait on the other side."],
+            ["I · Dispatches", "Check here first.", "New realms are posted here twenty-four hours before the feed."],
+            ["II · The First Vision", "A ten-page gift.", "It names six chambers. Read it before you walk the rooms."],
+            ["The rooms", "Six chambers, one gate.", "The Signal, The Realm, The Process, The Records, The Session, and Field Journal."],
+            ["III · The calendar", "The moon keeps time.", "The moon calendar, the domain polls, and the founding windows are announced here first."],
+            ["IV · The Sanctuary", "You are not alone.", "A shared room for every Traveller who has entered a gate."],
+          ].map(([k, t, d]) => `<article class="step"><b>${k}</b><div><strong>${t}</strong><p>${d}</p></div></article>`).join("")}
+        </div>
+      </div>
+    </section>
+    <section>
+      <div class="wrap">
+        <div class="chapter"><p class="kicker">The room beside this gate</p><h2>Seven nights, then the moon.</h2><p>7-night trial, then $28 every 28 days. Cancel any moon.</p><a class="btn" href="${gate("the-numinary-3e")}">Take a seat →</a></div>
+      </div>
+    </section>
+  `;
+}
+
+function watcherPage() {
+  return `
+    <section>
+      <div class="wrap gate">
+        <div>
+          <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / Watcher</p>
+          <p class="kicker">The gate · $28 a moon · seven-night trial</p>
+          <h1 style="font-size:clamp(3rem,7vw,5.2rem)">The membership that runs on the moon.</h1>
+          <p class="meta">7 nights free, then $28 / 28 days</p>
+          <p>Seven nights. If the room does not name what you saw, message within seven nights of the first payment and the full amount returns. Keep what you received.</p>
+          <p><a href="/returns">Read the Seven Nights policy</a></p>
+          <p><a class="btn solid" href="${checkout.watcher}">Take a seat →</a></p>
+          <p class="note">After you take a seat, a briefing opens the moon. The rooms wait in your library. Cancel any moon. Card details never sit on this site.</p>
+        </div>
+        <img src="/assets/watcher.jpg" alt="The Watcher, art of the room that runs on the moon" />
+      </div>
+    </section>
+    <section>
+      <div class="wrap">
+        <p class="kicker">Inside the room</p>
+        <p>One 28-day cycle, delivered in four weekly chapters.</p>
+        <div class="weeks">
+          ${weeks.map(([when, name, text]) => `<article class="week"><b>${when}</b><strong>${name}</strong><p>${text}</p></article>`).join("")}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function heraldPage() {
+  return `
+    <section>
+      <div class="wrap">
+        <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / Herald app</p>
+        <p class="kicker">The gate</p>
+        <h1>Herald app</h1>
+        <p class="meta">$0 · no renewal</p>
+        <p>Free, forever. No card. The Herald does not store your email on this site. Opening the gate is the letter.</p>
+        <p><a class="btn solid" href="${checkout.herald}">Open the gate →</a></p>
+      </div>
+    </section>
+    <section><div class="wrap"><p class="kicker">Further gates</p><div class="works">${workCards()}</div></div></section>
+  `;
+}
+
+function vaultPage() {
+  return `
+    <section>
+      <div class="wrap gate">
+        <div>
+          <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / Wallpaper Vault</p>
+          <p class="kicker">III / III · $12</p>
+          <h1>Wallpaper Vault</h1>
+          <p>Fifteen realms, cropped for every screen. One-time purchase: $12. Other works are final the moment they open.</p>
+          <p><a class="btn solid" href="${checkout.vault}">Enter the vault →</a></p>
+          <p class="note">Card details never sit on this site. Whop processes the offering, under <a href="${onboard.whop_terms}">Whop’s terms</a> as well as the <a href="#/eula" data-record="eula">licence of the Works</a>.</p>
+        </div>
+        <img src="/assets/vault.jpg" alt="The Wallpaper Vault: realms framed in gold" />
+      </div>
+    </section>
+  `;
+}
+
+function collectionPage() {
+  const herald = {
+    index: "IV",
+    mark: "Free",
+    title: "Herald app",
+    text: "The next realm, delivered first.",
+    price: "Free, forever. No card.",
+    cta: "Open the gate",
+    href: gate("herald-app"),
+    image: "/assets/sigil.jpg",
+    alt: "The sigil of Numinous",
+  };
+  return `
+    <section>
+      <div class="wrap">
+        <div class="chapter">
+          <p class="kicker">Chapter I · Four gates</p>
+          <h2>Every gate that is open now.</h2>
+        </div>
+        <div class="works">${workCards([...works, herald])}</div>
       </div>
     </section>
   `;
@@ -285,6 +418,11 @@ function prosePage({ kicker, title, paragraphs, links = [] }) {
 
 const routes = {
   "/": { title: "NUMINOUS · The Realms, Opened", render: home },
+  [gate("the-signal-e6")]: { title: "The Signal · Numinous", render: signalPage },
+  [gate("the-numinary-3e")]: { title: "Watcher · Numinous", render: watcherPage },
+  [gate("herald-app")]: { title: "Herald app · Numinous", render: heraldPage },
+  [gate("wallpaper-vault")]: { title: "Wallpaper Vault · Numinous", render: vaultPage },
+  "/collections/all": { title: "The Works · Numinous", render: collectionPage },
   "/returns": {
     title: "Seven Nights · Numinous",
     render: () =>
@@ -398,10 +536,11 @@ function bind() {
     note.textContent = "So it is written. The next vision will find you. The Signal opens — this site does not keep the address.";
     form.reset();
     window.setTimeout(() => {
-      window.location.href = checkout.signal;
+      window.location.href = gate("the-signal-e6");
     }, 700);
   });
 
+  document.querySelector("#open-cart")?.addEventListener("click", openCart);
   document.querySelector(".menu-btn")?.addEventListener("click", () => {
     const button = document.querySelector(".menu-btn");
     const open = button.getAttribute("aria-expanded") === "true";
@@ -414,12 +553,37 @@ function bind() {
     panel = document.createElement("div");
     panel.id = "mobile";
     panel.className = "drawer";
-    panel.innerHTML = `<aside><p class="kicker">The gates</p><nav class="mobile-links">${document.querySelector(".links").innerHTML}<a href="${checkout.signal}">Enter the Signal →</a></nav></aside>`;
+    panel.innerHTML = `<aside><p class="kicker">The gates</p><nav class="mobile-links">${document.querySelector(".links").innerHTML}<a href="${gate("the-signal-e6")}">Enter the Signal →</a><button class="btn" type="button" id="cart">Cart</button></nav></aside>`;
     document.body.append(panel);
     panel.addEventListener("click", (event) => {
       if (event.target === panel || event.target.closest("a")) panel.remove();
     });
+    panel.querySelector("#cart")?.addEventListener("click", openCart);
   });
+}
+
+function openCart() {
+  const existing = document.querySelector("#cart-drawer");
+  existing?.remove();
+  const panel = document.createElement("div");
+  panel.id = "cart-drawer";
+  panel.className = "drawer";
+  panel.innerHTML = `
+    <aside>
+      <p class="kicker">Cart</p>
+      <h2>Seats open on Whop.</h2>
+      <p>This site does not store a cart or a card. Choose a gate and Whop takes the offering, under Whop’s terms and the House pact.</p>
+      <p><a class="btn" href="${checkout.signal}">The Signal · free</a></p>
+      <p><a class="btn" href="${checkout.watcher}">Watcher · $28 / moon</a></p>
+      <p><a class="btn" href="${checkout.vault}">Wallpaper Vault · $12</a></p>
+      <button class="btn" type="button" id="close-cart">Close</button>
+    </aside>`;
+  document.body.append(panel);
+  const close = () => panel.remove();
+  panel.addEventListener("click", (event) => {
+    if (event.target === panel) close();
+  });
+  panel.querySelector("#close-cart").addEventListener("click", close);
 }
 
 function openRecord(id) {
