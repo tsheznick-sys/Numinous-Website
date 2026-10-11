@@ -49,6 +49,18 @@ const works = [
   },
 ];
 
+const herald = {
+  index: "IV",
+  mark: "Free",
+  title: "Herald app",
+  text: "The next realm, delivered first.",
+  price: "Free, forever. No card.",
+  cta: "Open the gate",
+  href: gate("herald-app"),
+  image: "/assets/sigil.jpg",
+  alt: "The sigil of Numinous",
+};
+
 const faqs = [
   ["Is the Signal truly free?", "Yes, forever. Every realm drops there first. Walk further only if the first vision names what you saw."],
   ["What is inside the Watcher?", "Every 28 days the cycle turns: the month's new being, the process behind the veil, the records, and a live session where your questions steer the vote."],
@@ -471,22 +483,11 @@ function vaultPage() {
         <div class="num-art"><img src="/assets/vault.jpg" alt="The Wallpaper Vault: realms framed in gold" /></div>
       </div>
     </section>
-    <section><div class="wrap"><div class="chapter"><p class="kicker">Further gates</p><h2>THE OTHER GATES</h2></div><div class="works">${workCards()}</div></div></section>
+    <section><div class="wrap"><div class="chapter"><p class="kicker">Further gates</p><h2>THE OTHER GATES</h2></div><div class="works">${workCards([works[0], works[1], herald])}</div></div></section>
   `;
 }
 
 function collectionPage() {
-  const herald = {
-    index: "IV",
-    mark: "Free",
-    title: "Herald app",
-    text: "The next realm, delivered first.",
-    price: "Free, forever. No card.",
-    cta: "Open the gate",
-    href: gate("herald-app"),
-    image: "/assets/sigil.jpg",
-    alt: "The sigil of Numinous",
-  };
   return `
     <section>
       <div class="wrap">
