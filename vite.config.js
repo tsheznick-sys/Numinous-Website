@@ -1,5 +1,6 @@
-import { cpSync, mkdirSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "vite";
 import { whop } from "@whop/cli/vite";
 
@@ -22,6 +23,7 @@ function copySpaRoutes() {
     closeBundle() {
       const clientDir = join(process.cwd(), "dist", "client");
       const index = join(clientDir, "index.html");
+      if (!existsSync(index)) return;
       for (const route of routes) {
         const dest = join(clientDir, route, "index.html");
         mkdirSync(dirname(dest), { recursive: true });
@@ -32,10 +34,30 @@ function copySpaRoutes() {
 }
 
 export default defineConfig({
-  plugins: [copySpaRoutes(), whop({ disableTanstackDevtools: true })],
+  plugins: [
+    // Whop hosting builds on Cloudflare Workers. Keep the Cloudflare plugin
+    // first so it owns the worker ("ssr") environment before the other plugins,
+    // and set the two output directories Whop hosting expects: dist/client for
+    // static assets, dist/server for the worker modules (entry index.js).
+    cloudflare({ viteEnvironment: { name: "ssr" } }),
+    copySpaRoutes(),
+    whop({ disableTanstackDevtools: true }),
+  ],
   build: {
-    outDir: "dist/client",
+    outDir: "dist",
     emptyOutDir: true,
+  },
+  environments: {
+    client: {
+      build: {
+        outDir: "dist/client",
+      },
+    },
+    ssr: {
+      build: {
+        outDir: "dist/server",
+      },
+    },
   },
   server: {
     host: "0.0.0.0",

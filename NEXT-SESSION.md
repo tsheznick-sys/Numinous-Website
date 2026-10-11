@@ -6,6 +6,12 @@ Updated 2026-10-10 by the `arena/496cbe7e-numinous-website` session: unpacked
 `Numinous-website-main.zip` to the repo root (zip removed, `npm-publish`
 workflow fixed to run `developer-actions` on Node 22 instead of the missing
 `npm test`). Pipeline re-verified passing; preview serves on port 4173.
+Updated 2026-10-11 by the `arena/9cc19a1f-numinous-website` session: wired the
+project for Whop hosting on Cloudflare Workers — `@cloudflare/vite-plugin` +
+`wrangler` added, `vite build` now emits `dist/client` (assets) and
+`dist/server/index.js` (worker entry from `src/worker.js`), and `wrangler.jsonc`
+names the worker `jointhenuminouses`. The `whop apps deploy` wiring check now
+passes.
 
 ## Current state
 
@@ -61,21 +67,20 @@ GitHub Actions (load the key with `set -a; . ./.env; set +a` locally).
 
 2. **Deploy the `jointhenuminouses` app.**
 
-   Actions tab → "Whop one-off tasks" → Run workflow → `deploy` (fails with a
-   clear message until `whop.app.json` has the real `app_*` id; the CLI may still
-   require `whop auth login`, which needs an interactive machine). Or locally:
+   `whop.app.json` carries the real `app_*` id (`app_vLveJBtRdgfLgz`) and the
+   project is now wired for Cloudflare Workers hosting, so the CLI's wiring check
+   passes. Actions tab → "Whop one-off tasks" → Run workflow → `deploy`. Or
+   locally:
 
    ```bash
-   cp whop.app.example.json whop.app.json
-   # edit whop.app.json: replace app_xxxxxxxx with the real app_* id for the
-   # "Numinous" app whose route is jointhenuminouses
    npm ci
    whop auth login        # browser OAuth — needs an interactive machine
    whop apps deploy
    ```
 
-   Deploy publishes the contents of the Whop build (`dist/whop-build.zip`, packed
-   from `dist/client/`) to `https://jointhenuminouses.whop.site`.
+   Deploy publishes the Whop build (`dist/whop-build.zip`, packed from
+   `dist/client/` static assets plus the `dist/server/index.js` worker entry) to
+   `https://jointhenuminouses.whop.site`.
 
 3. **Key hygiene — done, then re-rotate after the tasks.**
    The original key was committed to this repo (in `.env`, then tracked, and in
