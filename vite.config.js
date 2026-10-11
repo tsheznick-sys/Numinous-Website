@@ -31,6 +31,8 @@ const REF_PUBLIC = join(REF, "public");
 const REF_HOME = join(REF, "src", "home.html");
 const THEME = join("reference", "merged", "theme.css");
 const COOKIE_KEY = "numinous-record";
+// Stamped into the merged home so later build passes can tell it from the shell.
+const MERGED_MARK = "<!-- numinous-merged-home -->";
 
 // Text files carried over from the pulled build get the live host written in.
 const TEXT_EXT = new Set([
@@ -193,7 +195,10 @@ function mergeHome(html, freeCheckout) {
         '          <li><a href="/products/wallpaper-vault" data-hover>Wallpaper Vault · $12</a></li>\n' +
         '          <li><a href="/products/herald-app" data-hover>Herald app · Free</a></li>\n        </ul>',
     );
-  out = out.replace("</body>", `${heraldOverride(freeCheckout)}\n</body>`);
+  // The marker lets a later build pass recognise the merged home; appending at
+  // the very end also covers a home whose closing </body> is missing.
+  const tail = `${MERGED_MARK}\n${heraldOverride(freeCheckout)}\n`;
+  out = /<\/body>/i.test(out) ? out.replace(/<\/body>/i, `${tail}</body>`) : `${out}\n${tail}`;
   const gateLinks = [
     "/products/the-signal-e6",
     "/products/the-numinary-3e",
@@ -249,26 +254,49 @@ function houseMerge() {
         if (!before) staged += 1;
       }
 
-      // 2 · the house theme, and the self-hosted type, on every routed page
-      const theme = readFileSync(join(root, THEME), "utf8");
-      const head = [
-        '<link rel="preload" href="/fonts/Cinzel-900-latin.woff2" as="font" type="font/woff2" crossorigin>',
-        '<link rel="preload" href="/fonts/CormorantGaramond-400-latin.woff2" as="font" type="font/woff2" crossorigin>',
-        `<style id="numinous-house-theme">${theme}</style>`,
-      ].join("\n");
-      let shellHtml = readFileSync(shell, "utf8");
-      shellHtml = shellHtml
-        .replace(/[ \t]*<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com" \/>\s*/, "")
-        .replace(/[ \t]*<link rel="preconnect" href="https:\/\/fonts\.gstatic\.com" crossorigin \/>\s*/, "")
-        .replace(/[ \t]*<link\s+href="https:\/\/fonts\.googleapis\.com\/css2[^"]*"\s+rel="stylesheet"\s*\/>\s*/, "");
-      shellHtml = shellHtml.replace("</head>", `${head}\n  </head>`);
-      writeFileSync(shell, shellHtml);
+      // 2 · the house shell: the built shell plus the house theme and the
+      // self-hosted type. closeBundle fires once per environment build; by a
+      // later pass dist/client/index.html is already the merged home, so the
+      // themed shell is also stashed beside dist/client. The routed pages are
+      // ALWAYS built here — from a fresh build's shell when one is present,
+      // from the stash otherwise, never from index.html — so no pass, in no
+      // order, can turn a gate page into a second copy of the home.
+      const stash = join(root, "dist", ".numinous-shell.html");
+      const shellHtml = readFileSync(shell, "utf8");
+      let themedShell;
+      if (!shellHtml.includes(MERGED_MARK)) {
+        const theme = readFileSync(join(root, THEME), "utf8");
+        const head = [
+          '<link rel="preload" href="/fonts/Cinzel-900-latin.woff2" as="font" type="font/woff2" crossorigin>',
+          '<link rel="preload" href="/fonts/CormorantGaramond-400-latin.woff2" as="font" type="font/woff2" crossorigin>',
+          `<style id="numinous-house-theme">${theme}</style>`,
+        ].join("\n");
+        themedShell = shellHtml
+          .replace(/[ \t]*<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com" \/>\s*/, "")
+          .replace(/[ \t]*<link rel="preconnect" href="https:\/\/fonts\.gstatic\.com" crossorigin \/>\s*/, "")
+          .replace(/[ \t]*<link\s+href="https:\/\/fonts\.googleapis\.com\/css2[^"]*"\s+rel="stylesheet"\s*\/>\s*/, "")
+          .replace("</head>", `${head}\n  </head>`);
+        writeFileSync(stash, themedShell);
+      } else if (existsSync(stash)) {
+        themedShell = readFileSync(stash, "utf8");
+      } else {
+        console.warn(
+          "[numinous] house merge: index.html is a previous merge and no shell is stashed — waiting for a fresh build",
+        );
+        return;
+      }
 
-      // 3 · the routed pages read from that shell
+      // 3 · the routed pages read from that shell. This page must stay a gate:
+      // the home markup (the velaris canvas) must never appear in it.
+      if (themedShell.includes('id="velaris"') || !themedShell.includes('id="main"')) {
+        throw new Error(
+          "[numinous] the house shell for the routed pages is not the storefront shell — refusing to publish gate pages that are copies of the home.",
+        );
+      }
       for (const route of routes) {
         const dest = join(clientDir, route, "index.html");
         mkdirSync(dirname(dest), { recursive: true });
-        cpSync(shell, dest);
+        writeFileSync(dest, themedShell);
       }
 
       // 4 · the pulled home becomes the storefront home
