@@ -133,6 +133,44 @@ function footer() {
   `;
 }
 
+// The home's own chrome, carried onto the routed pages: the marquee band, the
+// Roman-numeral chips, the seven-night pact panel and the closing call.
+const MARQUEE_LINE =
+  "Witness the impossible <b>✦</b> The Signal <b>✦</b> Watcher $28 a moon <b>✦</b> " +
+  "New realms every week <b>✦</b> Fifteen beings <b>✦</b> The seven-night pact <b>✦</b> ";
+
+function marqueeBand() {
+  return `
+    <div class="marquee" aria-hidden="true">
+      <div class="track">${Array.from({ length: 4 }, () => `<span>${MARQUEE_LINE}</span>`).join("")}</div>
+    </div>`;
+}
+
+function statBand(stats) {
+  return `
+    <div class="stats">
+      <div class="wrap">
+        <div class="stats-grid">
+          ${stats.map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("")}
+        </div>
+      </div>
+    </div>`;
+}
+
+function pactPanel() {
+  return `
+    <section>
+      <div class="wrap">
+        <div class="pact">
+          <p class="kicker" style="justify-content:center">The seven nights</p>
+          <h2>ENTER. IF IT NAMES NOTHING, RETURN.</h2>
+          <p class="lede">The Watcher gives you <strong>seven nights</strong>. If the room does not name what you saw, message within seven nights of the first payment and <strong>the full amount returns</strong>. Keep what you received. The Signal is free, forever. Other works are final the moment they open.</p>
+          <p><a class="btn" href="/returns">Read the pact →</a></p>
+        </div>
+      </div>
+    </section>`;
+}
+
 function workCards(list = works) {
   return list
     .map(
@@ -309,14 +347,15 @@ function signalPage() {
       <div class="wrap gate">
         <div>
           <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / The Signal</p>
+          <p class="dateline">Est . MMXXVI · The first gate</p>
           <p class="kicker">I / III · The first gate</p>
-          <h1 style="font-size:clamp(3rem,7vw,5.4rem)">Every realm drops here first</h1>
+          <h1>Every realm drops here first</h1>
           <p class="meta">$0 · no renewal</p>
           <p>Free, forever. No card. The first vision waits in your library.</p>
           <p><a class="btn solid" href="${checkout.signal}">Enter the Signal →</a></p>
           <p class="note">After you enter, a briefing opens the rooms. They wait in your library. Card details never sit on this site. Whop processes the offering.</p>
         </div>
-        <img src="/assets/signal.jpg" alt="A winged eye of light emerging from storm clouds" />
+        <div class="num-art"><img src="/assets/signal.jpg" alt="A winged eye of light emerging from storm clouds" /></div>
       </div>
     </section>
     ${briefingFilms({
@@ -356,15 +395,18 @@ function watcherPage() {
       <div class="wrap gate">
         <div>
           <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / Watcher</p>
-          <p class="kicker">The gate · $28 a moon · seven-night trial</p>
-          <h1 style="font-size:clamp(3rem,7vw,5.2rem)">The membership that runs on the moon.</h1>
-          <p class="meta">7 nights free, then $28 / 28 days</p>
-          <p>Seven nights. If the room does not name what you saw, message within seven nights of the first payment and the full amount returns. Keep what you received.</p>
+          <p class="dateline">Est . MMXXVI · The gate</p>
+          <p class="kicker">Chapter II · The membership</p>
+          <h1>The membership that runs on the moon.</h1>
+          <p class="meta">$28 / moon · 7 nights free first</p>
+          <p class="meta">$280 / year · seven nights first</p>
+          <p>Seven nights. If the room does not name what you saw, message within seven nights of the first payment and <strong>the full amount returns</strong>. Keep what you received.</p>
+          <p>Prefer the whole year? The annual seat is <strong>$280</strong>, with the same <strong>seven nights</strong> first.</p>
           <p><a href="/returns">Read the Seven Nights policy</a></p>
           <p><a class="btn solid" href="${checkout.watcher}">Take a seat →</a></p>
           <p class="note">After you take a seat, a briefing opens the moon. The rooms wait in your library. Cancel any moon. Card details never sit on this site.</p>
         </div>
-        <img src="/assets/watcher.jpg" alt="The Watcher, art of the room that runs on the moon" />
+        <div class="num-art"><img src="/assets/watcher.jpg" alt="The Watcher, art of the room that runs on the moon" /></div>
       </div>
     </section>
     ${briefingFilms({
@@ -377,29 +419,38 @@ function watcherPage() {
     })}
     <section>
       <div class="wrap">
-        <p class="kicker">Inside the room</p>
-        <p>One 28-day cycle, delivered in four weekly chapters.</p>
+        <div class="chapter">
+          <p class="kicker">The room · four chapters</p>
+          <h2>ONE CYCLE, FOUR WEEKS.</h2>
+          <p>One 28-day cycle, delivered in four weekly chapters.</p>
+        </div>
         <div class="weeks">
           ${weeks.map(([when, name, text]) => `<article class="week"><b>${when}</b><strong>${name}</strong><p>${text}</p></article>`).join("")}
         </div>
       </div>
     </section>
+    ${pactPanel()}
   `;
 }
 
 function heraldPage() {
   return `
     <section>
-      <div class="wrap">
-        <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / Herald app</p>
-        <p class="kicker">The gate</p>
-        <h1>Herald app</h1>
-        <p class="meta">$0 · no renewal</p>
-        <p>Free, forever. No card. The Herald does not store your email on this site. Opening the gate is the letter.</p>
-        <p><a class="btn solid" href="${checkout.herald}">Open the gate →</a></p>
+      <div class="wrap gate">
+        <div>
+          <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / Herald app</p>
+          <p class="dateline">Est . MMXXVI · The Herald</p>
+          <p class="kicker">IV · The next realm, delivered first</p>
+          <h1>The Herald</h1>
+          <p class="meta">$0 · free forever · no card</p>
+          <p>One letter when a realm opens: the vision, the process, the lore, before the gates grow crowded. <strong>The Signal, by another name.</strong></p>
+          <p>Free, forever. No card. The Herald does not store your email on this site. Opening the gate is the letter.</p>
+          <p><a class="btn solid" href="${checkout.herald}">Open the gate →</a></p>
+        </div>
+        <div class="num-art"><img src="/assets/sigil.jpg" alt="The sigil of Numinous: a winged eye within a mandala of sacred geometry" /></div>
       </div>
     </section>
-    <section><div class="wrap"><p class="kicker">Further gates</p><div class="works">${workCards()}</div></div></section>
+    <section><div class="wrap"><div class="chapter"><p class="kicker">Further gates</p><h2>THE OTHER GATES</h2></div><div class="works">${workCards()}</div></div></section>
   `;
 }
 
@@ -409,15 +460,18 @@ function vaultPage() {
       <div class="wrap gate">
         <div>
           <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / Wallpaper Vault</p>
-          <p class="kicker">III / III · $12</p>
+          <p class="dateline">Est . MMXXVI · The vault</p>
+          <p class="kicker">III / III · The vault</p>
           <h1>Wallpaper Vault</h1>
-          <p>Fifteen realms, cropped for every screen. One-time purchase: $12. Other works are final the moment they open.</p>
+          <p class="meta">$12 · one-time</p>
+          <p>Fifteen realms, cropped for every screen. <strong>One-time purchase: $12.</strong> Other works are final the moment they open.</p>
           <p><a class="btn solid" href="${checkout.vault}">Enter the vault →</a></p>
           <p class="note">Card details never sit on this site. Whop processes the offering, under <a href="${onboard.whop_terms}">Whop’s terms</a> as well as the <a href="#/eula" data-record="eula">licence of the Works</a>.</p>
         </div>
-        <img src="/assets/vault.jpg" alt="The Wallpaper Vault: realms framed in gold" />
+        <div class="num-art"><img src="/assets/vault.jpg" alt="The Wallpaper Vault: realms framed in gold" /></div>
       </div>
     </section>
+    <section><div class="wrap"><div class="chapter"><p class="kicker">Further gates</p><h2>THE OTHER GATES</h2></div><div class="works">${workCards()}</div></div></section>
   `;
 }
 
@@ -437,21 +491,32 @@ function collectionPage() {
     <section>
       <div class="wrap">
         <div class="chapter">
+          <p class="dateline">Est . MMXXVI · The works</p>
           <p class="kicker">Chapter I · Four gates</p>
-          <h2>Every gate that is open now.</h2>
+          <h2>THE WORKS</h2>
+          <p>Three works and a free Herald. The Signal is free, forever. Watcher is a 28-day membership. The Wallpaper Vault is a one-time $12 purchase.</p>
         </div>
         <div class="works">${workCards([...works, herald])}</div>
       </div>
     </section>
+    ${statBand([
+      ["III", "Works"],
+      ["28", "Days per cycle"],
+      ["VII", "Nights of the pact"],
+      ["XV", "Beings named"],
+    ])}
+    ${marqueeBand()}
+    ${pactPanel()}
   `;
 }
 
 function prosePage({ kicker, title, paragraphs, links = [] }) {
   return `
     <section>
-      <div class="wrap" style="max-width:740px">
+      <div class="wrap prose" style="max-width:740px">
+        <p class="dateline">Est . MMXXVI · The records</p>
         <p class="kicker">${kicker}</p>
-        <h1 style="font-size:clamp(3rem,7vw,5rem)">${title}</h1>
+        <h1>${title}</h1>
         ${paragraphs.map((p) => `<p>${p}</p>`).join("")}
         ${links.map(([href, label]) => `<p><a class="btn" href="${href}">${label}</a></p>`).join("")}
       </div>
@@ -572,8 +637,9 @@ function orderCompletePage() {
     return `
     <section>
       <div class="wrap" style="max-width:780px">
+        <p class="dateline">Est . MMXXVI · The threshold</p>
         <p class="kicker">${taken ? taken.title : "The offering"}</p>
-        <h1 style="font-size:clamp(2.8rem,6.4vw,4.4rem)">The gate held.</h1>
+        <h1>The gate held.</h1>
         <p class="lede">The offering did not pass${taken ? ` for ${taken.title}` : ""}. Nothing was taken. You may try the gate again, or walk back to the works.</p>
         <p>
           <a class="btn solid" href="${retry}">Try the gate again →</a>
@@ -630,8 +696,9 @@ function orderCompletePage() {
   return `
     <section>
       <div class="wrap" style="max-width:820px">
+        <p class="dateline">Est . MMXXVI · The threshold</p>
         <p class="kicker">${taken ? taken.title : "The gate opened"}</p>
-        <h1 style="font-size:clamp(2.8rem,6.4vw,4.6rem)">Traveller, you are inside.</h1>
+        <h1>Traveller, you are inside.</h1>
         <p class="lede">${taken ? taken.lede : "Whatever you took, the rooms and files wait in your Whop library, not on this storefront. This page was only the threshold."}</p>
         <p>
           <a class="btn solid" href="${library}" rel="noopener">${cta} →</a>

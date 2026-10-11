@@ -31,6 +31,11 @@ const REF = join("reference", "web-version");
 const REF_PUBLIC = join(REF, "public");
 const REF_HOME = join(REF, "src", "home.html");
 const THEME = join("reference", "merged", "theme.css");
+// The home is the single source of style truth: houseMerge lifts its <style>
+// blocks verbatim out of the pulled home and serves them as one stylesheet the
+// routed pages link, so every gate page carries the home's own design language.
+const HOME_THEME = "/assets/numinous-theme.css";
+const BRIDGE = "/assets/numinous-bridge.css";
 const COOKIE_KEY = "numinous-record";
 // Stamped into the merged home so later build passes can tell it from the shell.
 const MERGED_MARK = "<!-- numinous-merged-home -->";
@@ -233,6 +238,20 @@ function gateBootScript() {
 // The pulled home page, wired to the live house: canonical hosted checkouts,
 // the live host everywhere, the house cookie key, no reliance on the pulled
 // server routes. Refuses to emit a half-merged page.
+function homeThemeCss(html) {
+  const blocks = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]);
+  if (!blocks.length) {
+    throw new Error(
+      "[numinous] the pulled home carries no <style> block — refusing to publish " +
+        "routed pages with no house theme.",
+    );
+  }
+  return blocks
+    .join("\n")
+    .replace(/url\((["']?)assets\//g, "url($1/assets/")
+    .trim();
+}
+
 function mergeHome(html, freeCheckout) {
   if (!html.includes('id="velaris"') || !html.includes('id="heraldForm"')) {
     throw new Error(
@@ -329,6 +348,15 @@ function houseMerge() {
         if (!before) staged += 1;
       }
 
+      // 1b · the home's own stylesheet, lifted verbatim from the pulled home so
+      // every routed page carries the home's design language, not an imitation,
+      // followed by the house bridge that maps the routed pages' own classes.
+      const homeCss = homeThemeCss(readFileSync(join(root, REF_HOME), "utf8"));
+      const bridgeCss = readFileSync(join(root, THEME), "utf8");
+      mkdirSync(join(clientDir, "assets"), { recursive: true });
+      writeFileSync(join(clientDir, ...HOME_THEME.split("/").filter(Boolean)), homeCss);
+      writeFileSync(join(clientDir, "assets", "numinous-bridge.css"), bridgeCss);
+
       // 2 · the house shell: the built shell plus the house theme and the
       // self-hosted type. closeBundle fires once per environment build; by a
       // later pass dist/client/index.html is already the merged home, so the
@@ -340,11 +368,11 @@ function houseMerge() {
       const shellHtml = readFileSync(shell, "utf8");
       let themedShell;
       if (!shellHtml.includes(MERGED_MARK)) {
-        const theme = readFileSync(join(root, THEME), "utf8");
         const head = [
           '<link rel="preload" href="/fonts/Cinzel-900-latin.woff2" as="font" type="font/woff2" crossorigin>',
           '<link rel="preload" href="/fonts/CormorantGaramond-400-latin.woff2" as="font" type="font/woff2" crossorigin>',
-          `<style id="numinous-house-theme">${theme}</style>`,
+          `<link rel="stylesheet" href="${HOME_THEME}">`,
+          `<link rel="stylesheet" href="${BRIDGE}">`,
         ].join("\n");
         themedShell = shellHtml
           .replace(/[ \t]*<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com" \/>\s*/, "")
