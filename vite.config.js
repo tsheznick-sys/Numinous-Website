@@ -33,6 +33,13 @@ const THEME = join("reference", "merged", "theme.css");
 const COOKIE_KEY = "numinous-record";
 // Stamped into the merged home so later build passes can tell it from the shell.
 const MERGED_MARK = "<!-- numinous-merged-home -->";
+// This host answers the clean route URLs with the storefront home document: it
+// resolves exact file paths and falls back to /index.html, and it applies no
+// html_handling redirects (a request for <route> never reaches the routed page
+// kept at <route>/index.html). Two guards ride along with every build: a
+// _redirects rule proxying the clean URL to the routed page, and a boot script
+// carried by the home that forwards a gate path to its own page before paint.
+const GATE_BOOT = "/assets/numinous-gate-boot.js";
 
 // Text files carried over from the pulled build get the live host written in.
 const TEXT_EXT = new Set([
@@ -169,6 +176,39 @@ document.addEventListener("submit",function(e){
 </script>`;
 }
 
+// Every routed page, proxied from its clean URL to the document that holds it.
+function gateRedirects() {
+  const lines = [
+    "# Numinous: every routed page is its own document at <route>/index.html.",
+    "# The host resolves exact file paths, so both spellings of the clean URL",
+    "# are proxied to the document. The home carries the boot for anything",
+    "# that reaches it instead.",
+  ];
+  for (const route of routes) {
+    lines.push(`/${route} /${route}/index.html 200`);
+    lines.push(`/${route}/ /${route}/index.html 200`);
+  }
+  return lines.join("\n") + "\n";
+}
+
+// Handed to the home document: a visitor bound for a gate is moved to that
+// gate's own page at once, before the home paints. The gate puts the clean URL
+// back (see currentPath in src/site.js), so the address bar never shows /index.html.
+function gateBootScript() {
+  const list = routes.map((route) => `/${route}`);
+  return `/* Numinous house boot: the clean route URLs are answered with the home document,
+   so gate paths are forwarded to the routed page that belongs to them. */
+(function () {
+  var routes = ${JSON.stringify(list)};
+  var path = window.location.pathname;
+  if (/\\/index\\.html$/i.test(path)) return;
+  var clean = path.replace(/\\/+$/, "") || "/";
+  if (routes.indexOf(clean) === -1) return;
+  window.location.replace(clean + "/index.html" + window.location.search + window.location.hash);
+})();
+`;
+}
+
 // The pulled home page, wired to the live house: canonical hosted checkouts,
 // the live host everywhere, the house cookie key, no reliance on the pulled
 // server routes. Refuses to emit a half-merged page.
@@ -199,6 +239,15 @@ function mergeHome(html, freeCheckout) {
   // the very end also covers a home whose closing </body> is missing.
   const tail = `${MERGED_MARK}\n${heraldOverride(freeCheckout)}\n`;
   out = /<\/body>/i.test(out) ? out.replace(/<\/body>/i, `${tail}</body>`) : `${out}\n${tail}`;
+  // The boot rides in the home's head: sync, so it runs before anything paints.
+  const bootTag = `<script src="${GATE_BOOT}"></script>`;
+  if (/<\/head>/i.test(out)) {
+    out = out.replace(/<\/head>/i, `${bootTag}\n</head>`);
+  } else {
+    throw new Error(
+      "[numinous] the pulled home has no </head> — refusing to publish a home without the gate boot.",
+    );
+  }
   const gateLinks = [
     "/products/the-signal-e6",
     "/products/the-numinary-3e",
@@ -302,9 +351,19 @@ function houseMerge() {
       // 4 · the pulled home becomes the storefront home
       const merged = mergeHome(readFileSync(join(root, REF_HOME), "utf8"), freeCheckout);
       writeFileSync(shell, merged);
+
+      // 5 · the clean route URLs are answered with that home (exact file paths
+      // only, no html_handling redirects), so the build also carries the two
+      // guards: _redirects proxies each clean URL to its routed page, and the
+      // home's boot forwards a gate path to that page before the home paints.
+      writeFileSync(join(clientDir, "_redirects"), gateRedirects());
+      const bootFile = join(clientDir, ...GATE_BOOT.split("/").filter(Boolean));
+      mkdirSync(dirname(bootFile), { recursive: true });
+      writeFileSync(bootFile, gateBootScript());
       console.log(
         `[numinous] house merge: ${staged} pulled paths staged, theme on ${routes.length} routed pages, ` +
-          `home adopted (${merged.length} bytes, herald hands off to ${freeCheckout || "the Signal gate"})`,
+          `home adopted (${merged.length} bytes, herald hands off to ${freeCheckout || "the Signal gate"}), ` +
+          `_redirects + gate boot written`,
       );
     },
   };
