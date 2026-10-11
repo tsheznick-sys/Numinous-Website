@@ -1,0 +1,189 @@
+<!-- PRELOADER -->
+<div id="veil" aria-hidden="true">
+  <svg class="sigil" viewBox="0 0 120 120" fill="none" stroke="#d4af37" stroke-width="1.4">
+    <circle class="draw" cx="60" cy="60" r="54"/>
+    <circle class="draw" cx="60" cy="60" r="46" stroke-dasharray="3 5"/>
+    <path class="draw" d="M22 60 Q60 34 98 60 Q60 86 22 60 Z"/>
+    <circle class="draw" cx="60" cy="60" r="12"/>
+    <circle class="draw" cx="60" cy="60" r="4.5" fill="#f0d98c" stroke="none"/>
+    <path class="draw" d="M60 34v-8M78 39l4-7M42 39l-4-7M88 50l7-4M32 50l-7-4"/>
+  </svg>
+  <div class="word">NUMINOUS</div>
+  <div class="bar"><i id="veilBar"></i></div>
+  <div class="pct" id="veilPct">I</div>
+</div>
+
+<div id="progress" role="presentation"></div>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="nebula" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor-halo" aria-hidden="true"></div>
+<div class="cursor-dot" aria-hidden="true"></div>
+
+<!-- NAV -->
+<header id="nav">
+  <a class="brand" href="#hero" data-hover aria-label="Numinous — home">
+    <svg viewBox="0 0 64 64" fill="none" stroke="#d4af37" stroke-width="1.6">
+      <circle cx="32" cy="32" r="28" stroke-dasharray="2 4"/>
+      <path d="M10 32 Q32 15 54 32 Q32 49 10 32 Z"/>
+      <circle cx="32" cy="32" r="7"/>
+      <circle cx="32" cy="32" r="2.4" fill="#f0d98c" stroke="none"/>
+      <path d="M32 17v-5M43 21l3-4M21 21l-3-4"/>
+    </svg>
+    <b>NUMINOUS</b>
+  </a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="#works" data-hover>THE WORKS</a>
+    <a href="#numinary" data-hover>THE NUMINARY</a>
+    <a href="#collector" data-hover>COLLECTOR</a>
+    <a href="#pact" data-hover>THE PACT</a>
+    <a href="#faq" data-hover>FAQ</a>
+  </nav>
+  <a class="btn btn-gold btn-sm nav-cta" data-hover data-magnet href="https://thenuminouses.whop.site/products/the-signal-e6">ENTER THE SIGNAL <span class="ar">→</span></a>
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+<div id="mobile">
+  <a href="#works">THE WORKS</a>
+  <a href="#numinary">THE NUMINARY</a>
+  <a href="#collector">COLLECTOR</a>
+  <a href="#pact">THE PACT</a>
+  <a href="#faq">FAQ</a>
+  <a href="https://thenuminouses.whop.site/products/the-signal-e6" style="color:var(--gold-hi)">ENTER THE SIGNAL →</a>
+</div>
+
+<main id="top">
+<!-- ======================= HERO ======================= -->
+<section id="hero" aria-label="Numinous — the realms, opened">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-fade"></div>
+  <div class="hero-rail" style="left:2.2rem">WITNESS&nbsp;&nbsp;THE&nbsp;&nbsp;IMPOSSIBLE</div>
+  <div class="hero-rail" style="right:2.2rem;transform:translateY(-50%) rotate(180deg)">EST&nbsp;.&nbsp;MMXXVI</div>
+
+  <div class="hero-sigil rv"><img onerror="this.onerror=null;this.src='https://thenuminouses.whop.site/logo.png';this.style.mixBlendMode='screen';this.style.filter='none'" src="assets/logo_alpha.webp" alt="The sigil of Numinous — a winged eye within a mandala of sacred geometry" width="196" height="196" loading="eager"></div>
+  <div class="hero-kicker rv d1">THE&nbsp;REALMS,&nbsp;OPENED</div>
+  <h1 class="hero-title split" id="heroTitle">NUMINOUS</h1>
+  <p class="hero-tag rv d2">Witness the <em>impossible</em>.</p>
+  <p class="hero-desc rv d3">Cinematic visions of the divine and mythical.<br>New realms every week.</p>
+  <div class="hero-cta rv d4">
+    <a class="btn btn-gold" data-hover data-magnet href="https://thenuminouses.whop.site/products/the-signal-e6">ENTER THE SIGNAL <span class="ar">→</span></a>
+    <a class="btn btn-ghost" data-hover data-magnet href="https://thenuminouses.whop.site/products/the-codex-5c">OPEN THE CODEX</a>
+  </div>
+
+  <div class="hero-foot rv d4">
+    <div class="tri">CODEX&nbsp;&nbsp;·&nbsp;&nbsp;VAULT&nbsp;&nbsp;·&nbsp;&nbsp;MOON</div>
+    <div class="scroller" aria-hidden="true"><i></i></div>
+  </div>
+</section>
+
+<!-- ======================= MARQUEE ======================= -->
+<div class="marquee" aria-hidden="true">
+  <div class="track" id="mq">
+    <span>WITNESS THE IMPOSSIBLE <b>✦</b> NEW REALMS EVERY WEEK <b>✦</b> THE CODEX <b>✦</b> THE VAULT <b>✦</b> THE NUMINARY <b>✦</b> XXVIII COPIES <b>✦</b> THE SEVEN-NIGHT PACT <b>✦</b>&nbsp;</span>
+  </div>
+</div>
+
+<!-- ======================= WORKS ======================= -->
+<section id="works" aria-label="The Works">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow rv">CHAPTER&nbsp;I&nbsp;—&nbsp;SEVEN&nbsp;GATES</div>
+      <h2 class="sec-title split">THE&nbsp;WORKS</h2>
+      <p class="sec-sub rv d1">Traveller, each gate is a different depth. Start free. Walk further only if the first vision names what you saw.</p>
+    </div>
+
+    <div class="works-grid">
+      <!-- I · THE SIGNAL -->
+      <a class="card c-signal tilt rv" data-hover href="https://thenuminouses.whop.site/products/the-signal-e6">
+        <span class="frame"></span>
+        <div class="art"><img src="https://assets-2-prod.whop.com/public/uploads/2026-09-12/05d05aa1-f69a-49d6-be69-0d8c574c4c4f/image.png" alt="A winged eye of light emerging from storm clouds — The Signal" loading="lazy"></div>
+        <div class="body">
+          <span class="badge">✦&nbsp;&nbsp;START&nbsp;HERE&nbsp;—&nbsp;FREE&nbsp;FOREVER</span>
+          <h3>THE SIGNAL</h3>
+          <p>Every realm drops here first.</p>
+          <span class="go">OPEN THE GATE <span class="ar">→</span></span>
+        </div>
+        <span class="num">I&nbsp;/&nbsp;VII</span><span class="price free">FREE</span>
+        <span class="glowline"></span>
+      </a>
+
+      <!-- II · THE CODEX -->
+      <a class="card c-codex tilt rv d1" data-hover href="https://thenuminouses.whop.site/products/the-codex-5c">
+        <span class="frame"></span>
+        <div class="art r45"><img src="https://assets-2-prod.whop.com/public/uploads/2026-09-12/a27eccba-b8d7-4a3a-aeb4-d13e589d970f/image.jpg" alt="Be Not Afraid — a codex of the divine, the fallen, and the unimaginable" loading="lazy"></div>
+        <div class="body">
+          <h3>THE CODEX</h3>
+          <p>What the beings you keep seeing actually are.</p>
+          <span class="go">OPEN THE GATE <span class="ar">→</span></span>
+        </div>
+        <span class="num">II&nbsp;/&nbsp;VII</span><span class="price">$28</span>
+        <span class="glowline"></span>
+      </a>
+
+      <!-- III · THE VAULT -->
+      <a class="card c-vault tilt rv d2" data-hover href="https://thenuminouses.whop.site/products/the-vault-c7">
+        <span class="frame"></span>
+        <div class="art r45"><img src="https://assets-2-prod.whop.com/public/uploads/2026-09-12/4c6c2eae-d684-4582-a9f9-403debf69960/image.jpg" alt="The Vault — not a prompt list, a system" loading="lazy"></div>
+        <div class="body">
+          <h3>THE VAULT</h3>
+          <p>Not a prompt list. A system.</p>
+          <span class="go">OPEN THE GATE <span class="ar">→</span></span>
+        </div>
+        <span class="num">III&nbsp;/&nbsp;VII</span><span class="price">$28</span>
+        <span class="glowline"></span>
+      </a>
+
+      <!-- IV · PREMIUM EDITION -->
+      <a class="card c-premium tilt rv d3" data-hover href="https://thenuminouses.whop.site/products/premium-edition-b1">
+        <span class="frame"></span>
+        <div class="art r45"><img src="https://assets-2-prod.whop.com/public/uploads/2026-09-12/663d4d92-cde3-4dd0-b2a7-b6dd47bed6c9/image.png" alt="Premium Edition — twelve studio cards" loading="lazy"></div>
+        <div class="body">
+          <h3>PREMIUM EDITION</h3>
+          <p>Twelve studio cards, open beside your editor.</p>
+          <span class="go">OPEN THE GATE <span class="ar">→</span></span>
+        </div>
+        <span class="num">IV&nbsp;/&nbsp;VII</span><span class="price">$56</span>
+        <span class="glowline"></span>
+      </a>
+
+      <!-- V · WALLPAPER VAULT -->
+      <a class="card c-wall tilt rv" data-hover href="https://thenuminouses.whop.site/products/wallpaper-vault-f0">
+        <span class="frame"></span>
+        <div class="art r45"><img src="https://assets-2-prod.whop.com/public/uploads/2026-09-12/77ac4e2b-b73b-4442-b3d9-51cfca6d3dc6/image.png" alt="Wallpaper Vault — fifteen realms cropped for every screen" loading="lazy"></div>
+        <div class="body">
+          <h3>WALLPAPER VAULT</h3>
+          <p>Fifteen realms, cropped for every screen.</p>
+          <span class="go">OPEN THE GATE <span class="ar">→</span></span>
+        </div>
+        <span class="num">V&nbsp;/&nbsp;VII</span><span class="price">$12</span>
+        <span class="glowline"></span>
+      </a>
+
+      <!-- VI · THE NUMINARY -->
+      <a class="card c-num tilt rv d1" data-hover href="https://thenuminouses.whop.site/products/the-numinary-3e">
+        <span class="frame"></span>
+        <div class="art r45"><img src="https://assets-2-prod.whop.com/public/uploads/2026-09-12/d35aab33-4d1c-4a27-a1cb-14056670173e/image.png" alt="The Numinary — the membership that runs on the moon" loading="lazy"></div>
+        <div class="body">
+          <h3>THE NUMINARY</h3>
+          <p>The membership that runs on the moon.</p>
+          <span class="go">OPEN THE GATE <span class="ar">→</span></span>
+        </div>
+        <span class="num">VI&nbsp;/&nbsp;VII</span><span class="price">FROM $7 / MOON</span>
+        <span class="glowline"></span>
+      </a>
+
+      <!-- VII · COLLECTOR'S EDITION -->
+      <a class="card c-coll tilt rv d2" data-hover href="https://thenuminouses.whop.site/products/collector-s-edition-31">
+        <span class="frame"></span>
+        <div class="art r45"><img src="https://assets-2-prod.whop.com/public/uploads/2026-09-12/1c7b1349-343c-431f-a633-55fe2846b38f/image.jpg" alt="Collector's Edition — twenty-eight copies, your name bound into the first edition" loading="lazy"></div>
+        <div class="body">
+          <h3>COLLECTOR'S EDITION</h3>
+          <p>Your name, bound into the first edition.</p>
+          <span class="go">OPEN THE GATE <span class="ar">→</span></span>
+        </div>
+        <span class="num">VII&nbsp;/&nbsp;VII</span><span class="price">$112</span>
+        <span class="glowline"></span>
+      </a>
+    </div>
+  </div>
+</section>
