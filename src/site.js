@@ -276,6 +276,33 @@ function home() {
   `;
 }
 
+// The briefing films from the pulled build: the film opens the gate, then the
+// rooms. Files are staged from reference/web-version/public at build time.
+function briefingFilms({ poster, blurb, films }) {
+  return `
+    <section class="briefing">
+      <div class="wrap">
+        <div class="chapter">
+          <p class="kicker">The briefing · two short films</p>
+          <h2>Watch the briefing.</h2>
+          <p>${blurb}</p>
+        </div>
+        <div class="films">
+          ${films
+            .map(
+              ([src, cap]) => `
+          <figure class="film">
+            <video controls playsinline preload="metadata" poster="${poster}" src="${src}" title="${cap}"></video>
+            <figcaption>${cap}</figcaption>
+          </figure>`,
+            )
+            .join("")}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 function signalPage() {
   return `
     <section>
@@ -292,6 +319,14 @@ function signalPage() {
         <img src="/assets/signal.jpg" alt="A winged eye of light emerging from storm clouds" />
       </div>
     </section>
+    ${briefingFilms({
+      poster: "/assets/signal.jpg",
+      blurb: "The Signal opens with the film: the briefing, and the invitation. Then the rooms.",
+      films: [
+        ["/assets/briefing/films/signal-briefing-1440.mp4", "I · The briefing"],
+        ["/assets/briefing/films/signal-invite-1440.mp4", "II · The invitation"],
+      ],
+    })}
     <section>
       <div class="wrap">
         <p class="kicker">The gate · how it works</p>
@@ -332,6 +367,14 @@ function watcherPage() {
         <img src="/assets/watcher.jpg" alt="The Watcher, art of the room that runs on the moon" />
       </div>
     </section>
+    ${briefingFilms({
+      poster: "/assets/watcher.jpg",
+      blurb: "The moon opens with the film: the briefing, and the invitation to the room.",
+      films: [
+        ["/assets/briefing/films/watcher-briefing-1440.mp4", "I · The briefing"],
+        ["/assets/briefing/films/watcher-invite-1440.mp4", "II · The invitation"],
+      ],
+    })}
     <section>
       <div class="wrap">
         <p class="kicker">Inside the room</p>
