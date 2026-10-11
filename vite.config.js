@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "vite";
@@ -28,6 +28,34 @@ function copySpaRoutes() {
   };
 }
 
+// The onboard record still lists the older app-domain checkout form for three
+// works. On the live host nothing serves /checkout/*, so that form lands on the
+// storefront home instead of a checkout. Every button is pointed at the
+// canonical hosted checkout on whop.com as the bundle is built.
+function canonicalCheckouts() {
+  const virtual = "\0canonical-onboard";
+  return {
+    name: "canonical-checkouts",
+    enforce: "pre",
+    resolveId(source, importer) {
+      if (!importer || !source.endsWith("coldstorage/onboard.json")) return null;
+      return virtual;
+    },
+    load(id) {
+      if (id !== virtual) return null;
+      const file = join(process.cwd(), "coldstorage", "onboard.json");
+      const data = JSON.parse(readFileSync(file, "utf8"));
+      for (const work of Object.keys(data.checkout || {})) {
+        data.checkout[work] = data.checkout[work].replace(
+          "://jointhenuminouses.whop.site/checkout/",
+          "://whop.com/checkout/",
+        );
+      }
+      return `export default ${JSON.stringify(data)};`;
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
     // Whop hosting builds on Cloudflare Workers. Keep the Cloudflare plugin
@@ -35,6 +63,7 @@ export default defineConfig({
     // and set the two output directories Whop hosting expects: dist/client for
     // static assets, dist/server for the worker modules (entry index.js).
     cloudflare({ viteEnvironment: { name: "ssr" } }),
+    canonicalCheckouts(),
     copySpaRoutes(),
     whop({ disableTanstackDevtools: true }),
   ],
