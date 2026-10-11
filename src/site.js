@@ -548,12 +548,25 @@ const footEl = document.querySelector("#foot");
 const dialog = document.querySelector("#records");
 
 function currentPath() {
-  const path = window.location.pathname.replace(/\/$/, "") || "/";
+  // A gate can arrive as its <route>/index.html document (the host answers the
+  // clean route URL with the home, whose boot forwards to that document). Both
+  // spellings — and a stray trailing slash — resolve to the route itself.
+  const path =
+    window.location.pathname.replace(/\/index\.html$/i, "").replace(/\/+$/, "") || "/";
   return routes[path] ? path : "/";
 }
 
 function render() {
   const path = currentPath();
+  // Keep the address bar on the route itself, never on the document that
+  // carried it: a gate delivered as its own <route>/index.html document, or
+  // with a stray trailing slash, settles on its clean path — the query and any
+  // record hash preserved.
+  const canonical =
+    window.location.pathname.replace(/\/index\.html$/i, "").replace(/\/+$/, "") || "/";
+  if (canonical === path && window.location.pathname !== canonical) {
+    history.replaceState(null, "", canonical + window.location.search + window.location.hash);
+  }
   const page = routes[path];
   document.title = page.title;
   navEl.innerHTML = nav(path);
