@@ -8,6 +8,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, extname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "vite";
 import { whop } from "@whop/cli/vite";
@@ -54,6 +55,55 @@ const MERGED_MARK = "<!-- numinous-merged-home -->";
 // _redirects rule proxying the clean URL to the routed page, and a boot script
 // carried by the home that forwards a gate path to its own page before paint.
 const GATE_BOOT = "/assets/numinous-gate-boot.js";
+// The overhaul modules: every reference/patch/*.mjs present at build time is
+// loaded and folded in here, so one kit can carry the engine while later kits
+// carry content. A module may offer { routes, source, home, css, emit }:
+//   routes  - extra routed pages (shells + _redirects + boot list)
+//   source  - rewrite a module's source before Vite compiles it (site.js, records.js)
+//   home    - rewrite the pulled home document before the merge invariants run
+//   css     - extra rules, appended after the polish layers on every page
+//   emit    - write build outputs (sitemap, robots, headers, 404) into dist/client
+// A missing directory, a broken module, or a module that throws is reported and
+// never stops the build; the site simply keeps the previous behaviour.
+const PATCH_DIR = join("reference", "patch");
+let OVERHAUL = [];
+
+async function loadOverhaul(root) {
+  const dir = join(root, PATCH_DIR);
+  if (!existsSync(dir)) return [];
+  const loaded = [];
+  for (const file of readdirSync(dir).filter((name) => name.endsWith(".mjs")).sort()) {
+    try {
+      const mod = await import(pathToFileURL(join(dir, file)).href);
+      if (mod?.default) {
+        loaded.push(mod.default);
+        console.log(`[numinous] overhaul module loaded: ${file}`);
+      }
+    } catch (error) {
+      console.warn(`[numinous] overhaul module failed to load (${file}): ${error.message}`);
+    }
+  }
+  return loaded;
+}
+
+// Rewrites a module's source at compile time, before any other transform.
+function overhaulSources() {
+  return {
+    name: "numinous-overhaul-sources",
+    enforce: "pre",
+    transform(code, id) {
+      if (!OVERHAUL.length) return null;
+      const file = id.split("?")[0];
+      let out = code;
+      for (const mod of OVERHAUL) {
+        if (typeof mod.source !== "function") continue;
+        const next = mod.source(file, out);
+        if (typeof next === "string" && next !== out) out = next;
+      }
+      return out === code ? null : { code: out, map: null };
+    },
+  };
+}
 
 // Text files carried over from the pulled build get the live host written in.
 const TEXT_EXT = new Set([
@@ -191,14 +241,18 @@ document.addEventListener("submit",function(e){
   e.preventDefault();
   if(e.stopImmediatePropagation)e.stopImmediatePropagation();
   var em=document.getElementById("heraldEmail");
-  if(em&&(!em.value||em.value.indexOf("@")<1)){em.setAttribute("aria-invalid","true");em.focus();return}
+  var note=document.getElementById("consentNote");
+  if(em&&(!em.value||em.value.indexOf("@")<1)){
+    if(note){note.textContent="Enter a valid email address.";note.style.display="block"}
+    em.setAttribute("aria-invalid","true");em.focus();return
+  }
   if(em)em.removeAttribute("aria-invalid");
   var terms=document.getElementById("heraldTerms");
   if(terms&&!terms.checked){
     var lb=document.querySelector("label.consent");
     if(lb){lb.classList.remove("shake");void lb.offsetWidth;lb.classList.add("shake")}
     var cn=document.getElementById("consentNote");
-    if(cn)cn.style.display="block";
+    if(cn){cn.textContent="Please accept the Terms and Privacy Policy to continue.";cn.style.display="block"}
     terms.focus();
     return;
   }
@@ -206,8 +260,11 @@ document.addEventListener("submit",function(e){
   if(cn2)cn2.style.display="none";
   var ok=document.getElementById("heraldOk");
   if(ok){
-    ok.innerHTML='So it is written. The Signal is free, forever \\u2014 this site keeps no address. '
-      +'<a href="'+GATE+'" style="color:var(--gold-hi);text-decoration:underline;text-underline-offset:3px">Open The Signal \\u2192</a>';
+    ok.textContent="Thank you. This site does not store your address. ";
+    var a=document.createElement("a");
+    a.href=GATE;a.textContent="Open The Signal \\u2192";
+    a.style.cssText="color:var(--gold-hi);text-decoration:underline;text-underline-offset:3px";
+    ok.appendChild(a);
     ok.style.display="block";
   }
   window.open(FREE,"_blank","noopener");
@@ -267,6 +324,11 @@ function homeThemeCss(html) {
 }
 
 function mergeHome(html, freeCheckout, housePolish = "") {
+  // The overhaul speaks first: its home rewrite lands before the invariants
+  // below, so a patch that breaks the house markup still fails the build.
+  for (const mod of OVERHAUL) {
+    if (typeof mod.home === "function") html = mod.home(html) || html;
+  }
   if (!html.includes('id="velaris"') || !html.includes('id="heraldForm"')) {
     throw new Error(
       "[numinous] reference/web-version/src/home.html is missing the expected house markup " +
@@ -299,7 +361,10 @@ function mergeHome(html, freeCheckout, housePolish = "") {
   // The polish rides at the very end of the document, after every style block
   // the home carries, so its curves and its background always win their ties.
   const polishTag = housePolish ? `<style data-house="polish">\n${housePolish}\n</style>\n` : "";
-  const tail = `${MERGED_MARK}\n${polishTag}${houseGates()}\n${heraldOverride(freeCheckout)}\n`;
+  // 4.1 · one navigation, not two: the gate row is gone; the footer carries
+  // every gate (the check below proves it), so the house-gates band is not
+  // appended to the merged home any more.
+  const tail = `${MERGED_MARK}\n${polishTag}${heraldOverride(freeCheckout)}\n`;
   out = /<\/body>/i.test(out) ? out.replace(/<\/body>/i, `${tail}</body>`) : `${out}\n${tail}`;
   // The boot rides in the home's head: sync, so it runs before anything paints.
   const bootTag = `<script src="${GATE_BOOT}"></script>`;
@@ -373,7 +438,8 @@ function houseMerge() {
       const polishCss = readIf(POLISH);
       const polishShell = readIf(POLISH_SHELL);
       const polishHome = readIf(POLISH_HOME);
-      const routedPolish = [polishCss, polishShell].filter(Boolean).join("\n");
+      const overhaulCss = OVERHAUL.map((mod) => mod.css || "").filter(Boolean).join("\n");
+      const routedPolish = [polishCss, polishShell, overhaulCss].filter(Boolean).join("\n");
       mkdirSync(join(clientDir, "assets"), { recursive: true });
       writeFileSync(join(clientDir, ...HOME_THEME.split("/").filter(Boolean)), homeCss);
       writeFileSync(join(clientDir, "assets", "numinous-bridge.css"), bridgeCss);
@@ -431,7 +497,7 @@ function houseMerge() {
       const merged = mergeHome(
         readFileSync(join(root, REF_HOME), "utf8"),
         freeCheckout,
-        [polishCss, polishHome].filter(Boolean).join("\n"),
+        [polishCss, polishHome, overhaulCss].filter(Boolean).join("\n"),
       );
       writeFileSync(shell, merged);
 
@@ -443,6 +509,9 @@ function houseMerge() {
       const bootFile = join(clientDir, ...GATE_BOOT.split("/").filter(Boolean));
       mkdirSync(dirname(bootFile), { recursive: true });
       writeFileSync(bootFile, gateBootScript());
+      for (const mod of OVERHAUL) {
+        if (typeof mod.emit === "function") mod.emit(clientDir, routes);
+      }
       console.log(
         `[numinous] house merge: ${staged} pulled paths staged, theme on ${routes.length} routed pages, ` +
           `polish ${routedPolish ? `${routedPolish.length} bytes` : "absent"}, ` +
@@ -453,7 +522,15 @@ function houseMerge() {
   };
 }
 
-export default defineConfig({
+export default defineConfig(async () => {
+  OVERHAUL = await loadOverhaul(process.cwd());
+  for (const mod of OVERHAUL) {
+    for (const route of mod.routes || []) if (!routes.includes(route)) routes.push(route);
+  }
+  if (OVERHAUL.length) {
+    console.log(`[numinous] overhaul: ${OVERHAUL.length} module(s) loaded, ${routes.length} routed pages`);
+  }
+  return {
   plugins: [
     // Whop hosting builds on Cloudflare Workers. Keep the Cloudflare plugin
     // first so it owns the worker ("ssr") environment before the other plugins,
@@ -461,6 +538,7 @@ export default defineConfig({
     // static assets, dist/server for the worker modules (entry index.js).
     cloudflare({ viteEnvironment: { name: "ssr" } }),
     canonicalCheckouts(),
+    overhaulSources(),
     houseMerge(),
     whop({ disableTanstackDevtools: true }),
   ],
@@ -492,4 +570,5 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: true,
   },
+  };
 });

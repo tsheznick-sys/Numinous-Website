@@ -60,3 +60,46 @@ label.consent input{border-radius:50%}
 /* deeper vignette, a finer film grain */
 .vignette{background:radial-gradient(ellipse at 50% 42%,transparent 48%,rgba(3,4,7,.6) 100%)}
 .grain{opacity:.042;background-size:220px 220px}
+
+/* ============================================================
+   OVERHAUL PASS (4.9 / 4.10 / 4.18 / 4.19 / 4.3)
+   One value per token, readable contrast, a focus ring that is
+   always visible, honest 44px targets, motion that obeys the
+   reader. Appended last, so it wins every tie.
+   ============================================================ */
+
+/* 4.9 · one value per token: the home redefined these in later
+   revision blocks; the polish layer now states the final word. */
+:root{
+  --void:#08090b;--ink:#121416;--ink-2:#17191b;
+  --gold:#c5a464;--gold-hi:#e7d5a6;--gold-deep:#8b7043;
+  --bone:#f2efe8;--mist:#c9c3b6;
+  --radius-control:12px;--radius-card:22px;--radius-panel:28px;
+}
+
+/* 4.18 / 4.10 · focus is always visible, in the brand gold; the
+   native cursor returns to every field */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold-hi);outline-offset:3px}
+input,textarea,select,[contenteditable]{cursor:auto}
+
+/* 4.19 · every control is at least a 44px target */
+button,.btn,.chip,summary,.onode,input[type="checkbox"],input[type="radio"]{min-height:44px}
+input[type="checkbox"],input[type="radio"]{min-width:24px}
+.btn,button.btn{display:inline-flex;align-items:center;justify-content:center}
+
+/* 4.9 · small uppercase labels read at 13px and up, body at 16px */
+.kicker,.eyebrow,.badge,.chip,.go,.num,.stat span,.foot-bar,.legal,.wk,.hero-rail,.lq-label,.offer-terms,.meta,.note,.pm{font-size:max(13px,1em)}
+p,li,blockquote,figcaption,.ans,.lede{font-size:max(16px,1em)}
+
+/* 4.3 · the ticker reads at full contrast, pauses on hover and on
+   focus, and stops completely when the reader asks for less motion */
+.marquee span,.voices-note,.foot-bar .legal,.onode .wk{color:var(--mist)}
+.marquee span{color:var(--bone)}
+.marquee:hover .track,.marquee:focus-within .track{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){
+  .marquee .track{animation:none!important;transform:none!important}
+  html{scroll-behavior:auto!important}
+}
+
+/* 4.1 · a heading is never hidden behind the fixed bar */
+:target{scroll-margin-top:112px}

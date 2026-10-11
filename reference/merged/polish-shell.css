@@ -42,3 +42,17 @@ body::after{background:radial-gradient(ellipse at 50% 42%,transparent 48%,rgba(3
 .drawer aside::before{border-radius:calc(var(--radius-panel) - 12px)}
 .cookie{border-radius:var(--radius-card)}
 .records .close{border-radius:50%}
+
+/* ============================================================
+   OVERHAUL PASS · routed pages only (4.1 / 4.11 / 4.18)
+   ============================================================ */
+html{scroll-padding-top:112px}
+#main,.sect,#how,.steps,.weeks{scroll-margin-top:112px}
+.legal-row{color:var(--mist)}
+.legal-row a{color:var(--gold)}
+.legal-row a:hover{color:var(--gold-hi)}
+.step a,.step button{min-height:44px}
+.guarantee-card{margin:1.1rem 0;padding:1rem 1.15rem;border:1px solid rgba(197,164,100,.4);border-radius:var(--radius-card);background:linear-gradient(145deg,rgba(212,175,55,.05),transparent 60%),rgba(255,255,255,.015);display:block}
+.guarantee-card strong{color:var(--gold-hi);display:block;font-family:var(--display);letter-spacing:.1em}
+.plain-lede{color:var(--bone)}
+.week,.step{min-height:44px}

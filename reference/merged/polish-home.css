@@ -34,3 +34,36 @@ footer{
   box-shadow:inset 0 1px 0 rgba(255,246,214,.06);
 }
 footer>.wrap{padding-inline:clamp(1.2rem,3vw,2.2rem)}
+
+/* ============================================================
+   OVERHAUL PASS · home only (4.1 / 4.6 / 4.8 / 4.11 / 4.13 / 4.15)
+   ============================================================ */
+html{scroll-padding-top:112px}
+#works,#numinary,#pact,#faq,#herald,#voices,#finale,#interlude{scroll-margin-top:112px}
+
+/* 4.15 · consent: Accept and Decline carry equal weight */
+#cookiebar .row{display:flex;gap:.7rem}
+#cookiebar .row .btn{flex:1;justify-content:center;min-height:44px}
+#cookiebar .btn-ghost{border-color:rgba(231,213,166,.55);color:var(--bone);background:rgba(255,255,255,.035)}
+
+/* 4.8 · the orbit nodes are named and reachable */
+.onode{min-height:44px;min-width:44px;justify-content:center}
+.onode .lbl{display:block!important}
+.onode .wk,.onode .lbl{color:var(--mist)}
+
+/* 4.6 · the veil never traps: the skip is visible and reachable */
+#veil{position:fixed}
+#veilSkip{position:absolute;bottom:clamp(1.2rem,5vh,2.8rem);left:50%;transform:translateX(-50%);padding:.72rem 1.5rem;background:rgba(8,9,11,.72);color:var(--bone);border:1px solid rgba(231,213,166,.55);border-radius:999px;font:600 .8125rem/1 Cinzel,Georgia,serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;min-height:44px}
+#veilSkip:hover{color:var(--gold-hi);border-color:var(--gold-hi)}
+
+/* 4.13 · the voices read as community comments, not endorsements */
+.voices-note,.voice figcaption{color:var(--mist)}
+
+/* 4.11 · the plain terms sit under the poetry */
+.pact-terms{display:grid;gap:.6rem;margin:1.3rem auto 0;max-width:64ch;text-align:left;padding:0}
+.pact-terms li{list-style:none;position:relative;padding-left:1.7rem;color:var(--bone)}
+.pact-terms li::before{content:"\2726";position:absolute;left:0;color:var(--gold)}
+.pact-plain{font:400 clamp(1.05rem,2vw,1.3rem)/1.5 var(--serif);color:var(--bone);margin:.4rem 0 0}
+.pact-plain+.pact-poet{font-style:italic;color:var(--mist)}
+.hero-value{max-width:52ch;margin:.9rem auto 0;color:var(--mist)}
+@media (max-width:560px){#veilSkip{font-size:13px;padding:.66rem 1.1rem}}
