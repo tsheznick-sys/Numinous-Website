@@ -1,0 +1,285 @@
+<!doctype html>
+<!--
+  NUMINOUS — raw style for the pre-checkout gate pages and the post-checkout page.
+
+  WHY THIS FILE EXISTS
+  The live storefront (jointhenuminouses.whop.site) shipped with links to
+  pre-checkout pages (/products/the-signal-e6, /products/the-numinary-3e,
+  /products/herald-app, /products/wallpaper-vault, /collections/all, /cart) that
+  render a router error ("Something went wrong! Show Error") and a not-found page
+  ("This chamber is empty"). Until those pages are rebuilt, the site links straight
+  to the Whop checkouts and nothing else.
+
+  WHAT IS LIVE NOW: home, /returns, /terms, /privacy, /cookies, and the four
+  checkout URLs. No /products/*, no /collections/*, no /cart links anywhere.
+
+  HOW TO BRING THE PAGES BACK (three edits, no redesign needed)
+    1. src/site.js — paste the render functions below back in, and add the routes
+       to the `routes` map:
+         "/products/the-signal-e6":    { title: "The Signal · Numinous",     render: signalPage },
+         "/products/the-numinary-3e":  { title: "Watcher · Numinous",        render: watcherPage },
+         "/products/herald-app":       { title: "Herald app · Numinous",     render: heraldPage },
+         "/products/wallpaper-vault":  { title: "Wallpaper Vault · Numinous",render: vaultPage },
+         "/collections/all":           { title: "The Works · Numinous",      render: collectionPage },
+         "/welcome":                   { title: "The rooms are open · Numinous", render: welcomePage },
+    2. vite.config.js — add the folders back to `copySpaRoutes()`:
+         "products/the-signal-e6", "products/the-numinary-3e", "products/herald-app",
+         "products/wallpaper-vault", "collections/all", "welcome"
+    3. Whop dashboard — per product, the advanced settings "Redirect before
+       checkout" / "Redirect after checkout" should point at these paths only once
+       they render (pre-checkout -> the gate page, post-checkout -> /welcome).
+
+  The markup below is the exact HTML the site produced before the pages were
+  removed; the CSS is copied from src/styles.css, so everything matches the house
+  gold-on-black style with no new dependencies.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Numinous — gate pages (raw reference)</title>
+<style>
+/* ============================================================
+   RAW STYLE — the pieces these pages use, copied from src/styles.css
+   ============================================================ */
+:root {
+  --bg: #07060a;
+  --bg-2: #100e14;
+  --ink: #f6f1e7;
+  --mute: #a89c8e;
+  --gold: #d4b483;
+  --gold-2: #f0e2c4;
+  --line: rgba(212, 180, 131, 0.32);
+  --danger: #e7b4a8;
+  --serif: "Cormorant Garamond", "Palatino Linotype", Palatino, serif;
+  --sans: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --pad: clamp(1.1rem, 3vw, 2.4rem);
+  --max: 1120px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(212, 180, 131, 0.08), transparent 55%), var(--bg);
+  font-family: var(--sans);
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  line-height: 1.55;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+.wrap { width: min(var(--max), calc(100% - var(--pad) * 2)); margin: 0 auto; }
+.eyebrow, .kicker, .meta {
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--gold);
+}
+h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: 0.08em; }
+h1 { font-size: clamp(3.4rem, 10vw, 7.4rem); line-height: 0.88; margin: 0.2rem 0 0.8rem; }
+.lede { max-width: 36rem; color: var(--mute); font-size: 1.05rem; }
+.cta-row { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 46px; padding: 0.7rem 1.1rem;
+  border: 1px solid var(--gold);
+  text-decoration: none; letter-spacing: 0.16em; text-transform: uppercase;
+  font-size: 0.74rem; background: transparent; cursor: pointer;
+}
+.btn.solid { background: var(--gold); color: #16130e; border-color: var(--gold); }
+.btn.solid:hover { filter: brightness(1.05); }
+.btn:hover { background: rgba(212, 180, 131, 0.12); }
+
+/* pre-checkout gate page */
+.gate { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 2rem; align-items: center; padding: 3.4rem 0; }
+.gate img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border: 1px solid var(--line); }
+.crumbs { color: var(--mute); font-size: 0.8rem; letter-spacing: 0.08em; }
+.crumbs a { color: var(--gold); }
+.steps { display: grid; gap: 0.8rem; }
+.step { display: grid; grid-template-columns: 7rem 1fr; gap: 0.8rem; border-top: 1px solid var(--line); padding-top: 0.7rem; }
+.step b { color: var(--gold); letter-spacing: 0.12em; font-size: 0.72rem; font-weight: 500; }
+.weeks { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.2rem 0; }
+.week { border: 1px solid var(--line); padding: 0.9rem; }
+.week b { display: block; letter-spacing: 0.16em; font-size: 0.72rem; color: var(--gold); font-weight: 500; }
+.frame { position: relative; }
+.frame img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border: 1px solid var(--line); }
+.frame span {
+  position: absolute; left: 0.8rem; bottom: 0.8rem;
+  letter-spacing: 0.18em; font-size: 0.68rem; text-transform: uppercase;
+  background: rgba(7, 6, 10, 0.72); padding: 0.35rem 0.5rem;
+}
+.chapter { text-align: center; margin-bottom: 1.6rem; }
+.chapter h2 { font-size: clamp(2.6rem, 6vw, 4.6rem); margin: 0.3rem 0; letter-spacing: 0.18em; }
+.chapter p { color: var(--mute); max-width: 40rem; margin: 0.4rem auto 0; }
+.note { color: var(--mute); font-size: 0.88rem; }
+.note.bad { color: var(--danger); }
+.note.good { color: var(--gold-2); }
+
+/* the works grid (used by /collections/all) */
+.works { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.card {
+  display: flex; flex-direction: column; min-height: 100%;
+  text-decoration: none; border: 1px solid var(--line);
+  background: rgba(16, 14, 20, 0.7); overflow: hidden;
+}
+.card img { aspect-ratio: 16/11; object-fit: cover; width: 100%; }
+.card .body { padding: 1rem 1rem 1.2rem; display: flex; flex-direction: column; gap: 0.45rem; flex: 1; }
+.card h3 { margin: 0; letter-spacing: 0.16em; font-size: 1.45rem; }
+.card p { margin: 0; color: var(--mute); }
+.card .go { margin-top: auto; color: var(--gold); letter-spacing: 0.16em; font-size: 0.72rem; text-transform: uppercase; }
+.price-row { display: flex; justify-content: space-between; color: var(--gold); font-size: 0.72rem; letter-spacing: 0.14em; }
+
+/* post-checkout page (added 2026-10-11; nothing shipped with this before) */
+.opened { max-width: 760px; margin: 0 auto; padding: 3.4rem 0; }
+.opened .seal {
+  width: 96px; height: 96px; margin: 0 auto 1.2rem;
+  border: 1px solid var(--gold); border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--serif); font-size: 2rem; color: var(--gold-2);
+  background: radial-gradient(circle at 50% 30%, rgba(212, 180, 131, 0.18), transparent 70%);
+}
+.opened .pact-list { display: grid; gap: 0.6rem; margin: 1.6rem 0; text-align: left; }
+.opened .pact-list article { border: 1px solid var(--line); padding: 0.9rem 1rem; }
+.opened .pact-list b { display: block; letter-spacing: 0.16em; font-size: 0.72rem; color: var(--gold); font-weight: 500; }
+.opened .cta-row { justify-content: flex-start; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     A. PRE-CHECKOUT GATE PAGES  (were /products/*)
+     Each gate page = crumbs + kicker + title + terms + one CTA straight
+     to the Whop checkout + a note. Same skeleton for all four works.
+     ============================================================ -->
+
+<!-- ---- A1. /products/the-signal-e6 (free, forever) ---- -->
+<section>
+  <div class="wrap gate">
+    <div>
+      <p class="crumbs"><a href="/">Home</a> / <a href="/#works">The Works</a> / The Signal</p>
+      <p class="kicker">I / III · The first gate</p>
+      <h1 style="font-size:clamp(3rem,7vw,5.4rem)">Every realm drops here first</h1>
+      <p class="meta">$0 · no renewal</p>
+      <p>Free, forever. No card. The first vision waits in your library.</p>
+      <p><a class="btn solid" href="https://whop.com/checkout/ch_wYXFulML0v6LIoJ/">Enter the Signal →</a></p>
+      <p class="note">After you enter, a briefing opens the rooms. They wait in your library. Card details never sit on this site. Whop processes the offering.</p>
+    </div>
+    <img src="/assets/signal.jpg" alt="A winged eye of light emerging from storm clouds" />
+  </div>
+</section>
+
+<!-- ---- A2. /products/the-numinary-3e (the Watcher · $28 / 28 days) ---- -->
+<section>
+  <div class="wrap gate">
+    <div>
+      <p class="crumbs"><a href="/">Home</a> / <a href="/#works">The Works</a> / Watcher</p>
+      <p class="kicker">The gate · $28 a moon · seven-night trial</p>
+      <h1 style="font-size:clamp(3rem,7vw,5.2rem)">The membership that runs on the moon.</h1>
+      <p class="meta">7 nights free, then $28 / 28 days</p>
+      <p>Seven nights. If the room does not name what you saw, message within seven nights of the first payment and the full amount returns. Keep what you received.</p>
+      <p><a href="/returns">Read the Seven Nights policy</a></p>
+      <p><a class="btn solid" href="https://jointhenuminouses.whop.site/checkout/plan_PQnMYNixMTjRQ?quantity=1&amp;items=plan_PQnMYNixMTjRQ:1">Take a seat →</a></p>
+      <p class="note">After you take a seat, a briefing opens the moon. The rooms wait in your library. Cancel any moon. Card details never sit on this site.</p>
+    </div>
+    <img src="/assets/watcher.jpg" alt="The Watcher, art of the room that runs on the moon" />
+  </div>
+</section>
+
+<!-- ---- A3. /products/herald-app (free) ---- -->
+<section>
+  <div class="wrap" style="padding:3.4rem 0">
+    <p class="crumbs"><a href="/">Home</a> / <a href="/#works">The Works</a> / Herald app</p>
+    <p class="kicker">The gate</p>
+    <h1>Herald app</h1>
+    <p class="meta">$0 · no renewal</p>
+    <p>Free, forever. No card. The Herald does not store your email on this site. Opening the gate is the letter.</p>
+    <p><a class="btn solid" href="https://jointhenuminouses.whop.site/checkout/plan_hIKLCR4hGiv9B?quantity=1&amp;items=plan_hIKLCR4hGiv9B:1">Open the gate →</a></p>
+  </div>
+</section>
+
+<!-- ---- A4. /products/wallpaper-vault (one-time $12) ---- -->
+<section>
+  <div class="wrap gate">
+    <div>
+      <p class="crumbs"><a href="/">Home</a> / <a href="/#works">The Works</a> / Wallpaper Vault</p>
+      <p class="kicker">III / III · $12</p>
+      <h1>Wallpaper Vault</h1>
+      <p>Fifteen realms, cropped for every screen. One-time purchase: $12. Other works are final the moment they open.</p>
+      <p><a class="btn solid" href="https://jointhenuminouses.whop.site/checkout/plan_Aew5DdipP3fKY?quantity=1&amp;items=plan_Aew5DdipP3fKY:1">Enter the vault →</a></p>
+      <p class="note">Card details never sit on this site. Whop processes the offering, under <a href="https://whop.com/tos/">Whop’s terms</a> as well as the <a href="#/eula" data-record="eula">licence of the Works</a>.</p>
+    </div>
+    <img src="/assets/vault.jpg" alt="The Wallpaper Vault: realms framed in gold" />
+  </div>
+</section>
+
+<!-- ---- A5. /collections/all (the works index) ----
+     Cards come from workCards() in src/site.js; each card links to its checkout. -->
+<section>
+  <div class="wrap" style="padding:3.4rem 0">
+    <div class="chapter">
+      <p class="kicker">Chapter I · Four gates</p>
+      <h2>Every gate that is open now.</h2>
+    </div>
+    <div class="works">
+      <a class="card" href="https://whop.com/checkout/ch_wYXFulML0v6LIoJ/">
+        <img src="/assets/signal.jpg" alt="A winged eye of light emerging from storm clouds: The Signal" />
+        <div class="body">
+          <div class="price-row"><span>✦ Start here · free forever</span><span>I / III</span></div>
+          <h3>The Signal</h3>
+          <p>Every realm drops here first.</p>
+          <p>Free: $0, no renewal.</p>
+          <span class="go">Open the gate →</span>
+        </div>
+      </a>
+      <a class="card" href="https://jointhenuminouses.whop.site/checkout/plan_PQnMYNixMTjRQ?quantity=1&amp;items=plan_PQnMYNixMTjRQ:1">
+        <img src="/assets/watcher.jpg" alt="The Watcher, the room that runs on the moon" />
+        <div class="body">
+          <div class="price-row"><span>✦ $28 / moon</span><span>II / III</span></div>
+          <h3>The Watcher</h3>
+          <p>The room. The community, the process, the live session, every 28-day cycle.</p>
+          <p>7-night trial, then $28 every 28 days.</p>
+          <span class="go">Enter the room →</span>
+        </div>
+      </a>
+      <a class="card" href="https://jointhenuminouses.whop.site/checkout/plan_Aew5DdipP3fKY?quantity=1&amp;items=plan_Aew5DdipP3fKY:1" rel="noopener" target="_blank">
+        <img src="/assets/vault.jpg" alt="The Wallpaper Vault: fifteen realms framed in gold" />
+        <div class="body">
+          <div class="price-row"><span>✦ $12</span><span>III / III</span></div>
+          <h3>Wallpaper Vault</h3>
+          <p>Fifteen realms, cropped for every screen.</p>
+          <p>One-time purchase: $12.</p>
+          <span class="go">Enter the vault →</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     B. POST-CHECKOUT PAGE  (new: /welcome — point each product's
+     "Redirect after checkout" here once it is live)
+     Plain confirmation, no card data, links back into Whop's library.
+     ============================================================ -->
+<section>
+  <div class="wrap opened">
+    <div class="seal" aria-hidden="true">✦</div>
+    <div class="chapter">
+      <p class="kicker">The gate opened</p>
+      <h2>The rooms are open.</h2>
+      <p>Your seat is written in your Whop library. Nothing else is needed here — this page keeps no record of the payment.</p>
+    </div>
+    <div class="pact-list">
+      <article><b>I · The Signal</b><p>Free, forever. Every realm drops there first.</p></article>
+      <article><b>II · The Watcher</b><p>Seven nights to walk the room. If it names nothing, write within seven nights and the full amount returns.</p></article>
+      <article><b>III · Card details</b><p>Card details never sit on this site. Whop processes the offering and holds the receipt.</p></article>
+    </div>
+    <div class="cta-row">
+      <a class="btn solid" href="https://whop.com/thenuminouses/">Open your library →</a>
+      <a class="btn" href="/#faq">Questions of the road</a>
+    </div>
+    <p class="note">Something not opened, or a charge you did not expect? Write the house at numinous.support@gmail.com and the record will be read.</p>
+  </div>
+</section>
+
+</body>
+</html>
