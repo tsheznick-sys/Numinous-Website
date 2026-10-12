@@ -56,6 +56,7 @@
   };
   const RETURN_KEY = "numinous-gate";
   const RETURN_PAGE = "/order-complete";
+  const GATE_KEYS = [...new Set(Object.values(GATE_OF_ID))];
 
   const checkoutId = (href) => (String(href).match(/checkout\/([A-Za-z0-9_]+)/) || [])[1] || "";
   const gateOfHref = (href) => GATE_OF_ID[checkoutId(href)] || "";
@@ -110,6 +111,63 @@
   }
 
   window.__numinousLinks = { decorate: decorate, gate: returnGate, of: gateOfHref, key: RETURN_KEY };
+
+  /* ---------- 0b · the return --------------------------------------------
+   * Whop hands the buyer back — `?status=success`, `?status=failed`, or a
+   * plain plan/ch id and nothing else. Wherever the hand-back lands (the
+   * dashboard redirect not set, a plain product link that dropped the query),
+   * the house still knows what was taken: the plan or ch id in the address,
+   * the gate named in it, or the stamp this tab left on the way out. So the
+   * buyer is put on their own page instead of the front door.
+   *
+   * An ordinary visit is never touched: a move only happens when the address
+   * claims a return (a status, payment, checkout or result parameter, or a
+   * plan/ch id, or a gate by name) AND the gate can be named. The decision is
+   * written to window.__numinousReturnTo before the browser moves, so the
+   * live site and the checks can both read what was decided. */
+  const RETURN_PARAMS = /^(status|payment|checkout|result|outcome)$/i;
+
+  function returnTarget(href, stamped) {
+    let url;
+    try {
+      url = new URL(href, window.location.origin);
+    } catch (error) {
+      return "";
+    }
+    const path = url.pathname.replace(/index\.html$/i, "");
+    /* the post-checkout page is the destination; the threshold has its own job */
+    if (/^\/order-complete\/?$/i.test(path) || /^\/checkout\//i.test(path)) return "";
+    const params = url.searchParams;
+    const said = (value) => {
+      const key = String(value || "").toLowerCase();
+      return GATE_KEYS.includes(key) ? key : GATE_OF_ID[value] || "";
+    };
+    const named = said(params.get("gate")) || said(params.get("work"));
+    const idInUrl = (url.search.match(/[?&](?:plan|session|checkout|id)=((?:plan|ch)_[A-Za-z0-9]+)/i) || [])[1] || "";
+    const byId = said(idInUrl) || (/^(plan|ch)_/.test(idInUrl) ? GATE_OF_ID[idInUrl] || "" : "");
+    let claims = Boolean(named) || Boolean(byId);
+    for (const [name] of params) {
+      if (RETURN_PARAMS.test(name)) claims = true;
+    }
+    const key = named || byId || (claims ? stamped || "" : "");
+    if (!key) return "";
+    const status = params.get("status") || "";
+    const carry = status && !/^(success|complete|completed|paid|succeeded)$/i.test(status)
+      ? "&status=" + encodeURIComponent(status)
+      : "";
+    return RETURN_PAGE + "?gate=" + encodeURIComponent(key) + carry;
+  }
+
+  function catchReturn() {
+    const target = returnTarget(window.location.href, returnGate());
+    if (!target) return;
+    window.__numinousReturnTo = target;
+    try {
+      window.location.replace(target);
+    } catch (error) {
+      /* a document that will not move still shows the page */
+    }
+  }
 
   /* ---------- 1 · everything the layer starts, stoppable ------------------ */
 
@@ -433,8 +491,13 @@
     stopAll();
     const scope = root || document.querySelector("#main") || document.body;
     /* the links are the pipeline, not the weather: they are wired whether or
-       not the motion engine loaded */
+       not the motion engine loaded — and so is the return */
     wire();
+    try {
+      catchReturn();
+    } catch (error) {
+      /* a return that cannot be read leaves the visitor where they landed */
+    }
     if (!animate || !inView) {
       document.documentElement.classList.remove("mv");
       return;
@@ -463,7 +526,7 @@
     step(questions);
   }
 
-  window.__numinousMotion = { boot: boot, stop: stopAll };
+  window.__numinousMotion = { boot: boot, stop: stopAll, returnTarget: returnTarget };
 
   /* The adopted home has no router of ours — it boots once, on the document.
      On the routed pages the app bundle re-boots the layer per route, which is

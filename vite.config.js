@@ -307,6 +307,42 @@ function gateBootScript() {
     window.location.replace(to);
     return;
   }
+  /* Whop's hand-back. A buyer coming back with a status, a plan id or a gate
+     by name is put on their own page before anything paints — the same rule
+     the motion layer carries for the routed pages, in the same words, so the
+     two can never disagree. Nothing else is ever moved. */
+  var GATE = {
+    ch_wYXFulML0v6LIoJ: "signal",
+    plan_PQnMYNixMTjRQ: "watcher",
+    plan_Imfk0oedwYn7v: "watcher-annual",
+    plan_Aew5DdipP3fKY: "vault",
+    plan_hIKLCR4hGiv9B: "herald"
+  };
+  var query = new URLSearchParams(window.location.search);
+  var said = function (value) {
+    var key = String(value || "").toLowerCase();
+    return GATE[key] ? key : (GATE[value] || "");
+  };
+  var named = said(query.get("gate")) || said(query.get("work"));
+  var byId = "";
+  var claims = Boolean(named);
+  query.forEach(function (value, name) {
+    if (!byId && /^(plan|session|checkout|id)$/i.test(name) && /^(plan|ch)_/.test(String(value))) byId = GATE[value] || "";
+    if (/^(status|payment|checkout|result|outcome)$/i.test(name)) claims = true;
+  });
+  var stamped = "";
+  try { stamped = window.sessionStorage.getItem("numinous-gate") || ""; } catch (error) {}
+  var key = named || byId || (claims ? stamped : "");
+  if (key) {
+    var status = query.get("status") || "";
+    var carry = status && !/^(success|complete|completed|paid|succeeded)$/i.test(status)
+      ? "&status=" + encodeURIComponent(status)
+      : "";
+    var to = "/order-complete?gate=" + encodeURIComponent(key) + carry;
+    window.__numinousReturnTo = to;
+    window.location.replace(to);
+    return;
+  }
   var clean = path.replace(/\\/+$/, "") || "/";
   if (routes.indexOf(clean) === -1) return;
   window.location.replace(clean + "/index.html" + window.location.search + window.location.hash);

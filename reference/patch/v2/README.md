@@ -373,6 +373,28 @@ questions too, so the door the home's Signal buttons open meets the same seven
 answers as the seat's). The home's first answer — *Is The Signal truly free?* —
 stands open when the section arrives; the other six wait closed.
 
+**The return, integrated on this side.** Whop hands the buyer back with
+`?status=success` — or `failed` — but not always *to our page*: the dashboard
+redirect may not be set yet, and a plain product link can drop the query. So
+both copies of the house boot — the sync one the home carries, and the layer's
+on every routed page — now read the hand-back and put the buyer on their own
+page: a gate named by `?gate=`/`?work=`, a plan or ch id in the address, or a
+bare success with the stamp this tab left on the way out; a failure keeps its
+`?status=` so the page can offer the retry. An ordinary visit is never moved,
+the threshold and the post-checkout page are never bounced, and the decision is
+written to `window.__numinousReturnTo` before the browser moves — so the live
+site, the checks and a debugger can all read what was decided. Fifteen checks
+cover the shapes.
+
+**What the API cannot do (checked against the SDK, not guessed).** The public
+API will not set the redirect on anything that already exists: checkout
+configurations are list / create / retrieve / delete with no update, and
+neither `plans.update` nor `products.update` carries a redirect field (only
+`products.create` does, as `redirect_purchase_url`). So the two dashboard
+redirects remain a dashboard act — the site side is now the guarantee that the
+buyer still lands on their own page, with the link-level `redirect_url` as the
+first attempt.
+
 **The answers move.** A ninth part in the layer, `questions()`: when a
 `details` opens, the answer rises into place — opacity and transform only, never
 a height the browser has to re-measure, and never anything that could hold the
