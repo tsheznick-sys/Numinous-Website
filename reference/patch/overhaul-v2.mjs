@@ -96,6 +96,22 @@ function replaceOnce(html, from, to, label) {
   return html.slice(0, i) + to + html.slice(i + from.length);
 }
 
+/* the block between two anchors, removed whole; a miss is loud in the build
+   log and never stops the build. */
+function cut(html, from, to, label) {
+  const i = html.indexOf(from);
+  if (i === -1) {
+    console.warn("[numinous v2] anchor not found — " + label);
+    return html;
+  }
+  const j = html.indexOf(to, i + from.length);
+  if (j === -1) {
+    console.warn("[numinous v2] closing anchor not found — " + label);
+    return html;
+  }
+  return html.slice(0, i) + html.slice(j + to.length);
+}
+
 /* ---------- the shell: src/site.js ---------- */
 
 function siteSource(code) {
@@ -185,31 +201,54 @@ function siteSource(code) {
     window.setTimeout(() => veil.remove(), 3400);
   }
 
-  if (quiet || remembered("numinous-bar-off")) return;
-  const bar = document.createElement("div");
-  bar.className = "v2-sticky";
-  bar.setAttribute("data-show", "false");
-  bar.setAttribute("role", "region");
-  bar.setAttribute("aria-label", "Start free");
-  bar.innerHTML =
-    "<p><b>The Signal is free, forever.</b> A new realm every week — no card, no renewal.</p>" +
-    '<a class="btn solid" href="' + gate("the-signal-e6") + '">Start free →</a>' +
-    '<button class="v2-sticky-x" type="button" aria-label="Dismiss this bar">✕</button>';
-  document.body.append(bar);
-  const paint = () => {
-    const past = window.scrollY > window.innerHeight * 0.7;
-    const nearFoot = window.scrollY + window.innerHeight > document.body.scrollHeight - 420;
-    bar.setAttribute("data-show", past && !nearFoot ? "true" : "false");
-  };
-  window.addEventListener("scroll", paint, { passive: true });
-  window.addEventListener("resize", paint);
-  bar.querySelector(".v2-sticky-x").addEventListener("click", () => {
-    bar.remove();
-    remember("numinous-bar-off", "1");
-  });
-  paint();
+  /* the cookie notice lives in the flow: on a routed page it is moved
+     directly under the hero, and it follows the router when the page changes.
+     A notice that has been answered is hidden and left where it is. */
+  const notice = document.getElementById("cookie");
+  const mainEl = document.getElementById("main");
+  if (notice && mainEl) {
+    const placeNotice = () => {
+      if (notice.hidden) return;
+      const hero = mainEl.firstElementChild;
+      if (!hero) return;
+      if (notice.parentNode !== mainEl || notice.previousElementSibling !== hero) {
+        hero.after(notice);
+      }
+    };
+    placeNotice();
+    new MutationObserver(placeNotice).observe(mainEl, { childList: true });
+  }
 })();
 `;
+  /* 4 · the cookie notice speaks the house's words on every routed page. */
+  out = replaceOnce(
+    out,
+    `<p><strong>Signal · Watcher.</strong> One small entry in your browser remembers this choice. No analytics or advertising scripts run on this site; Whop injects its own first-party pixel before our code runs and that pixel is not switched off by Decline. Details in the <a href="/cookies">cookie policy</a>.</p>`,
+    `<p><strong>Signal · Watcher.</strong> This site remembers Accept or Decline in your browser. Details in the <a href="/cookies">cookie policy</a>.</p>`,
+    "the shell cookie bar's words",
+  );
+  return out;
+}
+
+/* ---------- the records: the refund policy ---------- */
+
+/* The refund record states the Watcher's seven nights in the house's own
+   words, and the two free gates say plainly that they have nothing to refund.
+   The other sections stay as the house wrote them. */
+function recordsSource(code) {
+  let out = code;
+  out = replaceOnce(
+    out,
+    `"This policy covers all of the Works: The Signal (free), The Watcher (membership), the Wallpaper Vault (one-time download) and The Herald (free newsletter).",`,
+    `"This policy covers all of the Works: The Signal (free), The Watcher (membership), the Wallpaper Vault (one-time download) and The Herald (free newsletter). The Signal and the Herald app have nothing to refund.",`,
+    "the refund record's scope",
+  );
+  out = replaceOnce(
+    out,
+    `"The Watcher carries the seven-night guarantee. The first seven nights are free. When the first payment is taken, email us within seven nights of it and the full amount returns. After that window, a cycle that has run is final — you can cancel any time and your access stays to the end of the cycle you have paid for.",`,
+    `"The Watcher's first seven nights are free. After the first payment, email numinous.support@gmail.com within seven nights and that payment returns. After that window, the paid cycle is final. Cancel any moon, and access stays until the end of the cycle (or year) you have paid for.",`,
+    "the refund record's seven nights",
+  );
   return out;
 }
 
@@ -232,43 +271,10 @@ const HOME_FORWARD = `<script>
       return;
     }
   } catch (error) {}
-  document.addEventListener("DOMContentLoaded", function () {
-    var bar = document.getElementById("v2sticky");
-    if (!bar) return;
-    try {
-      if (sessionStorage.getItem("numinous-bar-off") === "1") {
-        bar.remove();
-        return;
-      }
-    } catch (error) {}
-    var paint = function () {
-      var past = scrollY > innerHeight * 0.7;
-      var nearFoot = scrollY + innerHeight > document.body.scrollHeight - 420;
-      bar.setAttribute("data-show", past && !nearFoot ? "true" : "false");
-    };
-    addEventListener("scroll", paint, { passive: true });
-    addEventListener("resize", paint);
-    var close = bar.querySelector(".v2-sticky-x");
-    if (close) {
-      close.addEventListener("click", function () {
-        bar.remove();
-        try {
-          sessionStorage.setItem("numinous-bar-off", "1");
-        } catch (error) {}
-      });
-    }
-    paint();
-  });
 })();
 </script>
 `;
 
-const HOME_BAR = `<div class="v2-sticky" id="v2sticky" data-show="false" role="region" aria-label="Start free">
-  <p><b>The Signal is free, forever.</b> A new realm every week — no card, no renewal.</p>
-  <a class="btn solid" href="/products/the-signal-e6">Start free →</a>
-  <button class="v2-sticky-x" type="button" aria-label="Dismiss this bar">✕</button>
-</div>
-`;
 
 function homeSource(html) {
   let out = html;
@@ -281,12 +287,12 @@ function homeSource(html) {
   <h1 class="hero-title split" id="heroTitle">NUMINOUS</h1>
   <p class="hero-tag rv d2">Cinematic visions of the <em>divine</em> and mythical.</p>
   <p class="hero-desc">Free weekly visions — every realm posted here before the open feed.<br>A new being every week, fifteen named so far.</p>
-  <p class="hero-value rv d2">Free to start, forever: no card, no renewal. The Watcher is <b>$28</b> a moon or <b>$280</b> a year, with the seven-night guarantee. The Wallpaper Vault is a one-time <b>$12</b>.</p>
+  <p class="hero-value rv d2">Free to start, forever: no card, no renewal. The Watcher is <b>7 days free</b>, then <b>$28</b> every 28 days, or <b>$280</b> a year. The Wallpaper Vault is a one-time <b>$12</b>.</p>
   <div class="hero-cta rv d4">
     <a class="btn solid" data-hover href="/products/the-signal-e6" aria-label="Start free with The Signal">Start free: The Signal</a>
     <a class="btn btn-ghost" data-hover href="/products/the-numinary-3e" aria-label="See The Watcher membership">See the Watcher, $28 a moon</a>
   </div>
-  <p class="v2-trust"><span>Free forever</span><span>Seven-night guarantee</span><span>Cancel any moon</span><span>Three works · fifteen beings</span></p>
+  <p class="v2-trust"><span>Free forever</span><span>Seven-night guarantee</span><span>Cancel any moon</span><span>Four gates · fifteen beings</span></p>
   </div>
 
   `;
@@ -381,7 +387,142 @@ function homeSource(html) {
   /* 6 · the forward for older checkout links, the persistent action, and the
      small machine that shows it. */
   out = replaceOnce(out, "<head>", "<head>\n" + HOME_FORWARD, "the home head");
-  out = replaceOnce(out, "</body>", HOME_BAR + "</body>", "the home foot");
+
+  /* 7 · the Vault card's title wraps: the non-breaking name was what held a
+     long word inside a fixed-width card. A normal space lets it break. */
+  out = replaceOnce(
+    out,
+    "<h3>WALLPAPER&nbsp;VAULT</h3>",
+    "<h3>WALLPAPER VAULT</h3>",
+    "the Vault card title: a normal space",
+  );
+
+  /* 8 · the marquee stamps its phrase twice, not four times. The track scrolls
+     -50%, and two copies are exactly what a seamless loop needs; the drift
+     keeps its pace because the design layer halves the animation's duration. */
+  out = replaceOnce(
+    out,
+    "mq.innerHTML=mq.innerHTML+mq.innerHTML+mq.innerHTML+mq.innerHTML;",
+    "mq.innerHTML=mq.innerHTML+mq.innerHTML;",
+    "the marquee: one phrase, stamped twice",
+  );
+
+  /* 9 · the works speak in fours: four gates, numbered I/IV to IV/IV, and the
+     Herald app stands as a card of its own — a free gate of its own, not a
+     signup form. */
+  out = out.replaceAll("I&nbsp;/&nbsp;III", "I&nbsp;/&nbsp;IV");
+  out = out.replaceAll("II&nbsp;/&nbsp;III", "II&nbsp;/&nbsp;IV");
+  out = out.replaceAll("III&nbsp;/&nbsp;III", "III&nbsp;/&nbsp;IV");
+  const HERALD_CARD = `      <a class="card c-herald tilt rv d3" data-hover href="/products/herald-app">
+        <span class="frame"></span>
+        <div class="art r45"><img onerror="this.onerror=null;this.src='/assets/sigil.jpg'" src="/assets/sigil.jpg" alt="The sigil of Numinous: a winged eye within a mandala of sacred geometry" loading="lazy" decoding="async"></div>
+        <div class="body">
+          <span class="badge">✦&nbsp;&nbsp;FREE</span>
+          <h3>HERALD APP</h3>
+          <p>The next realm, delivered first. A free app. Not The Signal.</p>
+          <ul class="card-feats"><li>One letter when a realm opens</li><li>A free app, its own gate</li><li>Unsubscribe at any time</li></ul>
+          <span class="offer-terms">Free, forever. No card.</span>
+          <span class="go">Open The Herald <span class="ar">→</span></span>
+        </div>
+        <span class="num">IV&nbsp;/&nbsp;IV</span><span class="price free">FREE</span>
+        <span class="glowline"></span>
+      </a>`;
+  out = replaceOnce(
+    out,
+    `<span class="num">III&nbsp;/&nbsp;IV</span><span class="price">$12</span>
+        <span class="glowline"></span>
+      </a>
+    </div>`,
+    `<span class="num">III&nbsp;/&nbsp;IV</span><span class="price">$12</span>
+        <span class="glowline"></span>
+      </a>
+
+      <!-- IV · THE HERALD APP -->
+${HERALD_CARD}
+    </div>`,
+    "the Herald card joins the works",
+  );
+
+  /* 10 · the Herald newsletter block leaves the home: a gate is entered at its
+     own page, and the fourth card above is what names it. */
+  out = cut(
+    out,
+    "<!-- ======================= HERALD (NEWSLETTER) ======================= -->",
+    "</section>",
+    "the Herald newsletter block",
+  );
+
+  /* 11 · the works chapter counts four gates. */
+  out = replaceOnce(
+    out,
+    "CHAPTER&nbsp;I&nbsp;·&nbsp;THREE&nbsp;WORKS",
+    "CHAPTER&nbsp;I&nbsp;·&nbsp;FOUR&nbsp;GATES",
+    "the works chapter number",
+  );
+  out = replaceOnce(
+    out,
+    `<p class="sec-sub rv d1">Three works: The Signal is free, Watcher is a 28-day membership, and Wallpaper Vault is a one-time $12 purchase.</p>`,
+    `<p class="sec-sub rv d1">Four gates. The Signal is free forever. The Watcher is 7 days free, then $28 every 28 days, or $280 a year. The Wallpaper Vault is $12 once. The Herald app is free.</p>`,
+    "the works chapter line",
+  );
+
+  /* 12 · the stat band counts what the house keeps. */
+  out = replaceOnce(
+    out,
+    `<div class="stat rv"><b>3</b><span>WORKS</span></div>`,
+    `<div class="stat rv"><b>4</b><span>GATES</span></div>`,
+    "the stat band: four gates",
+  );
+  out = replaceOnce(
+    out,
+    `<div class="stat rv d2"><b>7</b><span>NIGHT&nbsp;GUARANTEE</span></div>`,
+    `<div class="stat rv d2"><b>7</b><span>NIGHT&nbsp;WATCHER&nbsp;TRIAL</span></div>`,
+    "the stat band: the Watcher trial",
+  );
+
+  /* 13 · one cycle, four weeks. */
+  out = replaceOnce(
+    out,
+    "DAYS&nbsp;·&nbsp;ONE&nbsp;CYCLE&nbsp;·&nbsp;FOUR&nbsp;MOONS",
+    "DAYS&nbsp;·&nbsp;ONE&nbsp;CYCLE&nbsp;·&nbsp;FOUR&nbsp;WEEKS",
+    "the cycle line: four weeks",
+  );
+
+  /* 14 · the pact states the seven nights, not the charge. */
+  out = replaceOnce(
+    out,
+    `<p class="text">Your card is charged when you join. If it isn't for you,`,
+    `<p class="text">If it isn't for you,`,
+    "the pact paragraph",
+  );
+
+  /* 15 · the cookie bar says plainly what it keeps, and it sits in the flow:
+     the bar no longer positions itself over the page. */
+  out = replaceOnce(
+    out,
+    `<p><b>✦</b> The Realm keeps its record light: one small entry in your browser remembers this choice. Whop injects its own first-party pixel into every page before our code runs. Details in the <a href="/cookies">cookie policy</a>.</p>`,
+    `<p><b>✦</b> This site remembers Accept or Decline in your browser. Details in the <a href="/cookies">cookie policy</a>.</p>`,
+    "the cookie bar's words",
+  );
+  out = replaceOnce(
+    out,
+    "#cookiebar{position:fixed;left:clamp(.8rem,2.5vw,1.6rem);bottom:clamp(.8rem,2.5vw,1.6rem);z-index:2300;",
+    "#cookiebar{",
+    "the cookie bar leaves the overlay",
+  );
+
+  /* 17 · the foot names all four gates, and the Watcher's line reads a moon. */
+  out = replaceOnce(
+    out,
+    `<li><a href="/products/the-numinary-3e" data-hover>The Watcher · $28 / moon</a></li>
+        </ul>`,
+    `<li><a href="/products/the-numinary-3e" data-hover>The Watcher · $28 a moon</a></li>
+          <li><a href="/products/wallpaper-vault" data-hover>Wallpaper Vault · $12</a></li>
+          <li><a href="/products/herald-app" data-hover>Herald app · Free</a></li>
+        </ul>`,
+    "the foot's gates",
+  );
+
 
   return out;
 }
@@ -438,6 +579,7 @@ export default {
   css: CSS,
   source(file, code) {
     if (file.endsWith("src/site.js")) return siteSource(code);
+    if (file.endsWith("src/records.js")) return recordsSource(code);
     return undefined;
   },
   home(html) {

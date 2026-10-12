@@ -381,47 +381,6 @@ h1, .hero-title {
   .v2-veil { transition: none; }
 }
 
-/* ---------- 9 · the sticky action (appears after the hero) ---------- */
-
-.v2-sticky {
-  position: fixed;
-  z-index: 18;
-  left: 50%;
-  bottom: clamp(0.8rem, 2vw, 1.3rem);
-  transform: translate(-50%, 140%);
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  width: min(760px, calc(100% - 1.6rem));
-  padding: 0.55rem 0.6rem 0.55rem 1.1rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: rgba(8, 9, 11, 0.86);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 246, 214, 0.06);
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.v2-sticky[data-show="true"] { transform: translate(-50%, 0); }
-.v2-sticky p { margin: 0; flex: 1; color: var(--mist); font-size: max(13px, 0.84rem); letter-spacing: 0.04em; }
-.v2-sticky p b { color: var(--bone); font-weight: 400; }
-.v2-sticky .btn { min-height: 44px; padding-inline: 1.1rem; }
-.v2-sticky .v2-sticky-x {
-  border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--mist);
-  width: 44px;
-  height: 44px;
-  min-height: 44px;
-  line-height: 1;
-  cursor: pointer;
-}
-@media (prefers-reduced-motion: reduce) { .v2-sticky { transition: none; } }
-@media (max-width: 640px) {
-  .v2-sticky { flex-wrap: wrap; justify-content: center; padding: 0.7rem; }
-  .v2-sticky p { flex-basis: 100%; text-align: center; }
-}
-
 /* ---------- 10 · the shell: nav, footer, drawers, records, cookies ---------- */
 
 .nav {
@@ -605,7 +564,6 @@ details p { color: var(--mist); }
   .hero-cta .btn { width: 100%; }
   .hero-cta { gap: 0.6rem; }
   .btn, .lq-cta { width: 100%; }
-  .v2-sticky .btn { width: auto; }
   .cookie { left: 0.7rem; right: 0.7rem; }
   .records { width: calc(100% - 1rem); }
 }
@@ -645,3 +603,70 @@ details p { color: var(--mist); }
 
 .marquee span { color: var(--bone); }
 .marquee:hover .track, .marquee:focus-within .track { animation-play-state: paused; }
+
+/* ---------- 17 · no overlay on type (2026-10-12) ---------- */
+
+/* the bottom action bar is gone: no markup, no script, no styling. This one
+   line stays as the switch that keeps it gone if anything re-introduces it. */
+#v2sticky, .v2-sticky { display: none !important; }
+
+/* the cookie notice is part of the flow, never a layer over the page. The home
+   already renders its aside in-flow; this pins that down and holds the shell's
+   own card to the same rule. */
+#cookiebar {
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 3 !important;
+  width: min(960px, calc(100% - 32px));
+  transform: none !important;
+}
+.cookie {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  z-index: 3;
+  width: min(960px, calc(100% - 32px));
+  margin: 18px auto 0;
+  border-radius: var(--radius-card);
+}
+
+/* a card title sits inside its card: less tracking, and it may wrap */
+.card h3 {
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+/* the herald heading: the box stops clipping, the heading stops being capped,
+   and the gold span may wrap rather than run past the edge */
+.herald-box { overflow: visible; }
+#herald h2, .herald-box h2 {
+  letter-spacing: 0.08em;
+  max-width: none;
+  overflow: visible;
+}
+#herald h2 .g, .herald-box h2 .g { max-width: 100%; }
+
+/* the guarantee and price boxes: gold heading, bone body, dark panel */
+.guarantee-card, .guarantee-card p, .guarantee-card li { color: var(--bone); }
+.guarantee-card strong { color: var(--gold-hi); }
+
+/* the marquee drifts at the pace it always had, now that the phrase is stamped
+   twice instead of four times (the track travels half as far per cycle) */
+.marquee .track { animation-duration: 26s; }
+
+/* ---------- 18 · the four gates sit two by two ---------- */
+
+/* THE WORKS was built for three plates; the Herald is the fourth (I/IV to
+   IV/IV). Above the phone breakpoint the four sit two by two, whatever grid
+   the home theme, the bridge or the polish layer last set; at 760px and below
+   nothing here applies and the single-file column stands. */
+@media (min-width: 761px) {
+  #works .works-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #works .works-grid .card { grid-column: auto; }
+}

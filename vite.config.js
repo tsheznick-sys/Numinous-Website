@@ -329,10 +329,14 @@ function mergeHome(html, freeCheckout, housePolish = "") {
   for (const mod of OVERHAUL) {
     if (typeof mod.home === "function") html = mod.home(html) || html;
   }
-  if (!html.includes('id="velaris"') || !html.includes('id="heraldForm"')) {
+  // The house's own markup: the living canvas and the works grid. The Herald
+  // form is no longer required — the gate is entered at its own page, and the
+  // fourth work card is what names it — but a home without the works grid is
+  // still refused.
+  if (!html.includes('id="velaris"') || !html.includes('class="works-grid"')) {
     throw new Error(
       "[numinous] reference/web-version/src/home.html is missing the expected house markup " +
-        "(velaris canvas / herald form). Refusing to publish a half-merged home.",
+        "(velaris canvas / works grid). Refusing to publish a half-merged home.",
     );
   }
   let out = html
@@ -364,7 +368,10 @@ function mergeHome(html, freeCheckout, housePolish = "") {
   // 4.1 · one navigation, not two: the gate row is gone; the footer carries
   // every gate (the check below proves it), so the house-gates band is not
   // appended to the merged home any more.
-  const tail = `${MERGED_MARK}\n${polishTag}${heraldOverride(freeCheckout)}\n`;
+  // The herald hand-off rides along only while the home still carries the
+  // form it speaks to; the fourth work card replaces it on the home.
+  const heraldScript = html.includes('id="heraldForm"') ? heraldOverride(freeCheckout) + "\n" : "";
+  const tail = `${MERGED_MARK}\n${polishTag}${heraldScript}\n`;
   out = /<\/body>/i.test(out) ? out.replace(/<\/body>/i, `${tail}</body>`) : `${out}\n${tail}`;
   // The boot rides in the home's head: sync, so it runs before anything paints.
   const bootTag = `<script src="${GATE_BOOT}"></script>`;

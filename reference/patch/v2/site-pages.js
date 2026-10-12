@@ -17,10 +17,10 @@ const ANNUAL_CHECKOUT = `https://whop.com/checkout/${ANNUAL_PLAN}?quantity=1&ite
 const works = [
   {
     id: "signal",
-    index: "I / III",
+    index: "I / IV",
     mark: "Start here · free forever",
     title: "The Signal",
-    text: "Every realm drops here first: free weekly visions, a ten-page First Vision gift and the Sanctuary room.",
+    text: "Free forever. No card, no renewal. Every realm drops here 24 hours before the feed. Inside: Dispatches and The First Vision, a ten-page gift.",
     price: "Free: $0. No card, no renewal, forever.",
     cta: "Get The Signal free",
     href: gate("the-signal-e6"),
@@ -29,11 +29,11 @@ const works = [
   },
   {
     id: "watcher",
-    index: "II / III",
+    index: "II / IV",
     mark: "$28 / moon",
     title: "The Watcher",
-    text: "The room: the community, the process, the live session, every 28-day cycle.",
-    price: "$28 per 28-day cycle · $280 a year · seven-night guarantee.",
+    text: "The room that runs on the moon. Each 28-day cycle has four weekly chapters: The Realm, The Process, The Records, The Session. Cancel any moon. Access stays until the current cycle (or year) ends. Wallpaper Vault is separate and not included.",
+    price: "7 days free, then $28 every 28 days, or $280 a year.",
     cta: "Join the Watcher, $28 a moon",
     href: gate("the-numinary-3e"),
     image: "/assets/watcher.jpg",
@@ -41,11 +41,11 @@ const works = [
   },
   {
     id: "vault",
-    index: "III / III",
+    index: "III / IV",
     mark: "$12",
     title: "Wallpaper Vault",
-    text: "Fifteen realms, cropped for every screen.",
-    price: "One-time purchase: $12. Final once opened.",
+    text: "Fifteen wallpapers, each in phone, portrait, and desktop.",
+    price: "$12 once. Final once opened.",
     cta: "See the Vault, $12",
     href: gate("wallpaper-vault"),
     image: "/assets/vault.jpg",
@@ -54,10 +54,10 @@ const works = [
 ];
 
 const herald = {
-  index: "IV",
+  index: "IV / IV",
   mark: "Free",
   title: "The Herald",
-  text: "The next realm, delivered first: one letter when a realm opens.",
+  text: "The next realm, delivered first. A free app. Not The Signal.",
   price: "Free, forever. No card.",
   cta: "Open The Herald",
   href: gate("herald-app"),
@@ -94,12 +94,10 @@ const MARQUEE_LINE =
 
 /* ---------- shared pieces ---------- */
 
-function v2Trust(extra = "") {
+function v2Trust(extra = "", chips = ["Free to start", "Seven-night guarantee", "Cancel any moon"]) {
   return `
     <p class="v2-trust">
-      <span>Free to start</span>
-      <span>Seven-night guarantee</span>
-      <span>Cancel any moon</span>
+      ${chips.map((chip) => `<span>${chip}</span>`).join("\n      ")}
       ${extra}
     </p>`;
 }
@@ -150,7 +148,7 @@ function pactPanel() {
         <span class="v2-num">VII</span>
         <p class="kicker">The seven nights</p>
         <h2>Enter. If it names nothing, return.</h2>
-        <p class="lede">Your card is charged when you join. If the room does not name what you saw, write within seven nights of that first payment and <strong>the full amount returns</strong>. Keep what you received. The Signal is free, forever; the Wallpaper Vault is final once opened.</p>
+        <p class="lede">If the room does not name what you saw, write within seven nights of that first payment and <strong>the full amount returns</strong>. Keep what you received. The Signal is free, forever; the Wallpaper Vault is final once opened.</p>
         <p>
           <a class="btn" href="/returns">Read the seven nights →</a>
           <a class="btn" href="/refunds">The refund policy</a>
@@ -207,10 +205,10 @@ function footer() {
     <div>
       <h4>The gates</h4>
       <ul>
-        <li><a href="${gate("the-signal-e6")}">The Signal · free forever</a></li>
+        <li><a href="${gate("the-signal-e6")}">The Signal · Free</a></li>
         <li><a href="${gate("the-numinary-3e")}">The Watcher · $28 a moon</a></li>
-        <li><a href="${gate("wallpaper-vault")}">Wallpaper Vault · $12 once</a></li>
-        <li><a href="${gate("herald-app")}">The Herald · free</a></li>
+        <li><a href="${gate("wallpaper-vault")}">Wallpaper Vault · $12</a></li>
+        <li><a href="${gate("herald-app")}">Herald app · Free</a></li>
         <li><a href="/collections/all">All the works</a></li>
       </ul>
     </div>
@@ -261,16 +259,16 @@ function home() {
           <span class="v2-num">I</span>
           <div class="eyebrow">Chapter I · Four gates</div>
           <h2 class="sec-title">THE WORKS</h2>
-          <p class="sec-sub">Three works and a free Herald. The Signal is free, forever. The Watcher is a 28-day membership at $28 a moon or $280 a year. The Wallpaper Vault is a one-time $12.</p>
+          <p class="sec-sub">Four gates. The Signal is free forever. The Watcher is 7 days free, then $28 every 28 days, or $280 a year. The Wallpaper Vault is $12 once. The Herald app is free.</p>
         </div>
         <div class="works">${workCards([...works, herald])}</div>
       </div>
     </section>
     ${marqueeBand()}
     ${statBand([
-      ["3", "Works"],
+      ["4", "Gates"],
       ["28", "Day cycles"],
-      ["7", "Night guarantee"],
+      ["7", "Night Watcher trial"],
       ["15", "Beings named"],
     ])}
     ${pactPanel()}
@@ -326,9 +324,9 @@ function signalPage() {
           <span class="v2-num">I</span>
           <p class="kicker">The first gate · free forever</p>
           <h1>Every realm drops here first</h1>
-          <p class="lede">Free, forever. No card, no renewal. The first vision — a ten-page gift — waits in your library, and every realm arrives here before anywhere else.</p>
+          <p class="lede">Free forever. No card, no renewal. Every realm drops here 24 hours before the feed. Inside: Dispatches and The First Vision, a ten-page gift.</p>
           <p><a class="btn solid" href="${checkout.signal}">Enter The Signal, free →</a></p>
-          ${v2Trust(`<span>No card needed</span>`)}
+          ${v2Trust("", ["Free forever", "No card"])}
           <p class="note">After you enter, a briefing opens the rooms. They wait in your Whop library. Card details never sit on this site; Whop processes the offering.</p>
         </div>
         <div class="num-art"><img src="/assets/signal.jpg" alt="A winged eye of light emerging from storm clouds" /></div>
@@ -388,7 +386,7 @@ function watcherPage() {
           <span class="v2-num">II</span>
           <p class="kicker">The membership · a seat at the live table</p>
           <h1>The room that runs on the moon.</h1>
-          <p class="lede">Every <strong>28 days</strong>, one full cycle of the realms: a new being, the veil lifted, the lore opened, and a live session where your questions steer the vote.</p>
+          <p class="lede">The room that runs on the moon. 7 days free, then $28 every 28 days, or $280 a year. Each 28-day cycle has four weekly chapters: The Realm, The Process, The Records, The Session. Cancel any moon. Access stays until the current cycle (or year) ends. Wallpaper Vault is separate and not included.</p>
           ${v2PriceBlock({
             primary: `<b>$28</b><span>per 28-day cycle</span>`,
             primaryHref: checkout.watcher,
@@ -454,9 +452,9 @@ function heraldPage() {
           <span class="v2-num">IV</span>
           <p class="kicker">The Herald · free forever</p>
           <h1>The next realm, delivered first.</h1>
-          <p class="lede">One letter when a realm opens: the vision, the process, the lore — before the gates grow crowded. <strong>The Signal, by another name.</strong></p>
+          <p class="lede">One letter when a realm opens: the vision, the process, the lore — before the gates grow crowded. A free app. Not The Signal.</p>
           <p><a class="btn solid" href="${checkout.herald}">Open The Herald, free →</a></p>
-          ${v2Trust(`<span>No card needed</span>`)}
+          ${v2Trust("", ["Free forever", "No card"])}
           <p class="note">Free, forever. No card. The Herald does not store your email on this site — opening the gate is the letter, and the address lives with your Whop library.</p>
         </div>
         <div class="num-art"><img src="/assets/sigil.jpg" alt="The sigil of Numinous: a winged eye within a mandala of sacred geometry" /></div>
@@ -491,13 +489,13 @@ function vaultPage() {
           <span class="v2-num">III</span>
           <p class="kicker">The vault · one-time $12</p>
           <h1>Fifteen realms, cropped for every screen.</h1>
-          <p class="lede">A one-time work: fifteen wallpaper sets from the realms, cut for phone, tablet and desktop. Yours to keep. No renewal, no cycle, no card kept on this site.</p>
+          <p class="lede">Fifteen wallpapers, each in phone, portrait, and desktop. $12 once. Final once opened.</p>
           ${v2PriceBlock({
             primary: `<b>$12</b><span>one time · no renewal</span>`,
             primaryHref: checkout.vault,
             note: "Open the vault, $12",
           })}
-          <p class="guarantee-card"><strong>Final once opened</strong> A download cannot be returned, so the Vault is final the moment it opens — but if the file is corrupted or you were charged twice, write to ${SUPPORT} and it is set right. <a href="/refunds">Read the refund policy →</a></p>
+          <p class="guarantee-card"><strong>Final once opened</strong> A download cannot be returned, so the Vault is final the moment it opens — except a corrupted file, a duplicate charge, or a listing that was materially wrong, each of which is set right: write to ${SUPPORT}. <a href="/refunds">Read the refund policy →</a></p>
           <p class="note">Card details never sit on this site. Whop processes the offering, under <a href="${onboard.whop_terms}">Whop’s terms</a> as well as the <a href="/eula">license of the Works</a>.</p>
         </div>
         <div class="num-art"><img src="/assets/vault.jpg" alt="The Wallpaper Vault: realms framed in gold" /></div>
@@ -532,15 +530,15 @@ function collectionPage() {
           <p class="dateline">Est . MMXXVI · The works</p>
           <div class="eyebrow">Chapter I · Four gates</div>
           <h2 class="sec-title">THE WORKS</h2>
-          <p class="sec-sub">Three works and a free Herald. Start at the free gate — walk further only if the first vision names what you saw.</p>
+          <p class="sec-sub">Four gates. Start at the free gate — walk further only if the first vision names what you saw.</p>
         </div>
         <div class="works">${workCards([...works, herald])}</div>
       </div>
     </section>
     ${statBand([
-      ["3", "Works"],
+      ["4", "Gates"],
       ["28", "Day cycles"],
-      ["7", "Night guarantee"],
+      ["7", "Night Watcher trial"],
       ["15", "Beings named"],
     ])}
     ${marqueeBand()}
@@ -645,7 +643,7 @@ const thresholdGates = [
     sub: "No card · one letter when a realm opens",
     image: "/assets/sigil.jpg",
     alt: "The sigil of Numinous",
-    feats: ["One letter when a realm opens", "The Signal, by another name", "Unsubscribe at any time"],
+    feats: ["A free app. Not The Signal.", "Its own gate.", "Unsubscribe at any time."],
     url: checkout.herald,
     guarantee: false,
   },
@@ -796,10 +794,10 @@ const completions = [
     cta: "Open the Herald on Whop",
     library: HOUSE_LIBRARY,
     lede:
-      "The Herald is free, forever. Open it and let the next realm find you; submitting the address opens The Signal, the first gate.",
+      "The Herald is free, forever. Open it and let the next realm find you; its own gate, never The Signal.",
     holds: [
       ["I · The herald", "Free, forever", "No card. The next realm is delivered first."],
-      ["II · The Signal", "The first gate", "Every realm drops in The Signal before the open feed."],
+      ["II · The app", "Its own gate", "A free app, delivered first — never The Signal."],
       ["III · The house", "Later gates", "The Watcher room turns with the moon; the Wallpaper Vault is a one-time $12 work."],
     ],
     steps: [
@@ -884,8 +882,8 @@ function orderCompletePage() {
         <div class="sec-head" style="margin-top:3rem">
           <span class="v2-num">III</span>
           <div class="eyebrow">The gate beside this one</div>
-          <h2 class="sec-title">THE HOUSE KEEPS THREE WORKS</h2>
-          <p class="sec-sub">The Signal is free, forever. The Watcher turns every 28 days. The Wallpaper Vault is a one-time $12 work. Nothing else is required to stay.</p>
+          <h2 class="sec-title">THE HOUSE KEEPS FOUR GATES</h2>
+          <p class="sec-sub">The Signal is free forever. The Watcher is 7 days free, then $28 every 28 days. The Wallpaper Vault is $12 once. The Herald app is free. Nothing else is required to stay.</p>
           <p><a class="btn" href="/collections/all">See the works →</a></p>
         </div>
       </div>

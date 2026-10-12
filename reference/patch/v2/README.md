@@ -5,24 +5,62 @@ This folder is the whole of the v2 overhaul. It is read at build time by
 alphabetical order, so `overhaul-v2.mjs` loads **after** `overhaul-home.mjs` and
 `overhaul-site.mjs` and has the last word).
 
-## The three files
+## The files
 
 | File | What it is |
 |---|---|
-| `../overhaul-v2.mjs` | The orchestrator. Rewrites the shell's pages, appends the design layer, reworks the home's hero and Watcher chapter, teaches the host's 404 the house voice, and emits the checkout insurance rules. |
+| `../overhaul-v2.mjs` | The orchestrator. Rewrites the shell's pages and the refund record, appends the design layer, rewrites the home's copy, teaches the host's 404 the house voice, and emits the checkout insurance rules. |
 | `v2/site-pages.js` | The shell's pages, rewritten in one block — spliced into `src/site.js` in place of everything from `const works = [` to `const routes = {`. Same names, same contracts. Adds the `/checkout` route and its page. |
 | `v2/house.css` | The design layer. Appended last on every document (routed pages and the home), so it wins every tie against the home theme, the bridge and the three older polish layers. |
+| `../../vite.config.js` | The build itself. Since RUN 7 it is part of the kit: the merge guard no longer requires the home's Herald form (the fourth work card replaces it), and the Herald hand-off script rides along only while the form exists. The bootstrap workflow already `git add`s this file. |
 
-Nothing else is required: no edit to `vite.config.js`, no edit to
-`overhaul-home.mjs` or `overhaul-site.mjs`, no new dependency.
+No edit to `overhaul-home.mjs` or `overhaul-site.mjs`, no new dependency.
 
-**Ship set: three files.** The run's payload is exactly
-`reference/patch/overhaul-v2.mjs`, `reference/patch/v2/house.css` and
-`reference/patch/v2/site-pages.js` (kit `overhaul-kit-v2-house.zip`, 24,346 B,
-MD5 `73f03b7822063c79659b878440b136e4`). This README stays in the repo and in
-the chat: three files is the smallest kit the bootstrap handles reliably, and
-the module's header carries the essentials in-place. Everything in this README
-that the *operator* needs lives in that header; this file is the long form.
+**Ship set: five files** — `reference/patch/overhaul-v2.mjs`,
+`reference/patch/v2/house.css`, `reference/patch/v2/site-pages.js`,
+`reference/patch/v2/README.md` and `vite.config.js`, carried as
+`push-ready/overhaul-kit-canon.zip`. The module's header carries the essentials
+in-place; this file is the long form.
+
+## The canon copy pass (RUN 8, 2026-10-12)
+
+One brief: the house says **four gates**, never three; the Watcher's promise is
+**7 days free, then $28 every 28 days**; the cookie bar says one plain sentence;
+the Herald is a **free app, its own gate**, not The Signal by another name. No
+route, price, plan id, checkout target, font or piece of art changed; Codex,
+Collector's, The Vault and Premium stay retired.
+
+| Where | What changed |
+|---|---|
+| the shell's four gate pages | Signal: "Free forever. No card, no renewal. Every realm drops here 24 hours before the feed. Inside: Dispatches and The First Vision, a ten-page gift." · Watcher: "7 days free, then $28 every 28 days, or $280 a year." · Vault: "Fifteen wallpapers, each in phone, portrait, and desktop." / "$12 once. Final once opened." · Herald: "The next realm, delivered first." + "A free app. Not The Signal." |
+| the trust chips | `v2Trust(extra, chips)` — Signal and Herald carry **Free forever · No card**; the Watcher pages keep Free to start · Seven-night guarantee · Cancel any moon. "No card needed" is gone. |
+| `/collections/all` | "Four gates. Start at the free gate"; the stat band reads 4 / Gates, 28 / Day cycles, 7 / Night Watcher trial, 15 / Beings named; every card numbered I/IV to IV/IV. |
+| `/order-complete` | "THE HOUSE KEEPS FOUR GATES" and the four-gate line; the Herald hold/step rows say **its own gate — never The Signal**. |
+| `/refunds` | The scope sentence gains "The Signal and the Herald app have nothing to refund."; section II is the Watcher's canon: first seven nights free, the first payment returns on a write within seven nights, then the cycle is final, cancel any moon. The other sections are untouched. |
+| the shell's cookie card | "This site remembers Accept or Decline in your browser. Details in the cookie policy." Nothing about pixels in the bar (the `/cookies` record keeps its own Whop-pixel prose). |
+| the home (build layer only) | Works chapter: CHAPTER I · FOUR GATES, the four-gate line, stat band 4 GATES / 28 DAY CYCLES / 7 NIGHT WATCHER TRIAL / 15 BEINGS NAMED, numerals I/IV–IV/IV, the cycle line FOUR WEEKS, the pact paragraph without "Your card is charged when you join.", the hero's offer line at 7 days free then $28, the trust line "Four gates · fifteen beings", the Herald newsletter block deleted, the fourth card **HERALD APP** added, the cookie bar's words and its fixed positioning deleted, the foot naming all four gates. `reference/web-version/` is never edited: every one of these is a rewrite applied as the build runs. |
+| the shell's Herald-free home | the build guard now proves `id="velaris"` **+** `class="works-grid"`, and the Herald hand-off script is only appended while `id="heraldForm"` still exists. On the home it no longer does, so the script is not written at all. |
+| the works grid | THE WORKS was built for three plates. `@media (min-width: 761px)` gives `#works .works-grid` two equal columns and every card `grid-column: auto` — the four gates sit **two by two** on desktop, and below 761px the single-file column stands untouched. |
+
+**Verification (all after the change, on the built tree).** `npm run build` →
+EXIT 0, no anchor warnings, 13 routed pages, 62 files packed. A home+bundle
+string audit: 30 canon strings present, 14 offenders absent (`Three works`,
+`FOUR MOONS`, `by another name`, `charged when you join`, `Numinous Vault`,
+`No card needed`, `id="herald"`, the fixed cookie rule, the ×4 marquee stamp…).
+`node render-check.mjs` — the repo's own harness, which bundles `src/site.js`
+and `src/records.js` through every module's `source()` hook and renders **20
+page/parameter cases** in a DOM stub — **59/59** assertions pass. A
+comment-aware cascade checker over both document types at 1440 and 390 px:
+**32/32**, plus a nonsense-selector control that must stay empty, and the works
+grid's four widths (1440 / 1024 / 800 / 761 → two columns; 760 / 390 → one).
+
+**Known and deliberate.** The dead Herald handler still rides inside the
+externalised `numinous-home-4.js` — it is guarded by `if (hf)` and the form no
+longer exists, so it never binds; removing it would mean a further home rewrite
+for no visible gain. The home's hero chip reads "Four gates · fifteen beings"
+(the run's own canon table), and the threshold page still prices the Watcher as
+"$28 per 28-day cycle" with the seven-night guarantee beside it — both are in
+the compare-notes rather than changed under a scope decision.
 
 ## Verification recorded for this build
 
@@ -92,6 +130,37 @@ buttons at every width, the strip spans both columns wherever there are two,
 and no two items share a grid cell. Before the fix the same resolver placed the
 price in row 6 under the row-5 buttons, in column 1 only.
 
+## The no-overlay pass (third fix, 2026-10-12)
+
+The brief: no overlay on type, surgical CSS, nothing about the catalog, prices,
+product routes or body copy, and no change to the live URL or the offer list.
+
+| Item | What was there | What it is now |
+|---|---|---|
+| the bottom action bar | markup spliced into the home (`HOME_BAR`), a bar **created by JS** on every routed page, a scroll script setting `data-show`, a CSS block, and the `numinous-bar-off` key | all five deleted. One line stays as the switch that keeps it gone: `#v2sticky, .v2-sticky { display: none !important; }` |
+| the cookie notice | the home already rendered its aside in-flow (a later block overrode the fixed rule); routed pages kept the shell's card pinned bottom-left at `z-index:2300` by `theme.css` | the home keeps its in-flow aside, pinned down by the `#cookiebar` block; the shell's card is `position: static`, full width, and the runtime **moves it directly under the hero**, following the router as pages change (a guarded `MutationObserver`, so it re-places without looping) |
+| `.card h3` | `letter-spacing: .16em` (theme: `.2em`), title written `WALLPAPER&nbsp;VAULT` | `.08em`, `line-height: 1.2`, `overflow-wrap: anywhere`, normal space — the title wraps instead of running past the card |
+| `#herald h2` | the clip came from **`.herald-box{overflow:hidden}`** plus `#herald h2{max-width:14ch}` with `.g{display:inline-block}`: an inline-block cannot wrap, so "DELIVERED FIRST." overflowed a 14ch box and the box cut it. `overflow:visible` on the heading alone could never beat the parent's clip | `.herald-box{overflow:visible}`, the heading's cap removed, `letter-spacing:.08em`, and the gold span allowed to wrap when a phone is too narrow to hold it |
+| the guarantee / price boxes | dark plate, gold `<strong>`, body text inheriting whatever sat above it | `.guarantee-card, .guarantee-card p, .guarantee-card li { color: var(--bone) }`, `strong { color: var(--gold-hi) }` |
+| the marquee | the pulled home stamped its single phrase **×4** at runtime (`home.html:2315`, `mq.innerHTML` four times) | stamped **×2** — what a seamless `-50%` loop actually needs — and the design layer halves the animation duration (52s → 26s) so the drift keeps exactly the pace it had |
+
+**One correction to the first diagnosis.** The home and the shell do **not** use
+different cookie keys: `vite.config.js` already rewrites the pulled home's
+`numinous-consent` to the house key (`numinous-record`) before the page ships,
+and the overhaul's `home()` hook runs before that pass. A choice made on either
+surface has always silenced the other. The unification was written, seen in the
+built script as a duplicated key, and reverted — the requirement is met by the
+build, and no code was needed for it.
+
+**Verification.** A comment-aware, at-rule-aware cascade checker over both
+document types — the home (one stylesheet) and a routed page (four, in link
+order) — at 1440 and 390 px: 10 rules × 2 widths × 2 documents, **20/20**, each
+one winning from the last layer (`v2/house.css`, which rides at the end of the
+home's stylesheet and at the end of `numinous-polish.css` on routed pages).
+Strings in the built tree: no `v2sticky`, `v2-sticky`, `data-show` or
+`numinous-bar-off` anywhere but the single switch; the marquee line is ×2; the
+card title carries a normal space.
+
 ## How the host actually routes (read this before touching the threshold)
 
 - Whop serves **exact file paths**. Every routed page is its own document at
@@ -148,6 +217,13 @@ price in row 6 under the row-5 buttons, in column 1 only.
 4. Any unknown path (e.g. `/nope`) → the v2 404 block.
 5. `/order-complete?plan=plan_Aew5DdipP3fKY&work=vault` → the Vault variant,
    no veil, library button first.
+6. The canon, in five glances: the home's works chapter reads **CHAPTER I ·
+   FOUR GATES** with four cards numbered I/IV to IV/IV (the fourth is **HERALD
+   APP**, linking to its own gate); the stat band reads 4 GATES / 28 DAY CYCLES /
+   7 NIGHT WATCHER TRIAL / 15 BEINGS NAMED; the cookie bar under the hero says
+   "This site remembers Accept or Decline in your browser."; the Watcher's gate
+   and footer say **7 days free, then $28 every 28 days**; `/refunds` opens with
+   "The Signal and the Herald app have nothing to refund."
 
 ## The social card
 
