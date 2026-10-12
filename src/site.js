@@ -836,6 +836,10 @@ function render() {
   footEl.innerHTML = footer();
   main.innerHTML = page.render();
   bind();
+  // TASK 6 · the weather. The layer is its own script (the adopted home runs
+  // the design's script, not this bundle, so motion has to reach both), and it
+  // may be absent — a page without motion is still a page.
+  window.__numinousMotion?.boot(main);
   const record = window.location.hash.replace("#/", "");
   if (records[record]) openRecord(record);
   if (window.location.hash === "#faq") document.querySelector("#faq")?.scrollIntoView();

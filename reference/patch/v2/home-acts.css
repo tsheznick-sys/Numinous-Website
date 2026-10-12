@@ -1,0 +1,191 @@
+/* ---------- the home's own acts · the pact and the questions ----------
+   The home is the design's own document: it carries the design's sheet and the
+   motion sheet, and none of the subpage sheet (see the note in mergeHome — the
+   subpage sheet speaks to shells the home does not have, and linking it would
+   re-dress the footer, the kickers and the works grid the design already owns).
+   So the two sections the house added to the home's last acts dress here, in
+   the design's own language: the gold rule, the bezel, the ink panel.
+   Both class families are the home's alone; no routed page uses them. */
+
+.pact__lede {
+  max-width: 40ch;
+}
+
+.pact__terms {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  max-width: 1000px;
+  margin: clamp(1.6rem, 4vw, 2.4rem) auto 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .012)), var(--ink);
+  list-style: none;
+  text-align: left;
+}
+
+.pact__term {
+  padding: 1.1rem 1.2rem;
+}
+
+.pact__term + .pact__term {
+  border-left: 1px solid var(--line);
+}
+
+.pact__term b {
+  display: block;
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.pact__term span {
+  display: block;
+  margin-top: .5rem;
+  color: var(--muted);
+  font-size: .86rem;
+  line-height: 1.55;
+}
+
+.pact__cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .7rem;
+  margin-top: clamp(1.3rem, 3vw, 1.8rem);
+}
+
+.pact__cta .button {
+  margin-top: 0;
+}
+
+.pact__note a,
+.faq-home__note a,
+.faq-home__answer a {
+  color: var(--gold);
+}
+
+/* the questions: one bezel, a gold rule between, and a plus that closes into a
+   minus — the whole state is paint and transform, so it costs the page nothing */
+
+.faq-home__list {
+  max-width: 940px;
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .012)), var(--ink);
+}
+
+.faq-home__item + .faq-home__item {
+  border-top: 1px solid var(--line);
+}
+
+.faq-home__item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  padding: 1.05rem 1.25rem;
+  color: var(--paper);
+  font-family: var(--serif);
+  font-size: clamp(1.12rem, 2.1vw, 1.5rem);
+  line-height: 1.2;
+  cursor: pointer;
+  list-style: none;
+  transition: color .25s;
+}
+
+.faq-home__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-home__item summary:hover {
+  color: #fff;
+}
+
+.faq-home__item[open] summary {
+  color: var(--gold);
+}
+
+.faq-home__sign {
+  position: relative;
+  flex: 0 0 auto;
+  width: .85rem;
+  height: .85rem;
+}
+
+.faq-home__sign::before,
+.faq-home__sign::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: var(--gold);
+}
+
+.faq-home__sign::before {
+  width: .85rem;
+  height: 1px;
+  transform: translate(-50%, -50%);
+}
+
+.faq-home__sign::after {
+  width: 1px;
+  height: .85rem;
+  transform: translate(-50%, -50%);
+  transition: transform .45s cubic-bezier(.22, 1, .36, 1), opacity .35s;
+}
+
+.faq-home__item[open] .faq-home__sign::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+  opacity: 0;
+}
+
+.faq-home__answer p {
+  max-width: 72ch;
+  margin: 0;
+  padding: 0 1.25rem 1.25rem;
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.62;
+}
+
+.faq-home__answer strong {
+  color: #e9ddc2;
+  font-weight: 700;
+}
+
+.faq-home__note {
+  max-width: 940px;
+  margin: 1.4rem auto 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+@media (max-width: 760px) {
+  .pact__terms {
+    grid-template-columns: 1fr;
+  }
+
+  .pact__term + .pact__term {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 460px) {
+  .faq-home__item summary {
+    gap: .8rem;
+    padding: .9rem 1rem;
+  }
+
+  .faq-home__answer p {
+    padding: 0 1rem 1.1rem;
+  }
+}

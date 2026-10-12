@@ -331,7 +331,8 @@ function signalPage() {
           <p class="kicker">The first gate · free forever</p>
           <h1>Every realm drops here first</h1>
           <p class="lede">Free forever. No card, no renewal. Every realm drops here 24 hours before the feed. Inside: Dispatches and The First Vision, a ten-page gift.</p>
-          <p><a class="btn solid" href="${checkout.signal}">Enter The Signal, free →</a></p>
+          <p><a class="btn solid" href="/checkout/ch_wYXFulML0v6LIoJ">Enter The Signal, free →</a></p>
+          <p class="note">The free gate opens on the house page first — the film, what waits inside, and then the door to Whop. Nothing is asked of the card, at either step.</p>
           ${v2Trust("", ["Free forever", "No card"])}
           <p class="note">After you enter, a briefing opens the rooms. They wait in your Whop library. Card details never sit on this site; Whop processes the offering.</p>
         </div>
@@ -442,7 +443,7 @@ function watcherPage() {
         <p class="kicker">Questions before the seat</p>
         <h2>Asked at this gate.</h2>
         <div class="faq" style="text-align:left">
-          ${faqs.slice(0, 5).map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}
+          ${faqs.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}
         </div>
       </div>
     </section>
@@ -613,6 +614,8 @@ const thresholdGates = [
     feats: ["Four weekly chapters each cycle", "The Records: the making-of and the lore", "Live session: build, Q&A, vote"],
     url: checkout.watcher,
     guarantee: true,
+    film: "/assets/briefing/films/watcher-invite-1440.mp4",
+    poster: "/assets/watcher.jpg",
   },
   {
     id: ANNUAL_PLAN,
@@ -665,8 +668,148 @@ const thresholdGates = [
     feats: ["A ten-page First Vision gift", "Dispatches: new realms 24 hours before the feed", "The Sanctuary community room"],
     url: checkout.signal,
     guarantee: false,
+    film: "/assets/briefing/films/signal-invite-1440.mp4",
+    poster: "/assets/signal.jpg",
   },
 ];
+
+/* ---------- the deep thresholds: the two gates that asked for the whole page
+   Signal and the Watcher get the funnel itself on the threshold — the film
+   first, what waits inside, how the cycle runs, the price in full, the
+   questions asked at this gate — before the handoff to Whop. Everything else
+   keeps the card. */
+
+function inviteHero({ gateFor, primary, secondary, note }) {
+  return `
+    <section class="v2-threshold v2-deep">
+      <div class="wrap">
+        <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / The threshold</p>
+        <div class="v2-invite">
+          <div class="v2-invite-film">
+            <img src="${gateFor.poster || gateFor.image}" alt="${gateFor.alt}" />
+            <video src="${gateFor.film}" poster="${gateFor.poster || gateFor.image}" muted loop playsinline preload="metadata" title="${gateFor.title} · the invitation"></video>
+            <span class="v2-invite-tag">The invitation · a short film</span>
+          </div>
+          <div class="v2-invite-body">
+            <span class="v2-num">✦</span>
+            <p class="kicker">${gateFor.kicker}</p>
+            <h1>${gateFor.title}</h1>
+            <p class="v2-price-line"><b>${gateFor.price}</b></p>
+            <p class="v2-threshold-note">${gateFor.sub}</p>
+            <ul class="card-feats">${gateFor.feats.map((f) => `<li>${f}</li>`).join("")}</ul>
+            <div class="cta-row v2-equal">${primary}${secondary}</div>
+            ${note || ""}
+            ${gateFor.guarantee ? v2Guarantee() : ""}
+            <p class="note">Taken on Whop's own checkout — card details never sit on this site, and the price is the house's price. <a href="/collections/all">All the works</a> · <a href="/refunds">The refund policy</a></p>
+          </div>
+        </div>
+      </div>
+    </section>`;
+}
+
+function deepThreshold(gateFor) {
+  if (gateFor.key === "signal") {
+    return (
+      inviteHero({
+        gateFor,
+        primary: `<a class="btn solid" href="${gateFor.url}">Enter The Signal, free →</a>`,
+        secondary: `<a class="btn" href="/collections/all">All the works</a>`,
+        note: `<p class="v2-trial">Free, forever. No card, no renewal — every realm drops here 24 hours before the feed.</p>`,
+      }) +
+      marqueeBand() +
+      statBand([
+        ["0", "To enter"],
+        ["6", "Chambers"],
+        ["10", "Page First Vision"],
+        ["24h", "Before the feed"],
+      ]) +
+      `
+    <section>
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="v2-num">I</span>
+          <div class="eyebrow">The gate · what waits inside</div>
+          <h2 class="sec-title">SIX CHAMBERS, ONE GATE</h2>
+          <p class="sec-sub">The Signal opens with the film, then the rooms: the chambers are named in The First Vision, a ten-page gift that comes with the gate.</p>
+        </div>
+        <div class="steps">
+          ${[
+            ["I · The Signal", "Every realm drops here first.", "Twenty-four hours before the open feed, the new realm is posted in this room."],
+            ["II · The Realm", "The month’s being.", "The room where the vision itself lives, with the art in full."],
+            ["III · The Process", "Behind the veil.", "How the vision was made — the tools, the passes, the refusals."],
+            ["IV · The Records", "The lore.", "The writing that surrounds every being, kept with the work."],
+            ["V · The Session", "The live table.", "The build, the questions, the vote — announced in the calendar."],
+            ["VI · Field Journal", "The road out.", "Field notes from the practice: what the visions ask of the viewer."],
+          ].map(([k, t, d]) => `<article class="step"><b>${k}</b><div><strong>${t}</strong><p>${d}</p></div></article>`).join("")}
+        </div>
+      </div>
+    </section>
+    <section class="v2-band">
+      <div class="v2-band-inner">
+        <span class="v2-num">II</span>
+        <p class="kicker">The room beside this gate</p>
+        <h2>Seven nights, then the moon.</h2>
+        <p>When the free gate has shown you what it shows, The Watcher opens the making-of, the lore and the live table — $28 a moon, $280 a year, with the seven-night guarantee.</p>
+        ${v2Guarantee()}
+        <p><a class="btn" href="${gate("the-numinary-3e")}">See The Watcher →</a></p>
+      </div>
+    </section>
+    <section class="v2-band">
+      <div class="v2-band-inner">
+        <span class="v2-num">III</span>
+        <p class="kicker">Questions before you enter</p>
+        <h2>Asked at this gate.</h2>
+        <div class="faq" style="text-align:left">
+          ${faqs.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}
+        </div>
+      </div>
+    </section>`
+    );
+  }
+
+  /* the Watcher: monthly and the year at equal weight, the trial stated in
+     the house's canon words, then the cycle, the FAQ and the guarantee. */
+  return (
+    inviteHero({
+      gateFor,
+      primary: `<a class="btn solid" href="${checkout.watcher}">Take a seat · $28 a moon →</a>`,
+      secondary: `<a class="btn solid" href="${ANNUAL_CHECKOUT}">Take the year · $280 →</a>`,
+      note: `<p class="v2-trial">7 days free, then $28 every 28 days. Cancel any moon — access stays to the end of the cycle you have paid for.</p>`,
+    }) +
+    marqueeBand() +
+    statBand([
+      ["$28", "A moon"],
+      ["28", "Day cycle"],
+      ["4", "Weekly chapters"],
+      ["7", "Night guarantee"],
+    ]) +
+    `
+    <section>
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="v2-num">I</span>
+          <div class="eyebrow">The room · four chapters</div>
+          <h2 class="sec-title">ONE CYCLE, FOUR WEEKS</h2>
+          <p class="sec-sub">One 28-day cycle, delivered in four weekly chapters. The year is twelve of them on one seat.</p>
+        </div>
+        <div class="weeks">
+          ${weeks.map(([when, name, text]) => `<article class="week"><b>${when}</b><strong>${name}</strong><p>${text}</p></article>`).join("")}
+        </div>
+      </div>
+    </section>
+    ${pactPanel()}
+    <section class="v2-band">
+      <div class="v2-band-inner">
+        <span class="v2-num">II</span>
+        <p class="kicker">Questions before the seat</p>
+        <h2>Asked at this gate.</h2>
+        <div class="faq" style="text-align:left">
+          ${faqs.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}
+        </div>
+      </div>
+    </section>`
+  );
+}
 
 function checkoutPage() {
   /* Two ways in: the clean route /checkout (a visitor who typed it, or a link
@@ -684,7 +827,9 @@ function checkoutPage() {
 
   document.title = gateFor ? `${gateFor.title} · Numinous` : "The threshold · Numinous";
 
-  const card = gateFor
+  const card = gateFor && gateFor.film
+    ? deepThreshold(gateFor)
+    : gateFor
     ? `
     <section class="v2-threshold">
       <div class="wrap">
@@ -702,7 +847,7 @@ function checkoutPage() {
               <a class="btn" href="/collections/all">All the works</a>
             </div>
             ${gateFor.guarantee ? v2Guarantee() : ""}
-            <p class="note">You followed an older checkout link. Nothing is broken: the work is here, the price is the house's price, and the offering is taken by Whop on Whop's own checkout — card details never sit on this site.</p>
+            <p class="note">Taken on Whop's own checkout — card details never sit on this site, and the price is the house's price.</p>
           </div>
           <div><img src="${gateFor.image}" alt="${gateFor.alt}" /></div>
         </div>
@@ -814,17 +959,71 @@ const completions = [
   },
 ];
 
+/* What the house suggests next, per gate. Every direction is covered: a Signal
+   buyer is shown the Watcher (and the Herald), a Watcher buyer the Vault (and
+   the Herald), and so on — always to the gate page, never straight at a card
+   form, and never more than two at once. */
+const nextGates = {
+  signal: [
+    ["The Watcher", "The room that runs on the moon. 7 days free, then $28 every 28 days — cancel any moon.", gate("the-numinary-3e"), "/assets/watcher.jpg", "See The Watcher"],
+    ["Herald", "The next realm, delivered first. A free app — not The Signal.", gate("herald-app"), "/assets/sigil.jpg", "See Herald"],
+  ],
+  watcher: [
+    ["Wallpaper Vault", "Fifteen realms, cropped for phone, portrait and desktop. $12 once, yours to keep.", gate("wallpaper-vault"), "/assets/vault.jpg", "See the Vault"],
+    ["Herald", "The next realm, delivered first. A free app — not The Signal.", gate("herald-app"), "/assets/sigil.jpg", "See Herald"],
+  ],
+  vault: [
+    ["The Watcher", "The room that runs on the moon: four weekly chapters each cycle, the records, the live session.", gate("the-numinary-3e"), "/assets/watcher.jpg", "See The Watcher"],
+    ["The Signal", "Free forever, no card — every realm drops there 24 hours before the feed.", gate("the-signal-e6"), "/assets/signal.jpg", "See The Signal"],
+  ],
+  herald: [
+    ["The Signal", "Free forever, no card — every realm drops there 24 hours before the feed.", gate("the-signal-e6"), "/assets/signal.jpg", "See The Signal"],
+    ["The Watcher", "The room that runs on the moon: four weekly chapters each cycle, the records, the live session.", gate("the-numinary-3e"), "/assets/watcher.jpg", "See The Watcher"],
+  ],
+};
+
+function nextCards(key) {
+  const list = nextGates[key] || nextGates.signal;
+  return list
+    .map(
+      ([title, line, href, image, cta]) => `
+      <article class="v2-next-card">
+        <img src="${image}" alt="" loading="lazy" />
+        <div>
+          <h3>${title}</h3>
+          <p>${line}</p>
+          <a class="btn" href="${href}">${cta} →</a>
+        </div>
+      </article>`,
+    )
+    .join("");
+}
+
 function orderCompletePage() {
   const search = window.location.search.toLowerCase();
   const params = new URLSearchParams(window.location.search);
   const status = params.get("status") || "";
-  const work = (params.get("work") || "").toLowerCase();
+  /* Three ways the gate names itself, in order of certainty: the return path
+     the checkout link carried (?gate=), the stamp the house put in this tab on
+     the way out, and the plan/ch id Whop may still hand back in the URL. */
+  const stamped = (window.__numinousLinks && window.__numinousLinks.gate()) || "";
+  const named = (params.get("work") || params.get("gate") || stamped || "").toLowerCase();
+  const annual = named === "watcher-annual";
+  const work = annual ? "watcher" : named;
   const held = ["failed", "error", "canceled", "cancelled", "declined"].includes(status.toLowerCase());
   const idOf = (url) => (String(url).match(/checkout\/([A-Za-z0-9_]+)/) || [])[1] || "";
   const taken = completions.find((c) => {
     const id = idOf(checkout[c.key]).toLowerCase();
     return work === c.key || (id && search.includes(id)) || search.includes(c.slug) || search.includes(c.key);
   });
+  /* What the strip says, per gate: the same voice the gate itself uses, and
+     never a claim the house cannot keep. */
+  const UNLOCKED = {
+    signal: "Six rooms and The First Vision wait in your Whop library. Nothing was asked of the card, and nothing renews.",
+    watcher: "Week I, The Realm, is already open on your seat. The cycle turns with the moon, and the seven nights stand.",
+    vault: "Fifteen realms, cropped for every screen, sit in your Whop library. The work is final once opened.",
+    herald: "The Herald will find you when the next realm opens. The Signal stays free forever, and no card was asked.",
+  };
 
   document.title = held
     ? "The gate held · Numinous"
@@ -885,13 +1084,39 @@ function orderCompletePage() {
             .join("")}
         </div>
         ${taken.key === "watcher" ? v2Guarantee({ text: "If the room does not name what you saw, write within seven nights of your first payment and the full amount returns. Keep what you received." }) : ""}
+        ${
+          taken
+            ? `<div class="v2-unlock">
+          <div class="unlock-media">
+            <img src="${taken.poster}" alt="${taken.title}" loading="lazy" />
+            ${
+              taken.film
+                ? `<video src="${taken.film}" poster="${taken.poster}" muted loop playsinline preload="metadata" title="${taken.title} · the briefing"></video>`
+                : ""
+            }
+          </div>
+          <div class="unlock-body">
+            <p class="eyebrow">What you unlocked</p>
+            <h2>${taken.title}</h2>
+            <p>${UNLOCKED[taken.key] || "The rooms and files wait in your Whop library — this page was only the threshold."}</p>
+            <p style="margin-top:1rem"><a class="btn" href="${library}" rel="noopener">${cta} →</a></p>
+          </div>
+        </div>`
+            : ""
+        }
+        ${
+          taken && taken.key === "watcher" && !annual
+            ? `<p class="v2-annual">Prefer a year? The same seat, twelve cycles, one payment of $280 — <a href="${ANNUAL_CHECKOUT}" data-gate="watcher-annual">take the year →</a></p>`
+            : ""
+        }
         <div class="sec-head" style="margin-top:3rem">
           <span class="v2-num">III</span>
-          <div class="eyebrow">The gate beside this one</div>
-          <h2 class="sec-title">THE HOUSE KEEPS FOUR GATES</h2>
-          <p class="sec-sub">The Signal is free forever. The Watcher is 7 days free, then $28 every 28 days. The Wallpaper Vault is $12 once. The Herald app is free. Nothing else is required to stay.</p>
-          <p><a class="btn" href="/collections/all">See the works →</a></p>
+          <div class="eyebrow">The gates beside this one</div>
+          <h2 class="sec-title">SUGGESTED NEXT</h2>
+          <p class="sec-sub">The Signal is free forever. The Watcher is 7 days free, then $28 every 28 days. The Wallpaper Vault is $12 once. The Herald app is free. Nothing else is required to stay — everything here is a suggestion, and nothing renews on its own.</p>
         </div>
+        <div class="v2-next">${nextCards(taken ? taken.key : "")}</div>
+        <p style="margin-top:1.6rem"><a class="btn" href="/collections/all">See every gate →</a></p>
       </div>
     </section>`
     : `
@@ -918,16 +1143,6 @@ function orderCompletePage() {
           <a class="btn" href="/">Return to Numinous</a>
         </p>
         ${v2Trust(`<a href="mailto:${SUPPORT}">Write to the house</a>`)}
-        ${
-          taken && taken.film
-            ? `<div class="films" style="margin-top:2.6rem">
-          <figure class="film">
-            <video controls playsinline preload="metadata" poster="${taken.poster}" src="${taken.film}" title="${taken.title} · the briefing"></video>
-            <figcaption>The briefing that opens ${taken.title}</figcaption>
-          </figure>
-        </div>`
-            : ""
-        }
       </div>
     </section>
     ${holds}`;

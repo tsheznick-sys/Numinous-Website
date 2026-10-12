@@ -95,6 +95,27 @@ const HOME_MARK = "<!-- numinous-clean-home -->";
 // _redirects rule proxying the clean URL to the routed page, and a boot script
 // carried by the home that forwards a gate path to its own page before paint.
 const GATE_BOOT = "/assets/numinous-gate-boot.js";
+// TASK 6 · the motion layer. The vendored Motion bundle and the house's own
+// layer are concatenated into one file at build time and carried by EVERY
+// document — the adopted home runs the design's own script and never loads the
+// app bundle, so motion has to be its own script to reach both. A missing half
+// is a warning, never a failure: a site without weather is still a site.
+const MOTION_VENDOR = join("reference", "vendor", "motion", "motion.mjs");
+const MOTION_LAYER = join("reference", "patch", "v2", "motion-layer.js");
+const MOTION_OUT = "/assets/numinous-motion.js";
+// The CSS half of the layer is its own file, not part of the house sheet: the
+// home takes the motion rules and nothing else — the routed-page rules in
+// subpages.css speak to shells the home does not have and must never be let
+// near the design's own document.
+const MOTION_CSS_SRC = join("reference", "patch", "v2", "motion.css");
+const MOTION_CSS = "/assets/numinous-motion.css";
+const MOTION_CSS_TAG = `<link rel="stylesheet" href="${MOTION_CSS}">`;
+// The home's own sheet: the two sections the house added to the design's last
+// acts. The home carries the design's sheet and the motion sheet and nothing
+// else of ours, so this is where its own components dress.
+const HOME_ACTS_CSS_SRC = join("reference", "patch", "v2", "home-acts.css");
+const HOME_ACTS_CSS = "/assets/numinous-home-acts.css";
+const MOTION_TAG = `<script type="module" src="${MOTION_OUT}"></script>`;
 // The overhaul modules: every reference/patch/*.mjs present at build time is
 // loaded and folded in here, so one kit can carry the engine while later kits
 // carry content. A module may offer { routes, source, home, css, emit }:
@@ -293,6 +314,40 @@ function gateBootScript() {
 `;
 }
 
+// The motion layer, assembled: the vendored Motion bundle verbatim, then the
+// house's own layer, as one module. Written beside the site's other assets, so
+// every document can pull it with a plain module tag.
+function emitMotionLayer(root, clientDir) {
+  const vendor = join(root, MOTION_VENDOR);
+  const layer = join(root, MOTION_LAYER);
+  if (!existsSync(vendor) || !existsSync(layer)) {
+    console.warn(
+      "[numinous] motion layer not written — the vendored bundle or the layer itself is missing",
+    );
+    return false;
+  }
+  const out = join(clientDir, ...MOTION_OUT.split("/").filter(Boolean));
+  mkdirSync(dirname(out), { recursive: true });
+  const body = readFileSync(vendor, "utf8") + "\n" + readFileSync(layer, "utf8");
+  writeFileSync(out, body);
+  const actsFrom = join(root, HOME_ACTS_CSS_SRC);
+  if (!existsSync(actsFrom)) {
+    throw new Error(
+      `[numinous] ${HOME_ACTS_CSS_SRC} is missing — the home's own acts (the pact, the questions) would open undressed.`,
+    );
+  }
+  writeFileSync(join(clientDir, ...HOME_ACTS_CSS.split("/").filter(Boolean)), readFileSync(actsFrom, "utf8"));
+  const cssFrom = join(root, MOTION_CSS_SRC);
+  if (existsSync(cssFrom)) {
+    const cssOut = join(clientDir, ...MOTION_CSS.split("/").filter(Boolean));
+    writeFileSync(cssOut, readFileSync(cssFrom, "utf8"));
+  } else {
+    console.warn(`[numinous] ${MOTION_CSS_SRC} missing — the layer runs without its measured half`);
+  }
+  console.log(`[numinous] motion layer written (${body.length} bytes)`);
+  return true;
+}
+
 // The pulled home page, wired to the live house: canonical hosted checkouts,
 // the live host everywhere, the house cookie key, no reliance on the pulled
 // server routes. Refuses to emit a half-merged page.
@@ -323,7 +378,14 @@ function mergeHome(html, freeCheckout, housePolish = "") {
     .replaceAll('"/checkout/', '"https://whop.com/checkout/')
     .replaceAll("'/checkout/", "'https://whop.com/checkout/")
     // one consent record, one key, in the shell and on the home alike
-    .replaceAll("numinous-consent", COOKIE_KEY);
+    .replaceAll("numinous-consent", COOKIE_KEY)
+    // TASK 7 · the free gate runs through the house's own pre-checkout page:
+    // its film, the six chambers, the no-card promise, and only then Whop.
+    // The paid gates keep going straight to Whop's checkout.
+    .replaceAll(
+      "https://whop.com/checkout/ch_wYXFulML0v6LIoJ/",
+      "/checkout/ch_wYXFulML0v6LIoJ",
+    );
   // The four gates must all be reachable from the home: this is the funnel's
   // proof, and it fails the build rather than shipping a home with a closed gate.
   const gates = ["ch_wYXFulML0v6LIoJ", "plan_PQnMYNixMTjRQ", "plan_Aew5DdipP3fKY", "plan_hIKLCR4hGiv9B"];
@@ -332,6 +394,21 @@ function mergeHome(html, freeCheckout, housePolish = "") {
     throw new Error(
       `[numinous] the home is missing gate checkouts: ${missing.join(", ")}. ` +
         "Refusing to publish a home that cannot open every gate.",
+    );
+  }
+  // The home's last two acts are the house's own, and the funnel closes on
+  // them: the questions answered in full, and the pact stated gate by gate.
+  // A home that lost either is half-built, and it fails here rather than live.
+  const answers = (out.match(/class="faq-home__item"/g) || []).length;
+  if (answers < 6) {
+    throw new Error(
+      `[numinous] the home carries ${answers} of the seven questions the gate pages answer — refusing to publish.`,
+    );
+  }
+  const terms = (out.match(/class="pact__term"/g) || []).length;
+  if (!out.includes('id="pact"') || terms !== 3) {
+    throw new Error(
+      `[numinous] the home's pact states ${terms} of the three gates' terms — refusing to publish.`,
     );
   }
   if (!out.includes("whop.com/checkout/")) {
@@ -344,8 +421,14 @@ function mergeHome(html, freeCheckout, housePolish = "") {
   const polishTag = housePolish ? `<style data-house="polish">\n${housePolish}\n</style>\n` : "";
   const tail = `${MERGED_MARK}\n${polishTag}\n`;
   out = /<\/body>/i.test(out) ? out.replace(/<\/body>/i, `${tail}</body>`) : `${out}\n${tail}`;
-  // The boot rides in the home's head: sync, so it runs before anything paints.
-  const bootTag = `<script src="${GATE_BOOT}"></script>`;
+  // The home's head: the house sheet it never used to carry (the design's own
+  // sheet is linked by the document itself; this one dresses the shells, the
+  // threshold and the motion layer's CSS half), then the boot — sync, so it
+  // runs before anything paints — then the weather.
+  const bootTag =
+    `<link rel="stylesheet" href="${HOME_ACTS_CSS}">\n` +
+    `${MOTION_CSS_TAG}\n` +
+    `<script src="${GATE_BOOT}"></script>\n${MOTION_TAG}`;
   if (/<\/head>/i.test(out)) {
     out = out.replace(/<\/head>/i, `${bootTag}\n</head>`);
   } else {
@@ -353,7 +436,14 @@ function mergeHome(html, freeCheckout, housePolish = "") {
       "[numinous] the home has no </head> — refusing to publish a home without the gate boot.",
     );
   }
-  if (out.includes('"/checkout/') || out.includes("'/checkout/")) {
+  if (!out.includes(HOME_ACTS_CSS)) {
+    throw new Error(
+      "[numinous] the home's own sheet is not linked — its last two acts would open undressed.",
+    );
+  }
+  // The guard's real intent: no link may still point at the app's own domain
+  // (an internal /checkout/… path is the funnel working as designed).
+  if (/https?:\/\/[^"'\s]*whop\.site\/checkout\//.test(out)) {
     throw new Error(
       "[numinous] unrewritten app-domain checkout link survived the merge — refusing to publish.",
     );
@@ -496,6 +586,8 @@ function themedShell(shellHtml, subpagesCss) {
     '    <link rel="preload" href="/fonts/CormorantGaramond-400-latin.woff2" as="font" type="font/woff2" crossorigin>',
     `    <link rel="stylesheet" href="${CLEAN_CSS}">`,
     ...(subpagesCss ? [`    <link rel="stylesheet" href="${SUBPAGES_CSS}">`] : []),
+    `    ${MOTION_CSS_TAG}`,
+    `    ${MOTION_TAG}`,
     "    " + moduleTag,
     // the header's scrolled state, in the shell itself: the house's own script
     // stays untouched, and the shell still wears the design's behaviour.
@@ -633,6 +725,7 @@ function houseMerge() {
       const bootFile = join(clientDir, ...GATE_BOOT.split("/").filter(Boolean));
       mkdirSync(dirname(bootFile), { recursive: true });
       writeFileSync(bootFile, gateBootScript());
+      emitMotionLayer(root, clientDir);
       for (const mod of OVERHAUL) {
         if (typeof mod.emit === "function") mod.emit(clientDir, routes);
       }

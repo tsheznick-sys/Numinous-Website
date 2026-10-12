@@ -293,3 +293,181 @@ not restated in `v2/house.css`. Nothing else is required.
 ## Deliberately not in this run
 
 - **Lighthouse and the 360px device pass** — no browser in the build sandbox.
+
+## RUN 11 · the deep checkouts for Signal and the Watcher
+
+**The two ends are no longer generic.** The pre-checkout page (the threshold)
+now branches: the gates that carry a `film` get the whole funnel, the rest keep
+the card. The post-checkout page now recommends in every direction.
+
+**The films were never missing.** `main` carries the real MP4s in the exact
+paths the build stages from — `signal-briefing-1440` 5,891,190 · `signal-invite-1440`
+3,072,461 · `watcher-briefing-1440` 6,064,532 · `watcher-invite-1440` 2,863,991
+bytes. This sandbox's checkout carries 128-byte placeholders (the repo prunes
+large binaries locally), so a *local* preview shows the art where the film will
+be; CI builds the real files. Nothing needs re-uploading, and the kit must
+never contain `reference/web-version/public/**` — that is what keeps the real
+films on main.
+
+**Pre-checkout, per gate.**
+* Signal — the invitation film over its art, the full canon: free forever, no
+  card, the six chambers named (The Signal, The Realm, The Process, The Records,
+  The Session, Field Journal), the ten-page First Vision, Dispatches 24 hours
+  before the feed, then the bridge to the Watcher.
+* Watcher — the invitation film, the trial in canon words ("7 days free, then
+  $28 every 28 days"), **monthly and annual as two real buttons of equal
+  weight**, the guarantee, the four weeks, the pact panel and the FAQ.
+* Vault, Herald, the annual gate — unchanged card.
+
+**Post-checkout, per gate.** `nextGates` suggests two gates per purchase, always
+to the gate page and never straight at a card form: Signal → Watcher + Herald ·
+Watcher → Vault + Herald (plus the quiet annual line, monthly buyers only) ·
+Vault → Watcher + Signal · Herald → Signal + Watcher. The old "THE HOUSE KEEPS
+FOUR GATES" block is replaced by "SUGGESTED NEXT"; the four-gate sentence lives
+on as the section's sub-line.
+
+**The Signal's routing (this run's answer).** The free gate now runs *through*
+the house's own pre-checkout page: the Signal's gate-page button and all five of
+the home's own Signal links point at `/checkout/ch_wYXFulML0v6LIoJ`, which the
+gate boot forwards to the deep threshold — film, six chambers, no-card promise —
+and only then does the page hand to Whop. The paid gates are untouched: Watcher,
+the annual seat, the Vault and the Herald still go straight to Whop's checkout.
+The merge guard was re-scoped to its real intent in the same edit: it now refuses
+any surviving `https://…whop.site/checkout/…` link (an internal `/checkout/…`
+path is the funnel working as designed, not a leak).
+
+**The dashboard names the purchase (set on Whop, not installed by the kit).**
+The return URL for each product carries the gate by name —
+`https://jointhenuminouses.whop.site/order-complete?gate=signal` and
+`…?gate=watcher` — and the post-checkout page already reads `?gate=` ahead of
+the plan stamp and the on-the-way-out stamp, so the gate is known even if Whop
+hands nothing else back. Two new `render-check` fixtures plus eight assertions
+prove `?gate=` alone is enough (76 checks, 0 fail).
+
+**The home's last two acts, worked out.** The pact was one sentence and a
+link; it is now the close: the guarantee in its own words, then a panel stating
+each gate's terms — The Signal free forever, The Watcher with its seven nights
+and its cancel any moon, The Wallpaper Vault final once opened — then the door
+to the seat, the seven nights and the refund policy, then the line that card
+details never sit on this site. The questions are new: **all seven canon
+answers** the gate pages carry (free Signal · what is inside The Watcher · why
+$28 a moon · the seven nights · how to cancel · any screen · commercial use),
+in one bezel with a gold rule between and a plus that closes into a minus. The
+nav carries both: *The works · The Watcher · The questions · The pact*, on the
+desktop row and in the mobile menu.
+
+**The home's own sheet.** The home is the design's own document: it carries
+`numinous-clean.css` and the motion sheet and **none** of the subpage sheet —
+linking that one would re-dress 45 selectors the design already owns (the
+footer, the kickers, the works grid, the cookie). So the two new acts dress in
+`reference/patch/v2/home-acts.css`, staged to `/assets/numinous-home-acts.css`
+and linked by `mergeHome` before the motion sheet, in the design's own language
+(the gold rule, the bezel, the ink panel). `mergeHome` also refuses to publish
+a home that lost its answers or its pact terms, or that opened without its own
+sheet — the same style of guard as the four gates.
+
+**One set of answers, every door.** The gates' blocks carried five of the
+seven; they now carry all seven, and the free gate's front door gained a
+questions band of its own (the Signal's deep threshold now closes on the
+questions too, so the door the home's Signal buttons open meets the same seven
+answers as the seat's). The home's first answer — *Is The Signal truly free?* —
+stands open when the section arrives; the other six wait closed.
+
+**The answers move.** A ninth part in the layer, `questions()`: when a
+`details` opens, the answer rises into place — opacity and transform only, never
+a height the browser has to re-measure, and never anything that could hold the
+summary's own tap. It serves the home's questions and the gate pages' own
+`details` blocks alike. `.faq-home__list` and `.pact__terms` joined the stagger
+groups, their items joined the revealed pieces, and the pact's seal now breathes
+with the rest of the art.
+
+**Two flaws found and fixed while verifying.**
+* The vendored Motion bundle was built with `--format=esm`, which ends in
+  `export { Un as animate, … }` — an alias to a minified local that creates no
+  binding named `animate`. Every `animate`/`inView`/`scroll`/`stagger` call in
+  the layer was a `ReferenceError`, swallowed by the guards: the links worked,
+  the motion silently did not. The vendor is now `--format=iife` with
+  `--global-name=__numinousMotionVendor` and the layer binds from that object;
+  a missing engine now means a still page, never a broken one.
+* Hiding a video that cannot decode also hides its `poster` attribute, leaving a
+  black panel. The invitation panel now carries the art in the flow with the
+  film over it (the same shape the unlock strip already used), so a missing film
+  leaves the art.
+
+**Hardening in the same pass.** Each motion subsystem and each element inside
+the loops (wallpapers, films) stands alone: a browser whose scroll maths or
+video calls misbehave loses that piece of weather and nothing else.
+
+**Verification.** `render-check.mjs` 69 assertions, plus three jsdom suites run
+against the built bundle and the built home — funnel 24, home 11, deep 40 — with
+0 failures: the deep pages and their films, the equal-weight buttons, the canon
+copy, the wiring on every checkout link, the suggestions per gate, the film
+lifecycle (muted, looped, preloading only in view), the broken-film fallback,
+and the reduced-motion path.
+
+**Weights.** The assembled layer is 80,581 bytes raw · 29,420 bytes gzip (the
+Motion engine inside it: 63,241 raw · 23,500 gzip). The app bundle is unchanged.
+
+
+## RUN 10 · the motion layer and the wired funnel
+
+**What this run adds.** The pre- and post-checkout pages are rebuilt in the
+store's own language, and the whole site moves. Two new sources and one new
+build output carry it:
+
+| File | Bytes | What it is |
+| --- | --- | --- |
+| `reference/vendor/motion/motion.mjs` | 62,748 | Motion 14.1.0, pre-bundled to the four calls the layer uses (`animate`, `inView`, `scroll`, `stagger`). MIT, licence and provenance beside it. |
+| `reference/patch/v2/motion-layer.js` | — | The house layer: reveals, entrance, wallpaper drift and parallax, counters, magnetic gold buttons, in-view films, and the checkout-link wiring. |
+| `reference/patch/v2/motion.css` | 3,352 | The measured half — the hero's pseudo-element drift, the light that crosses a gold button, the unlock strip's frame. |
+
+**Why motion is its own script.** The home is the bundle's own document: it
+runs the design's script and never loads the app bundle, so a motion pass
+inside `src/site.js` could never reach it. The engine therefore assembles
+`assets/numinous-motion.js` (Motion + the layer, 78,149 B raw · 25,868 B gzip)
+and `assets/numinous-motion.css` at build time, and **every** document loads
+both. The app bundle calls `window.__numinousMotion?.boot(main)` after each
+render, so the layer re-boots per route and always stops what came before.
+
+**Why the motion CSS is not part of `subpages.css`.** That sheet speaks to
+shells the home does not have (`.works` grid, `.steps`, `.v2-*`). The home gets
+the motion rules and nothing else; the routed pages link both sheets. The
+home's head was corrected in this run — `mergeHome` was being called with two
+arguments, so the polish parameter was always empty and the home carried no
+house sheet at all.
+
+**The wiring, in one place.** `motion-layer.js` decorates every
+`whop.com/checkout/` link it finds — on the home and on every routed page —
+with the gate it belongs to and an absolute, https `redirect_url` pointing at
+`/order-complete?gate=<key>`, and stamps the same key in `sessionStorage` on
+click, in the capture phase, so the stamp always lands before the browser
+follows the link. The threshold after the offering reads the gate back in that
+order of certainty: `?gate=` → the stamp → the plan/ch id in the URL.
+
+**The two ends.**
+
+* `/checkout/…` (the threshold): the old "You followed an older checkout link"
+  note is retired for real links — it becomes a trust line ("Taken on Whop's
+  own checkout — card details never sit on this site…"). The sentence survives
+  only where it belongs, on the grown-old page a dead link lands on.
+* `/order-complete`: confirm → the rooms and files → the first steps → **the
+  unlock strip** (the buyer's own art, their briefing film playing muted in
+  view, what the gate gives them) → a quiet annual line, shown **only** to
+  monthly Watcher buyers (`plan_Imfk0oedwYn7v`, `data-gate="watcher-annual"`;
+  an annual buyer never sees the upsell) → the four gates → the works.
+  The hero's old film figure is gone: the film lives in the strip now, once.
+
+**Verification, run in jsdom against the built bundle and the built home:**
+24 funnel checks and 11 home checks, 0 failures — threshold card and trust
+line, the grown-old page, the strip and its film, the annual line present for
+a monthly Watcher and absent for the annual and vault buyers, the held page,
+the combined page, all 12 home checkout links decorated with the right gate and
+an absolute return path, and the stamp written on click.
+
+**Still manual, by design:** Whop's own dashboard can carry a
+`redirect_url`/`redirect_purchase_url` per product. The link-level
+`redirect_url` above works the moment Whop honours one; until an actual
+purchase has walked through it, the stamp is what guarantees the page still
+knows which gate was taken. A `$0` Signal checkout is the cheapest way to
+confirm which of the two lands.
+
