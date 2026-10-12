@@ -13,34 +13,7 @@
 
 const SUPPORT = "numinous.support@gmail.com";
 
-const css = `
-/* 4.1 · anchored headings clear the fixed bar on every routed page */
-#main section{scroll-margin-top:112px}
-/* 4.10 · no custom cursor on touch, none over fields */
-@media (hover:none),(pointer:coarse){.cursor-dot,.cursor-halo{display:none!important}}
-/* 4.5 · the card's price reads large; features stay plain */
-.card .price-line{font-family:var(--display);font-size:max(18px,1.05rem);letter-spacing:.06em;color:var(--gold-hi);display:block;margin:.5rem 0 .3rem}
-.card .card-feats{margin:.5rem 0 .3rem;padding:0;display:grid;gap:.3rem}
-.card .card-feats li{list-style:none;position:relative;padding-left:1.15rem;color:var(--bone);font-size:max(14px,1em);line-height:1.45}
-.card .card-feats li::before{content:"\\2726";position:absolute;left:0;color:var(--gold);font-size:.75em;top:.15em}
-/* 4.11 · the plain seven-night terms and the guarantee card */
-.pact-terms{display:grid;gap:.6rem;margin:1.2rem auto 0;max-width:64ch;text-align:left;padding:0}
-.pact-terms li{list-style:none;position:relative;padding-left:1.7rem;color:var(--bone)}
-.pact-terms li::before{content:"\\2726";position:absolute;left:0;color:var(--gold)}
-.pact-plain{font-family:var(--display);font-size:clamp(1.25rem,2.6vw,1.9rem);line-height:1.25;color:var(--bone)}
-.pact-poet{font-style:italic;color:var(--mist)}
-.guarantee-card{display:block;margin:1.1rem 0;padding:1rem 1.15rem;border:1px solid rgba(197,164,100,.42);border-radius:var(--radius-card,22px);background:linear-gradient(145deg,rgba(212,175,55,.05),transparent 60%),rgba(255,255,255,.015)}
-.guarantee-card strong{display:block;font-family:var(--display);letter-spacing:.1em;color:var(--gold-hi);margin-bottom:.25rem}
-.guarantee-card a{color:var(--gold-hi)}
-/* 4.16 · the records read as documents, not as a voice */
-.prose h2{font-family:var(--display);font-size:clamp(1.05rem,2vw,1.35rem);letter-spacing:.08em;margin:2rem 0 .5rem;color:var(--gold-hi)}
-.prose ul{margin:.4rem 0 .9rem;padding-left:1.2rem}
-.prose li{margin:.35rem 0}
-/* 4.15 · consent buttons carry equal weight on the routed pages too */
-.cookie .cta-row{display:flex;gap:.7rem;flex-wrap:wrap}
-.cookie .cta-row .btn{flex:1;min-width:min(100%,160px);justify-content:center;min-height:44px}
-.cookie .btn{background:rgba(255,255,255,.035);border:1px solid rgba(231,213,166,.5);color:var(--bone)}
-`;
+
 
 function swap(code, pairs, label) {
   const missed = [];
@@ -200,10 +173,6 @@ function siteSource(code) {
       [
         `<a class="enter" href="\${gate("the-signal-e6")}">Enter the Signal →</a>`,
         `<a class="enter" href="\${gate("the-signal-e6")}">Start free →</a>`,
-      ],
-      [
-        `<a href="\${gate("the-signal-e6")}">Enter the Signal →</a><button class="btn" type="button" id="cart">Cart</button>`,
-        `<a href="\${gate("the-signal-e6")}">Start free →</a><button class="btn" type="button" id="cart">Cart</button>`,
       ],
 
       /* ---- 4.5 · the works carry a price, a promise, three features ---- */
@@ -617,7 +586,6 @@ function recordPage(id) {
 }
 
 export default {
-  css,
 
   source(file, code) {
     if (file.endsWith("src/records.js")) return recordsSource(code);

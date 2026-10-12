@@ -176,66 +176,72 @@ function workCards(list = works) {
     .join("");
 }
 
-function nav(active) {
-  const item = (href, label) =>
-    `<a href="${href}" ${active === href ? 'aria-current="page"' : ""}>${label}</a>`;
+/* The header wears the index bundle's floating bezel: the same navbar the
+   home carries, so every routed page opens with the same hand on the door.
+   Below 760px the bundle's own rules fold the links into the Menu. */
+function nav() {
+  const item = (href, label) => `<a href="${href}">${label}</a>`;
+  const links = [
+    ["/collections/all", "The works"],
+    [gate("the-numinary-3e"), "The Watcher"],
+    ["/refunds", "The pact"],
+    ["/#faq", "FAQ"],
+  ];
   return `
-    <a class="brand" href="/">
-      <img src="/assets/sigil.jpg" alt="" />
-      <strong>NUMINOUS</strong>
+    <a class="brand" href="/" aria-label="Numinous home">
+      <img class="brand-mark" src="/assets/logo_alpha.webp" alt="" />
+      <span>Numinous</span>
     </a>
-    <nav class="links" aria-label="Primary">
-      ${item("/collections/all", "Products")}
-      ${item(gate("the-numinary-3e"), "Membership")}
-      ${item("/refunds", "Refunds")}
-      ${item("/#faq", "FAQ")}
-    </nav>
-    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile">Menu</button>
-    <a class="enter" href="${gate("the-signal-e6")}">Start free →</a>
+    <div class="nav-links">
+      ${links.map(([href, label]) => item(href, label)).join("\n      ")}
+    </div>
+    <a class="button button--gold" href="${gate("the-signal-e6")}">Start free</a>
+    <details class="nav-menu">
+      <summary><span class="sr-only">Open menu</span></summary>
+      <nav class="mobile-links" aria-label="Mobile navigation">
+        ${links.map(([href, label]) => item(href, label)).join("\n        ")}
+        <a href="${gate("the-signal-e6")}">Start free</a>
+      </nav>
+    </details>
   `;
 }
 
+/* The foot, in the same bezel: brand, the four gates, the records. */
 function footer() {
   return `
-    <div>
-      <h4>The realms, opened</h4>
-      <p>Cinematic visions of the divine and mythical. New realms every week.</p>
-      <p>Free to start. Seven-night guarantee on The Watcher. Cancel any moon.</p>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="/" aria-label="Numinous home"><img class="brand-mark" src="/assets/logo_alpha.webp" alt="" /><span>Numinous</span></a>
+        <p>The realms, opened. Cinematic visions of the divine and mythical. New realms every week.</p>
+        <p>Free to start. Seven-night guarantee on The Watcher. Cancel any moon.</p>
+        <p class="foot-contact"><a href="mailto:${SUPPORT}">${SUPPORT}</a> · <a href="${onboard.instagram}">@numinous2.0</a></p>
+      </div>
+      <nav class="foot-nav" aria-label="The gates">
+        <h2>The gates</h2>
+        <ul>
+          <li><a href="${gate("the-signal-e6")}">The Signal · Free</a></li>
+          <li><a href="${gate("the-numinary-3e")}">The Watcher · $28 a moon</a></li>
+          <li><a href="${gate("wallpaper-vault")}">Wallpaper Vault · $12</a></li>
+          <li><a href="${gate("herald-app")}">Herald app · Free</a></li>
+          <li><a href="/collections/all">All the works</a></li>
+        </ul>
+      </nav>
+      <nav class="foot-nav" aria-label="The records">
+        <h2>The records</h2>
+        <ul>
+          <li><a href="/returns">The seven nights</a></li>
+          <li><a href="/refunds">Refund policy</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/eula">License of the Works</a></li>
+          <li><a href="/cookies">Cookies</a></li>
+        </ul>
+      </nav>
     </div>
-    <div>
-      <h4>The gates</h4>
-      <ul>
-        <li><a href="${gate("the-signal-e6")}">The Signal · Free</a></li>
-        <li><a href="${gate("the-numinary-3e")}">The Watcher · $28 a moon</a></li>
-        <li><a href="${gate("wallpaper-vault")}">Wallpaper Vault · $12</a></li>
-        <li><a href="${gate("herald-app")}">Herald app · Free</a></li>
-        <li><a href="/collections/all">All the works</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© MMXXVI Numinous · All visions reserved</span>
+      <span>Payments run through <a href="${onboard.whop_terms}">Whop’s terms</a> · Witness the impossible ✦ New realms every week</span>
     </div>
-    <div>
-      <h4>The records</h4>
-      <ul>
-        <li><a href="/returns">The seven nights</a></li>
-        <li><a href="/refunds">Refund policy</a></li>
-        <li><a href="/terms">Terms of Service</a></li>
-        <li><a href="/privacy">Privacy Policy</a></li>
-        <li><a href="/eula">License of the Works</a></li>
-        <li><a href="/cookies">Cookies</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Write to the house</h4>
-      <ul>
-        <li><a href="mailto:${SUPPORT}">${SUPPORT}</a></li>
-        <li><a href="${onboard.instagram}">Instagram · @numinous2.0</a></li>
-        <li><a href="/#faq">Questions travellers ask</a></li>
-      </ul>
-    </div>
-    <p class="legal-row">© MMXXVI <strong>NUMINOUS</strong> · All visions reserved ·
-      Payments run through <a href="${onboard.whop_terms}">Whop’s terms</a> ·
-      <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·
-      <a href="/refunds">Refunds</a> · <a href="/cookies">Cookies</a>
-    </p>
   `;
 }
 

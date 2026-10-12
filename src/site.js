@@ -858,51 +858,6 @@ function bind() {
       window.location.href = gate("the-signal-e6");
     }, 700);
   });
-
-  document.querySelector("#open-cart")?.addEventListener("click", openCart);
-  document.querySelector(".menu-btn")?.addEventListener("click", () => {
-    const button = document.querySelector(".menu-btn");
-    const open = button.getAttribute("aria-expanded") === "true";
-    button.setAttribute("aria-expanded", String(!open));
-    let panel = document.querySelector("#mobile");
-    if (open) {
-      panel?.remove();
-      return;
-    }
-    panel = document.createElement("div");
-    panel.id = "mobile";
-    panel.className = "drawer";
-    panel.innerHTML = `<aside><p class="kicker">The gates</p><nav class="mobile-links">${document.querySelector(".links").innerHTML}<a href="${gate("the-signal-e6")}">Enter the Signal →</a><button class="btn" type="button" id="cart">Cart</button></nav></aside>`;
-    document.body.append(panel);
-    panel.addEventListener("click", (event) => {
-      if (event.target === panel || event.target.closest("a")) panel.remove();
-    });
-    panel.querySelector("#cart")?.addEventListener("click", openCart);
-  });
-}
-
-function openCart() {
-  const existing = document.querySelector("#cart-drawer");
-  existing?.remove();
-  const panel = document.createElement("div");
-  panel.id = "cart-drawer";
-  panel.className = "drawer";
-  panel.innerHTML = `
-    <aside>
-      <p class="kicker">Cart</p>
-      <h2>Seats open on Whop.</h2>
-      <p>This site does not store a cart or a card. Choose a gate and Whop takes the offering, under Whop’s terms and the House pact.</p>
-      <p><a class="btn" href="${checkout.signal}">The Signal · free</a></p>
-      <p><a class="btn" href="${checkout.watcher}">Watcher · $28 / moon</a></p>
-      <p><a class="btn" href="${checkout.vault}">Wallpaper Vault · $12</a></p>
-      <button class="btn" type="button" id="close-cart">Close</button>
-    </aside>`;
-  document.body.append(panel);
-  const close = () => panel.remove();
-  panel.addEventListener("click", (event) => {
-    if (event.target === panel) close();
-  });
-  panel.querySelector("#close-cart").addEventListener("click", close);
 }
 
 function openRecord(id) {
@@ -983,7 +938,8 @@ dialog.addEventListener("cancel", () => {
   if (window.location.hash.startsWith("#/")) history.replaceState(null, "", window.location.pathname);
 });
 window.addEventListener("scroll", () => {
-  navEl.classList.toggle("scrolled", window.scrollY > 8);
+  const head = navEl.closest(".site-header");
+  if (head) head.classList.toggle("is-scrolled", window.scrollY > 8);
 });
 
 render();

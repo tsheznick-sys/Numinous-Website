@@ -8,6 +8,8 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, extname, join } from "node:path";
+import { createHash } from "node:crypto";
+import { inflateRawSync } from "node:zlib";
 import { pathToFileURL } from "node:url";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "vite";
@@ -30,24 +32,62 @@ const LIVE_HOST = "jointhenuminouses.whop.site";
 const REF_HOST = "thenuminouses.whop.site";
 const REF = join("reference", "web-version");
 const REF_PUBLIC = join(REF, "public");
-const REF_HOME = join(REF, "src", "home.html");
-const THEME = join("reference", "merged", "theme.css");
-// The home is the single source of style truth: houseMerge lifts its <style>
-// blocks verbatim out of the pulled home and serves them as one stylesheet the
-// routed pages link, so every gate page carries the home's own design language.
-const HOME_THEME = "/assets/numinous-theme.css";
-const BRIDGE = "/assets/numinous-bridge.css";
-// The polish pass rides after both: the shared layer plus the shell-only layer
-// become one stylesheet the routed pages link last, and the shared layer plus
-// the home-only layer are injected at the end of the merged home, so the curve
-// scale and the plate chrome win every tie against the theme and the bridge.
-const POLISH = join("reference", "merged", "polish.css");
-const POLISH_HOME = join("reference", "merged", "polish-home.css");
-const POLISH_SHELL = join("reference", "merged", "polish-shell.css");
-const POLISH_CSS = "/assets/numinous-polish.css";
-const COOKIE_KEY = "numinous-record";
-// Stamped into the merged home so later build passes can tell it from the shell.
+// The storefront home is the index bundle's own document: one static page
+// carrying its own stylesheet, its own art and the house's checkouts.
+// One file is retired with the style swap but is still touched once during a
+// build: the repo's index.html — the Vite entry — links src/styles.css, and
+// that link is refreshed in its own later commit. An empty stand-in keeps the
+// build whole until then. Nothing in the site reads it, and the stand-in is
+// never published.
+for (const retired of ["src/styles.css"]) {
+  if (!existsSync(join(process.cwd(), retired))) {
+    mkdirSync(dirname(join(process.cwd(), retired)), { recursive: true });
+    writeFileSync(
+      join(process.cwd(), retired),
+      "/* retired with the style swap - an empty stand-in for this build only */\n",
+    );
+    console.log(`[numinous] retired file stubbed for this build: ${retired}`);
+  }
+}
+
+const HOME_SRC = join("reference", "patch", "clean", "home.html");
+// The design itself, served to every page: the bundle's stylesheet, lifted
+// verbatim, plus the sheet that dresses the routed pages in the same language.
+const CLEAN_CSS = "/assets/numinous-clean.css";
+const SUBPAGES_CSS = "/assets/numinous-subpages.css";
+const SUBPAGES_SHEET = join("reference", "patch", "v2", "subpages.css");
+// The design's own bytes (stylesheet, art, self-hosted type) live with the
+// clean source in the reference tree, because the kit commits reference/ and
+// nothing else: staging from here is what guarantees the deployed site serves
+// the design at all. public/ carries matching copies for the dev server only.
+const DESIGN_PUBLIC = join("reference", "patch", "clean", "public");
+// What the kit itself carries, and what it reads out of the client's bundle.
+const DESIGN_FILES = ["assets/numinous-clean.css"];
+// The art and the self-hosted type are too heavy for a kit that has to be
+// handed over as text. They come from the client's own index bundle, whose
+// bytes never change: the build copies them out once, caches them beside the
+// clean source (so a commit can carry them from then on) and stages them into
+// the site. Sizes and checksums are pinned — a different file fails the build
+// rather than dressing the house in something nobody chose.
+const DESIGN_BUNDLE =
+  process.env.NUMINOUS_DESIGN_BUNDLE ||
+  "https://drive.usercontent.google.com/download?id=1Og6xKN_uBV8YeMZOWKRp503Pjv-MC_9S&export=download&confirm=t";
+const DESIGN_FETCH = [
+  ["assets/bg_hero.jpg", 212781, "5c2033af64ec5261706b40c2af8b140e"],
+  ["assets/logo_alpha.webp", 38912, "845cefec93d4b1de6ff04f4d5f5f887a"],
+  ["assets/numinary.jpg", 208142, "8813e23900f1a302437b234d48c030cb"],
+  ["fonts/Cinzel-700-latin.woff2", 25904, "e7ed1ab78a1744183d3dde29701c5fa8"],
+  ["fonts/Cinzel-900-latin.woff2", 25904, "e7ed1ab78a1744183d3dde29701c5fa8"],
+  ["fonts/CormorantGaramond-400-latin.woff2", 37640, "c47ff12887a36dac62f887a6fdb51066"],
+  ["fonts/CormorantGaramond-500-latin.woff2", 37640, "c47ff12887a36dac62f887a6fdb51066"],
+  ["fonts/Manrope-latin.woff2", 24836, "938c6e8019b69313372c47dbb7a7c930"],
+];
 const MERGED_MARK = "<!-- numinous-merged-home -->";
+// The consent record's single key, in the shell and on the home alike.
+const COOKIE_KEY = "numinous-record";
+// The home carries this marker in the bundle's own document, so the merge can
+// prove it adopted the right page before anything is published.
+const HOME_MARK = "<!-- numinous-clean-home -->";
 // This host answers the clean route URLs with the storefront home document: it
 // resolves exact file paths and falls back to /index.html, and it applies no
 // html_handling redirects (a request for <route> never reaches the routed page
@@ -206,72 +246,6 @@ function copyRef(from, to) {
 // (/api/herald), which the static storefront does not run. This override
 // keeps the same pact, the same notes and the same shake — but the handoff
 // opens the canonical free Signal checkout directly, so no traveller is
-// ever trapped by a form whose server is gone.
-/* house merge: every gate and the works index are linked from the home's foot.
-   The pulled footer names some of them; this is self-contained (its own styles,
-   the house tokens) so it renders the same whatever the home's CSS does. */
-function houseGates() {
-  const link = (href, label) =>
-    `    <a style="color:#d4af37;text-decoration:none" href="${href}">${label}</a>`;
-  return `<nav aria-label="The gates of Numinous" class="house-gates" style="display:flex;flex-wrap:wrap;gap:10px 26px;justify-content:center;align-items:center;width:min(1180px,calc(100% - clamp(1.4rem,4vw,3.2rem)));margin:clamp(1rem,2vw,1.5rem) auto 1.4rem;padding:20px 18px;background:linear-gradient(145deg,rgba(255,255,255,.02),transparent 52%),#0b0d12;border:1px solid rgba(212,175,55,.28);border-radius:28px;font:500 12px/1.4 Cinzel,Georgia,serif;letter-spacing:.16em;text-transform:uppercase">
-<style>.house-gates a:hover{color:#f0d98c;text-decoration:underline;text-underline-offset:3px}</style>
-${[
-  ["/collections/all", "The works"],
-  ["/products/the-signal-e6", "The Signal · free"],
-  ["/products/the-numinary-3e", "Watcher · $28 / moon"],
-  ["/products/wallpaper-vault", "Wallpaper Vault · $12"],
-  ["/products/herald-app", "Herald · free"],
-]
-  .map(([href, label]) => link(href, label))
-  .join("\n")}
-</nav>`;
-}
-
-function heraldOverride(freeCheckout) {
-  const free = JSON.stringify(freeCheckout);
-  return `<script>
-/* house merge: the herald hands off to the canonical Signal checkout */
-(function(){
-"use strict";
-var FREE=${free};
-var GATE="/products/the-signal-e6";
-document.addEventListener("submit",function(e){
-  var f=e.target;
-  if(!f||f.id!=="heraldForm")return;
-  e.preventDefault();
-  if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-  var em=document.getElementById("heraldEmail");
-  var note=document.getElementById("consentNote");
-  if(em&&(!em.value||em.value.indexOf("@")<1)){
-    if(note){note.textContent="Enter a valid email address.";note.style.display="block"}
-    em.setAttribute("aria-invalid","true");em.focus();return
-  }
-  if(em)em.removeAttribute("aria-invalid");
-  var terms=document.getElementById("heraldTerms");
-  if(terms&&!terms.checked){
-    var lb=document.querySelector("label.consent");
-    if(lb){lb.classList.remove("shake");void lb.offsetWidth;lb.classList.add("shake")}
-    var cn=document.getElementById("consentNote");
-    if(cn){cn.textContent="Please accept the Terms and Privacy Policy to continue.";cn.style.display="block"}
-    terms.focus();
-    return;
-  }
-  var cn2=document.getElementById("consentNote");
-  if(cn2)cn2.style.display="none";
-  var ok=document.getElementById("heraldOk");
-  if(ok){
-    ok.textContent="Thank you. This site does not store your address. ";
-    var a=document.createElement("a");
-    a.href=GATE;a.textContent="Open The Signal \\u2192";
-    a.style.cssText="color:var(--gold-hi);text-decoration:underline;text-underline-offset:3px";
-    ok.appendChild(a);
-    ok.style.display="block";
-  }
-  window.open(FREE,"_blank","noopener");
-},true);
-})();
-</script>`;
-}
 
 // Every routed page, proxied from its clean URL to the document that holds it.
 function gateRedirects() {
@@ -293,12 +267,25 @@ function gateRedirects() {
 // back (see currentPath in src/site.js), so the address bar never shows /index.html.
 function gateBootScript() {
   const list = routes.map((route) => `/${route}`);
-  return `/* Numinous house boot: the clean route URLs are answered with the home document,
-   so gate paths are forwarded to the routed page that belongs to them. */
+  return `/* Numinous house boot. The clean route URLs are answered with the storefront
+   home document, so two families are forwarded before the home paints:
+     · a gate path   → its own routed document
+     · an old checkout link (/checkout/plan_…, /checkout/ch_…) → the threshold
+       document, which says what the link was for and opens the live gate.
+   Both keep the query and the hash, and the checkout family carries the path
+   it came from as ?from=, so the threshold can name the old door. */
 (function () {
   var routes = ${JSON.stringify(list)};
   var path = window.location.pathname;
   if (/\\/index\\.html$/i.test(path)) return;
+  if (/^\\/checkout\\/[^/]/.test(path)) {
+    var to =
+      "/checkout/index.html" + window.location.search +
+      (window.location.search ? "&" : "?") + "from=" + encodeURIComponent(path) +
+      window.location.hash;
+    window.location.replace(to);
+    return;
+  }
   var clean = path.replace(/\\/+$/, "") || "/";
   if (routes.indexOf(clean) === -1) return;
   window.location.replace(clean + "/index.html" + window.location.search + window.location.hash);
@@ -309,34 +296,21 @@ function gateBootScript() {
 // The pulled home page, wired to the live house: canonical hosted checkouts,
 // the live host everywhere, the house cookie key, no reliance on the pulled
 // server routes. Refuses to emit a half-merged page.
-function homeThemeCss(html) {
-  const blocks = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]);
-  if (!blocks.length) {
-    throw new Error(
-      "[numinous] the pulled home carries no <style> block — refusing to publish " +
-        "routed pages with no house theme.",
-    );
-  }
-  return blocks
-    .join("\n")
-    .replace(/url\((["']?)assets\//g, "url($1/assets/")
-    .trim();
-}
 
 function mergeHome(html, freeCheckout, housePolish = "") {
-  // The overhaul speaks first: its home rewrite lands before the invariants
-  // below, so a patch that breaks the house markup still fails the build.
-  for (const mod of OVERHAUL) {
-    if (typeof mod.home === "function") html = mod.home(html) || html;
-  }
-  // The house's own markup: the living canvas and the works grid. The Herald
-  // form is no longer required — the gate is entered at its own page, and the
-  // fourth work card is what names it — but a home without the works grid is
-  // still refused.
-  if (!html.includes('id="velaris"') || !html.includes('class="works-grid"')) {
+  // The design modules no longer own the home: they rewrote the pulled
+  // storefront document, and that document is retired. The bundle's home is
+  // adopted as it stands, so only the funnel's own invariants are enforced.
+  if (!html.includes(HOME_MARK)) {
     throw new Error(
-      "[numinous] reference/web-version/src/home.html is missing the expected house markup " +
-        "(velaris canvas / works grid). Refusing to publish a half-merged home.",
+      `[numinous] ${HOME_SRC} is not the index bundle's home document ` +
+        "(missing its marker). Refusing to publish a half-merged home.",
+    );
+  }
+  if (!html.includes('class="works"') || !html.includes("numinous-clean.css")) {
+    throw new Error(
+      "[numinous] the home document lost its works grid or its stylesheet. " +
+        "Refusing to publish a home without the design.",
     );
   }
   let out = html
@@ -344,34 +318,31 @@ function mergeHome(html, freeCheckout, housePolish = "") {
     .replaceAll(`https://${REF_HOST}/checkout/`, "https://whop.com/checkout/")
     .replaceAll(REF_HOST, LIVE_HOST)
     // The live host contains the reference host ("join|thenuminouses"), so the
-    // pass above double-prefixes any URL that was already on the live host:
-    // canonical and og:image came back as "joinjointhenuminouses.whop.site".
-    // Collapse that back to the one true host.
+    // pass above double-prefixes any URL that was already on the live host.
     .replaceAll(`join${LIVE_HOST}`, LIVE_HOST)
     .replaceAll('"/checkout/', '"https://whop.com/checkout/')
     .replaceAll("'/checkout/", "'https://whop.com/checkout/")
-    .replaceAll("numinous-consent", COOKIE_KEY)
-    .replace('href="#/privacy" data-hover>COOKIES', 'href="/cookies" data-hover>COOKIES')
-    // The pulled footer names two gates; the house keeps four open. Add the
-    // Wallpaper Vault and the Herald app so every gate is linked from the home.
-    .replace(
-      '          <li><a href="/products/the-numinary-3e" data-hover>The Watcher · $28 / moon</a></li>\n        </ul>',
-      '          <li><a href="/products/the-numinary-3e" data-hover>The Watcher · $28 / moon</a></li>\n' +
-        '          <li><a href="/products/wallpaper-vault" data-hover>Wallpaper Vault · $12</a></li>\n' +
-        '          <li><a href="/products/herald-app" data-hover>Herald app · Free</a></li>\n        </ul>',
+    // one consent record, one key, in the shell and on the home alike
+    .replaceAll("numinous-consent", COOKIE_KEY);
+  // The four gates must all be reachable from the home: this is the funnel's
+  // proof, and it fails the build rather than shipping a home with a closed gate.
+  const gates = ["ch_wYXFulML0v6LIoJ", "plan_PQnMYNixMTjRQ", "plan_Aew5DdipP3fKY", "plan_hIKLCR4hGiv9B"];
+  const missing = gates.filter((id) => !out.includes(id));
+  if (missing.length) {
+    throw new Error(
+      `[numinous] the home is missing gate checkouts: ${missing.join(", ")}. ` +
+        "Refusing to publish a home that cannot open every gate.",
     );
-  // The marker lets a later build pass recognise the merged home; appending at
-  // the very end also covers a home whose closing </body> is missing.
-  // The polish rides at the very end of the document, after every style block
-  // the home carries, so its curves and its background always win their ties.
+  }
+  if (!out.includes("whop.com/checkout/")) {
+    throw new Error(
+      "[numinous] no canonical whop.com checkout found in the merged home — refusing to publish.",
+    );
+  }
+  // The polish rides at the very end of the document, after the home's own
+  // stylesheet, so its rules win their ties on the home as on every gate page.
   const polishTag = housePolish ? `<style data-house="polish">\n${housePolish}\n</style>\n` : "";
-  // 4.1 · one navigation, not two: the gate row is gone; the footer carries
-  // every gate (the check below proves it), so the house-gates band is not
-  // appended to the merged home any more.
-  // The herald hand-off rides along only while the home still carries the
-  // form it speaks to; the fourth work card replaces it on the home.
-  const heraldScript = html.includes('id="heraldForm"') ? heraldOverride(freeCheckout) + "\n" : "";
-  const tail = `${MERGED_MARK}\n${polishTag}${heraldScript}\n`;
+  const tail = `${MERGED_MARK}\n${polishTag}\n`;
   out = /<\/body>/i.test(out) ? out.replace(/<\/body>/i, `${tail}</body>`) : `${out}\n${tail}`;
   // The boot rides in the home's head: sync, so it runs before anything paints.
   const bootTag = `<script src="${GATE_BOOT}"></script>`;
@@ -379,26 +350,12 @@ function mergeHome(html, freeCheckout, housePolish = "") {
     out = out.replace(/<\/head>/i, `${bootTag}\n</head>`);
   } else {
     throw new Error(
-      "[numinous] the pulled home has no </head> — refusing to publish a home without the gate boot.",
+      "[numinous] the home has no </head> — refusing to publish a home without the gate boot.",
     );
-  }
-  const gateLinks = [
-    "/products/the-signal-e6",
-    "/products/the-numinary-3e",
-    "/products/wallpaper-vault",
-    "/products/herald-app",
-  ].filter((href) => out.includes(`href="${href}"`));
-  if (gateLinks.length < 4) {
-    console.warn(`[numinous] only ${gateLinks.length}/4 gate links found in the merged home`);
   }
   if (out.includes('"/checkout/') || out.includes("'/checkout/")) {
     throw new Error(
       "[numinous] unrewritten app-domain checkout link survived the merge — refusing to publish.",
-    );
-  }
-  if (!out.includes("https://whop.com/checkout/")) {
-    throw new Error(
-      "[numinous] no canonical whop.com checkout found in the merged home — refusing to publish.",
     );
   }
   return out;
@@ -408,26 +365,190 @@ function mergeHome(html, freeCheckout, housePolish = "") {
 // Vite has written dist/client and before the Whop packer zips it:
 // the pulled public tree, the house theme on every routed page, and the pulled
 // home page as the storefront home. Listed before whop() so it runs first.
+/* ---- the design's heavier half: read out of the client's own bundle ---- */
+
+/* A zip reader, small and strict: central directory, stored or deflated. */
+function zipEntries(buf) {
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= 0 && i > buf.length - 66000; i -= 1) {
+    if (buf.readUInt32LE(i) === 0x06054b50) {
+      eocd = i;
+      break;
+    }
+  }
+  if (eocd < 0) throw new Error("[numinous] the design bundle is not a zip archive");
+  const count = buf.readUInt16LE(eocd + 10);
+  let at = buf.readUInt32LE(eocd + 16);
+  const entries = new Map();
+  for (let i = 0; i < count; i += 1) {
+    if (buf.readUInt32LE(at) !== 0x02014b50) break;
+    const method = buf.readUInt16LE(at + 10);
+    const size = buf.readUInt32LE(at + 20);
+    const nameLen = buf.readUInt16LE(at + 28);
+    const extraLen = buf.readUInt16LE(at + 30);
+    const commentLen = buf.readUInt16LE(at + 32);
+    const localAt = buf.readUInt32LE(at + 42);
+    const name = buf.toString("utf8", at + 46, at + 46 + nameLen);
+    const dataAt = localAt + 30 + buf.readUInt16LE(localAt + 26) + buf.readUInt16LE(localAt + 28);
+    const raw = buf.subarray(dataAt, dataAt + size);
+    entries.set(name, method === 0 ? raw : method === 8 ? inflateRawSync(raw) : null);
+    at += 46 + nameLen + extraLen + commentLen;
+  }
+  return entries;
+}
+
+async function designBytes(from) {
+  if (/^https?:\/\//.test(from)) {
+    const res = await fetch(from, { redirect: "follow" });
+    if (!res.ok) {
+      throw new Error(`[numinous] the design bundle answered ${res.status} — ${from}`);
+    }
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.subarray(0, 512).toString("utf8").trimStart().startsWith("<")) {
+      throw new Error(
+        "[numinous] the design bundle answered with a web page, not the archive — " +
+          "check that the Drive file is still shared by link",
+      );
+    }
+    return buf;
+  }
+  return readFileSync(from);
+}
+
+/* Every file the design needs, from the kit or from the bundle. The heavier
+   half is fetched and verified once, at the start of the build, and cached
+   beside the clean source — a commit can carry it from then on, and the merge
+   itself stays synchronous so it cannot be overtaken by the packer. */
+async function cacheDesignFiles(root) {
+  const missing = [...DESIGN_FILES, ...DESIGN_FETCH.map(([rel]) => rel)].filter((rel) => {
+    const cached = join(root, DESIGN_PUBLIC, rel);
+    if (!existsSync(cached)) return true;
+    const pinned = DESIGN_FETCH.find(([name]) => name === rel);
+    return pinned ? statSync(cached).size !== pinned[1] : false;
+  });
+  if (!missing.length) return 0;
+  const buf = await designBytes(DESIGN_BUNDLE);
+  const entries = zipEntries(buf);
+  for (const rel of missing) {
+    const pinned = DESIGN_FETCH.find(([name]) => name === rel) || null;
+    const entry =
+      entries.get(rel) ||
+      [...entries.entries()].find(([name]) => name.endsWith(`/${rel}`))?.[1] ||
+      null;
+    if (!entry) {
+      throw new Error(`[numinous] the design bundle carries no ${rel} — refusing to publish`);
+    }
+    if (pinned) {
+      if (entry.length !== pinned[1]) {
+        throw new Error(
+          `[numinous] ${rel} from the bundle is ${entry.length} bytes, expected ${pinned[1]} — refusing to publish`,
+        );
+      }
+      if (createHash("md5").update(entry).digest("hex") !== pinned[2]) {
+        throw new Error(
+          `[numinous] ${rel} from the bundle does not match the design — refusing to publish`,
+        );
+      }
+    }
+    const cached = join(root, DESIGN_PUBLIC, rel);
+    mkdirSync(dirname(cached), { recursive: true });
+    writeFileSync(cached, entry);
+  }
+  return missing.length;
+}
+
+/* The same list, read from the cache: what the merge stages into the site. */
+function designSources(root) {
+  const wanted = [...DESIGN_FILES, ...DESIGN_FETCH.map(([rel]) => rel)];
+  const short = wanted.filter((rel) => !existsSync(join(root, DESIGN_PUBLIC, rel)));
+  if (short.length) {
+    throw new Error(
+      "[numinous] the design's own files are not in the tree and could not be read from the " +
+        "bundle — refusing to publish a house without its art and type:\n  - " +
+        short.join("\n  - "),
+    );
+  }
+  return wanted.map((rel) => [rel, join(root, DESIGN_PUBLIC, rel)]);
+}
+
+/* The routed pages' own document. Written here, not read from the repo's
+   index.html: the kit only commits the paths the bootstrap names, so the
+   shipped shell must not depend on a file the run cannot carry. Only the
+   build's own hashed module tag is lifted out of the built page — everything
+   else (chrome, font links, design links) is the house's, stated once. */
+function themedShell(shellHtml, subpagesCss) {
+  const moduleTag =
+    (shellHtml.match(/<script[^>]*type="module"[^>]*><\/script>/i) || [])[0] || "";
+  if (!moduleTag) {
+    throw new Error(
+      "[numinous] the built shell carries no module script — refusing to publish gate pages without their house script.",
+    );
+  }
+  const head = [
+    '    <meta charset="UTF-8" />',
+    '    <meta name="viewport" content="width=device-width, initial-scale=1" />',
+    '    <meta name="description" content="Witness the impossible. Cinematic visions of the divine and mythical. New realms every week." />',
+    '    <meta name="theme-color" content="#07090d" />',
+    '    <meta name="color-scheme" content="dark" />',
+    '    <title>NUMINOUS · The Realms, Opened</title>',
+    '    <link rel="icon" href="/assets/sigil.jpg" />',
+    '    <link rel="preload" href="/fonts/Cinzel-900-latin.woff2" as="font" type="font/woff2" crossorigin>',
+    '    <link rel="preload" href="/fonts/CormorantGaramond-400-latin.woff2" as="font" type="font/woff2" crossorigin>',
+    `    <link rel="stylesheet" href="${CLEAN_CSS}">`,
+    ...(subpagesCss ? [`    <link rel="stylesheet" href="${SUBPAGES_CSS}">`] : []),
+    "    " + moduleTag,
+    // the header's scrolled state, in the shell itself: the house's own script
+    // stays untouched, and the shell still wears the design's behaviour.
+    "    <script>",
+    "      (function () {",
+    "        var head = function () { return document.querySelector('.site-header'); };",
+    "        var mark = function () { var h = head(); if (h) h.classList.toggle('is-scrolled', window.scrollY > 8); };",
+    "        window.addEventListener('scroll', mark, { passive: true });",
+    "        mark();",
+    "      }());",
+    "    </script>",
+  ].join("\n");
+  return `<!doctype html>
+<html lang="en">
+  <head>
+${head}
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header"><nav class="nav" id="nav" aria-label="Primary navigation"></nav></header>
+    <main id="main"></main>
+    <footer class="site-footer" id="foot"></footer>
+    <div id="cookie" class="cookie" hidden></div>
+    <dialog id="records" class="records"></dialog>
+  </body>
+</html>
+`;
+}
+
 function houseMerge() {
   return {
     name: "numinous-house-merge",
     apply: "build",
+    // The design's heavier half travels out of band: fetch and verify it
+    // before the build starts, so the merge below stays synchronous and the
+    // artifact is always packed from the finished house.
+    async buildStart() {
+      const root = process.cwd();
+      if (!existsSync(join(root, HOME_SRC))) return;
+      const fetched = await cacheDesignFiles(root);
+      if (fetched) console.log(`[numinous] design: ${fetched} file(s) read out of the bundle`);
+    },
+
     closeBundle() {
       const root = process.cwd();
       const clientDir = join(root, "dist", "client");
       const shell = join(clientDir, "index.html");
       if (!existsSync(shell)) return;
 
-      if (!existsSync(join(root, REF_HOME))) {
-        console.warn("[numinous] reference/web-version is not present — storefront left as-is");
+      if (!existsSync(join(root, HOME_SRC))) {
+        console.warn(`[numinous] ${HOME_SRC} is not present — storefront left as-is`);
         return;
       }
-
-      const onboard = JSON.parse(readFileSync(join(root, "coldstorage", "onboard.json"), "utf8"));
-      const freeCheckout = (onboard.checkout?.signal || "").replace(
-        "://jointhenuminouses.whop.site/checkout/",
-        "://whop.com/checkout/",
-      );
 
       // 1 · fonts, films, art, icons, sitemap, service worker
       let staged = 0;
@@ -437,24 +558,35 @@ function houseMerge() {
         if (!before) staged += 1;
       }
 
-      // 1b · the home's own stylesheet, lifted verbatim from the pulled home so
-      // every routed page carries the home's design language, not an imitation,
-      // followed by the house bridge that maps the routed pages' own classes.
-      const homeCss = homeThemeCss(readFileSync(join(root, REF_HOME), "utf8"));
-      const bridgeCss = readFileSync(join(root, THEME), "utf8");
-      const polishCss = readIf(POLISH);
-      const polishShell = readIf(POLISH_SHELL);
-      const polishHome = readIf(POLISH_HOME);
-      const overhaulCss = OVERHAUL.map((mod) => mod.css || "").filter(Boolean).join("\n");
-      const routedPolish = [polishCss, polishShell, overhaulCss].filter(Boolean).join("\n");
-      mkdirSync(join(clientDir, "assets"), { recursive: true });
-      writeFileSync(join(clientDir, ...HOME_THEME.split("/").filter(Boolean)), homeCss);
-      writeFileSync(join(clientDir, "assets", "numinous-bridge.css"), bridgeCss);
-      if (routedPolish) {
-        writeFileSync(join(clientDir, "assets", "numinous-polish.css"), routedPolish);
+      // 1a · the design: the stylesheet the kit carries, and the art and type
+      // read out of the client's own bundle (fetched and verified at the start
+      // of this build, cached beside the clean source). Both are staged into
+      // the site — a missing or altered file fails the build rather than
+      // dressing the house in something nobody chose.
+      const design = designSources(root);
+      for (const [rel, from] of design) {
+        const dest = join(clientDir, rel);
+        mkdirSync(dirname(dest), { recursive: true });
+        cpSync(from, dest);
       }
 
-      // 2 · the house shell: the built shell plus the house theme and the
+      // 1b · one stylesheet per document. The design itself
+      // (/assets/numinous-clean.css) is shipped verbatim in public/; the sheet
+      // that dresses the routed pages in the same language is assembled here
+      // from the design modules and served last, so its rules win their ties.
+      if (!existsSync(join(root, SUBPAGES_SHEET))) {
+        throw new Error(
+          `[numinous] ${SUBPAGES_SHEET} is missing — the routed pages would open without their design.`,
+        );
+      }
+      const subpagesCss = readFileSync(join(root, SUBPAGES_SHEET), "utf8");
+      if (subpagesCss.length < 5000) {
+        throw new Error(`[numinous] ${SUBPAGES_SHEET} looks truncated — refusing to publish it.`);
+      }
+      mkdirSync(join(clientDir, "assets"), { recursive: true });
+      writeFileSync(join(clientDir, "assets", "numinous-subpages.css"), subpagesCss);
+
+      // 2 · the house shell: the built shell plus the design and the
       // self-hosted type. closeBundle fires once per environment build; by a
       // later pass dist/client/index.html is already the merged home, so the
       // themed shell is also stashed beside dist/client. The routed pages are
@@ -463,23 +595,12 @@ function houseMerge() {
       // order, can turn a gate page into a second copy of the home.
       const stash = join(root, "dist", ".numinous-shell.html");
       const shellHtml = readFileSync(shell, "utf8");
-      let themedShell;
+      let shellDoc;
       if (!shellHtml.includes(MERGED_MARK)) {
-        const head = [
-          '<link rel="preload" href="/fonts/Cinzel-900-latin.woff2" as="font" type="font/woff2" crossorigin>',
-          '<link rel="preload" href="/fonts/CormorantGaramond-400-latin.woff2" as="font" type="font/woff2" crossorigin>',
-          `<link rel="stylesheet" href="${HOME_THEME}">`,
-          `<link rel="stylesheet" href="${BRIDGE}">`,
-          ...(routedPolish ? [`<link rel="stylesheet" href="${POLISH_CSS}">`] : []),
-        ].join("\n");
-        themedShell = shellHtml
-          .replace(/[ \t]*<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com" \/>\s*/, "")
-          .replace(/[ \t]*<link rel="preconnect" href="https:\/\/fonts\.gstatic\.com" crossorigin \/>\s*/, "")
-          .replace(/[ \t]*<link\s+href="https:\/\/fonts\.googleapis\.com\/css2[^"]*"\s+rel="stylesheet"\s*\/>\s*/, "")
-          .replace("</head>", `${head}\n  </head>`);
-        writeFileSync(stash, themedShell);
+        shellDoc = themedShell(shellHtml, subpagesCss);
+        writeFileSync(stash, shellDoc);
       } else if (existsSync(stash)) {
-        themedShell = readFileSync(stash, "utf8");
+        shellDoc = readFileSync(stash, "utf8");
       } else {
         console.warn(
           "[numinous] house merge: index.html is a previous merge and no shell is stashed — waiting for a fresh build",
@@ -488,8 +609,8 @@ function houseMerge() {
       }
 
       // 3 · the routed pages read from that shell. This page must stay a gate:
-      // the home markup (the velaris canvas) must never appear in it.
-      if (themedShell.includes('id="velaris"') || !themedShell.includes('id="main"')) {
+      // the home's own markup must never appear in it.
+      if (shellDoc.includes(HOME_MARK) || !shellDoc.includes('id="main"')) {
         throw new Error(
           "[numinous] the house shell for the routed pages is not the storefront shell — refusing to publish gate pages that are copies of the home.",
         );
@@ -497,15 +618,11 @@ function houseMerge() {
       for (const route of routes) {
         const dest = join(clientDir, route, "index.html");
         mkdirSync(dirname(dest), { recursive: true });
-        writeFileSync(dest, themedShell);
+        writeFileSync(dest, shellDoc);
       }
 
-      // 4 · the pulled home becomes the storefront home
-      const merged = mergeHome(
-        readFileSync(join(root, REF_HOME), "utf8"),
-        freeCheckout,
-        [polishCss, polishHome, overhaulCss].filter(Boolean).join("\n"),
-      );
+      // 4 · the index bundle's document becomes the storefront home
+      const merged = mergeHome(readFileSync(join(root, HOME_SRC), "utf8"), subpagesCss);
       writeFileSync(shell, merged);
 
       // 5 · the clean route URLs are answered with that home (exact file paths
@@ -520,9 +637,9 @@ function houseMerge() {
         if (typeof mod.emit === "function") mod.emit(clientDir, routes);
       }
       console.log(
-        `[numinous] house merge: ${staged} pulled paths staged, theme on ${routes.length} routed pages, ` +
-          `polish ${routedPolish ? `${routedPolish.length} bytes` : "absent"}, ` +
-          `home adopted (${merged.length} bytes, herald hands off to ${freeCheckout || "the Signal gate"}), ` +
+        `[numinous] house merge: ${design.length} design files staged, ${staged} pulled paths staged, ` +
+          `the design on ${routes.length} routed pages, ` +
+          `subpages sheet ${subpagesCss.length} bytes, home adopted (${merged.length} bytes), ` +
           `_redirects + gate boot written`,
       );
     },

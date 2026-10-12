@@ -3,16 +3,23 @@
    ------------------------------------------------------------
    Loaded after overhaul-home.mjs and overhaul-site.mjs (the engine
    sorts reference/patch/*.mjs by name), so it sees their output and
-   has the final word. It ships three files, all new:
+   has the final word. The storefront home itself was retired from this
+   module on the style swap: the index bundle's own document
+   (reference/patch/clean/home.html) is canonical and the engine adopts
+   it verbatim, so nothing here rewrites a home any more. What remains:
 
      · v2/site-pages.js — the shell's pages (nav, footer, the four
        gates, the works, the records, the threshold after the
-       offering), rewritten in one block; spliced into src/site.js
-       in place of everything from `const works = [` to `const
-       routes = {`; adds the /checkout route and its page.
-     · v2/house.css — the design layer, appended last on every
-       document, so it wins every tie against the home theme, the
-       bridge and the older polish layers.
+       offering), rewritten in one block and now wearing the bundle's
+       own bezel markup; spliced into src/site.js in place of
+       everything from `const works = [` to `const routes = {`; adds
+       the /checkout route and its page.
+     · v2/subpages.css — the sheet that dresses the routed pages in the
+       bundle's language. The engine assembles it, with the other
+       modules' sheets, into /assets/numinous-subpages.css and links it
+       on every routed page after /assets/numinous-clean.css (the
+       bundle's design, shipped verbatim in public/), so the gate
+       pages carry the same hand as the home.
      · this module — the orchestration above.
 
    How the host routes (do not re-derive): Whop serves exact file
@@ -21,31 +28,19 @@
    head carries the gate boot that forwards it. `_redirects` in the
    asset dir is INERT — it is written as insurance only. The older
    checkout family (/checkout/plan_…, /checkout/ch_…) is therefore
-   answered with the home too: the forward injected below, the first
-   script in the home's head, hands it to /checkout/index.html with
-   the original query plus ?from=<old path>. /checkout and its whole
-   family render checkoutPage(), which reads the plan id, states the
-   price and the seven nights where they apply, and offers the
-   canonical whop.com/checkout/… button — or, for an unknown id,
-   "this gate has grown old" with every open gate below.
+   answered with the home too: the boot in the home's head hands it to
+   /checkout/index.html with the original query plus ?from=<old path>.
+   /checkout and its whole family render checkoutPage(), which reads
+   the plan id, states the price and the seven nights where they
+   apply, and offers the canonical whop.com/checkout/… button — or,
+   for an unknown id, "this gate has grown old" with every open gate
+   below.
 
-   Also in this module: the home's hero and Watcher chapter reworked,
-   the annual Watcher seat (plan_Imfk0oedwYn7v) wired to its real
-   plan, the house 404 rewritten in the v2 voice, and the social card
-   repointed from the 1.18 MB banner.png to /assets/watcher.jpg
-   (206 KB) — the <300 KB target, with no new dependency.
+   Also in this module: the house 404 rewritten in the v2 voice, and
+   the social card repointed from the 1.18 MB banner.png to
+   /assets/watcher.jpg (211 KB) — the <300 KB target, with no new
+   dependency.
 
-   Left for a deliberate, separate action (a run only adds and
-   overwrites; a deletion needs a commit of its own): delete
-   reference/gate-pages.raw.html (14,944 B, referenced by nothing) and
-   optionally the three reference/merged/polish*.css layers (11,032 B,
-   retired by this layer, which loads after them). KEEP
-   reference/merged/theme.css — it is a hard build input via
-   readFileSync; deleting it fails the build until the same commit
-   also edits vite.config.js.
-
-   Nothing here invents a fact: prices, the seven nights, the support
-   address and every checkout are the house's own.
    ============================================================ */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -55,7 +50,7 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(join(HERE, rel), "utf8");
 
-const CSS = read("v2/house.css");
+const CSS = read("v2/subpages.css");
 const PAGES = read("v2/site-pages.js");
 
 const ANNUAL_PLAN = "plan_Imfk0oedwYn7v";
@@ -259,273 +254,8 @@ function recordsSource(code) {
    threshold. (The path is built by concatenation on purpose: the merge rewrites
    any double-quoted house checkout path to the canonical whop.com one, and a
    literal here would be rewritten with it.) */
-const HOME_FORWARD = `<script>
-(function () {
-  try {
-    var path = location.pathname;
-    if (/^\\/checkout\\/[^/]/.test(path)) {
-      var to =
-        "/" + "checkout" + "/index.html" + location.search +
-        (location.search ? "&" : "?") + "from=" + encodeURIComponent(path);
-      location.replace(to);
-      return;
-    }
-  } catch (error) {}
-})();
-</script>
-`;
-
-
-function homeSource(html) {
-  let out = html;
-
-  /* 1 · the hero: one focal point, one primary action, the price and the pact
-     stated plainly beside it, and the same trust line every other page uses. */
-  const hero = `<div class="hero-inner">
-  <div class="hero-sigil rv"><img onerror="this.onerror=null;this.src='/assets/icon-192.png';this.style.mixBlendMode='screen';this.style.filter='none'" src="assets/logo_alpha.webp" alt="The sigil of Numinous: a winged eye within a mandala of sacred geometry" width="196" height="196" loading="eager"></div>
-  <div class="hero-kicker rv d1">WITNESS&nbsp;THE&nbsp;IMPOSSIBLE</div>
-  <h1 class="hero-title split" id="heroTitle">NUMINOUS</h1>
-  <p class="hero-tag rv d2">Cinematic visions of the <em>divine</em> and mythical.</p>
-  <p class="hero-desc">Free weekly visions — every realm posted here before the open feed.<br>A new being every week, fifteen named so far.</p>
-  <p class="hero-value rv d2">Free to start, forever: no card, no renewal. The Watcher is <b>7 days free</b>, then <b>$28</b> every 28 days, or <b>$280</b> a year. The Wallpaper Vault is a one-time <b>$12</b>.</p>
-  <div class="hero-cta rv d4">
-    <a class="btn solid" data-hover href="/products/the-signal-e6" aria-label="Start free with The Signal">Start free: The Signal</a>
-    <a class="btn btn-ghost" data-hover href="/products/the-numinary-3e" aria-label="See The Watcher membership">See the Watcher, $28 a moon</a>
-  </div>
-  <p class="v2-trust"><span>Free forever</span><span>Seven-night guarantee</span><span>Cancel any moon</span><span>Four gates · fifteen beings</span></p>
-  </div>
-
-  `;
-  out = splice(out, '<div class="hero-inner">', '<div class="hero-foot rv d4">', hero, "the hero");
-
-  /* 1b · the two images that sit inside the markup the house writes are pinned
-     to the root: the home document is also what the host answers an unknown
-     path with, and a relative art path breaks everywhere but the root. */
-  out = out.replaceAll('src="assets/logo_alpha.webp"', 'src="/assets/logo_alpha.webp"');
-  out = out.replaceAll('src="assets/numinary.jpg"', 'src="/assets/numinary.jpg"');
-  out = out.replaceAll("this.src='assets/watcher.jpg'", "this.src='/assets/watcher.jpg'");
-
-  /* 2 · the Watcher chapter: the seat, the year beside it, and the pact — or the
-     seven nights — standing with both. */
-  const seatFrom = '<a class="lq-cta" data-hover data-magnet href="/checkout/' + MONTHLY_PLAN;
-  const seat = `<a class="btn solid" data-hover href="${MONTHLY_LINK}">Take a seat, $28 a moon</a>
-          <a class="btn" data-hover href="https://whop.com/checkout/${ANNUAL_PLAN}?${ANNUAL_ORDER}">Take the whole year, $280</a>
-          <span class="num-price">$28&nbsp;/&nbsp;MOON&nbsp;·&nbsp;$280&nbsp;/&nbsp;YEAR</span>`;
-  const seatTo = '<span class="num-price">';
-  const i = out.indexOf(seatFrom);
-  if (i !== -1) {
-    const j = out.indexOf("</span>", out.indexOf(seatTo, i));
-    if (j !== -1) out = out.slice(0, i) + seat + out.slice(j + "</span>".length);
-    else console.warn("[numinous v2] the Watcher seat could not be replaced");
-  } else {
-    console.warn("[numinous v2] the Watcher seat anchor was not found");
-  }
-
-  /* 3 · the seven nights, stated where the price is. */
-  out = replaceOnce(
-    out,
-    '<div class="cycle rv d2"><b>28</b>',
-    `<p class="guarantee-card v2-guarantee" style="text-align:left"><strong>The seven-night guarantee</strong> Join The Watcher and the first seven nights are yours. If the room does not name what you saw, write within seven nights of your first payment and <a href="/refunds">the full amount returns</a>. Keep what you received.</p>
-        <div class="cycle rv d2"><b>28</b>`,
-    "the seven nights beside the price",
-  );
-
-  /* 4 · one language for the works: every card opens at its own gate, and the
-     gate carries the price, the pact and the briefing film. */
-  out = replaceOnce(
-    out,
-    'href="/checkout/' + VAULT_PLAN + '?quantity=1&amp;items=' + VAULT_PLAN + ':1"',
-    'href="/products/wallpaper-vault"',
-    "the Vault card opens at its gate",
-  );
-
-  /* 5 · an unknown path is answered with the home: the house's own 404 speaks
-     in the same voice as every other page, and it knows the threshold route. */
-  const known = out.match(/var known=(\[[^\]]*\]);/);
-  if (known) {
-    let list = [];
-    try {
-      list = JSON.parse(known[1]);
-    } catch (error) {
-      console.warn("[numinous v2] the known-path list could not be read");
-    }
-    if (!list.includes("/checkout")) list.push("/checkout");
-    out = out.replace(known[0], "var known=" + JSON.stringify(list) + ";");
-  } else {
-    console.warn("[numinous v2] the known-path list was not found");
-  }
-  out = replaceOnce(
-    out,
-    `    box.setAttribute("style","max-width:720px;margin:14vh auto;padding:0 1.4rem;text-align:center");
-    box.innerHTML='<p style="letter-spacing:.3em;color:#c5a464;font-size:13px">EST . MMXXVI</p>'
-      +'<h1 style="font-family:Cinzel,Georgia,serif;color:#f2efe8">This gate does not open.</h1>'
-      +'<p style="color:#c9c3b6">That address is not one of the house pages. Nothing was lost.</p>'
-      +'<p style="margin-top:1.4rem"><a class="btn btn-gold" href="/">Return to Numinous</a> '
-      +'<a class="btn btn-ghost" href="/collections/all">The Works</a></p>';`,
-    `    box.className="v2-404";
-    box.innerHTML='<span class="v2-num">✦</span>'
-      +'<p class="kicker">EST . MMXXVI &middot; THE HOUSE</p>'
-      +'<h1>This gate does not open.</h1>'
-      +'<p class="lede">That address is not one of the house pages. Nothing was lost, and nothing was taken \\u2014 The Signal is free, forever, and the works are one step away.</p>'
-      +'<p class="v2-404-cta"><a class="btn solid" href="/products/the-signal-e6">Start free: The Signal</a> '
-      +'<a class="btn" href="/collections/all">The Works</a> '
-      +'<a class="btn" href="/">Return to Numinous</a></p>';`,
-    "the 404 block",
-  );
-
-  /* 5b · the social card: the 1.18 MB banner is over the house's own weight
-     target, so both og:image and twitter:image point at the Watcher art
-     (206 KB) instead. No dimension tags are declared, so nothing else needs to
-     agree with the swap. */
-  const BANNER = "https://jointhenuminouses.whop.site/banner.png";
-  if (out.includes(BANNER)) {
-    out = out.replaceAll(BANNER, "https://jointhenuminouses.whop.site/assets/watcher.jpg");
-  } else {
-    console.warn("[numinous v2] the social card anchor was not found");
-  }
-
-  /* 6 · the forward for older checkout links, the persistent action, and the
-     small machine that shows it. */
-  out = replaceOnce(out, "<head>", "<head>\n" + HOME_FORWARD, "the home head");
-
-  /* 7 · the Vault card's title wraps: the non-breaking name was what held a
-     long word inside a fixed-width card. A normal space lets it break. */
-  out = replaceOnce(
-    out,
-    "<h3>WALLPAPER&nbsp;VAULT</h3>",
-    "<h3>WALLPAPER VAULT</h3>",
-    "the Vault card title: a normal space",
-  );
-
-  /* 8 · the marquee stamps its phrase twice, not four times. The track scrolls
-     -50%, and two copies are exactly what a seamless loop needs; the drift
-     keeps its pace because the design layer halves the animation's duration. */
-  out = replaceOnce(
-    out,
-    "mq.innerHTML=mq.innerHTML+mq.innerHTML+mq.innerHTML+mq.innerHTML;",
-    "mq.innerHTML=mq.innerHTML+mq.innerHTML;",
-    "the marquee: one phrase, stamped twice",
-  );
-
-  /* 9 · the works speak in fours: four gates, numbered I/IV to IV/IV, and the
-     Herald app stands as a card of its own — a free gate of its own, not a
-     signup form. */
-  out = out.replaceAll("I&nbsp;/&nbsp;III", "I&nbsp;/&nbsp;IV");
-  out = out.replaceAll("II&nbsp;/&nbsp;III", "II&nbsp;/&nbsp;IV");
-  out = out.replaceAll("III&nbsp;/&nbsp;III", "III&nbsp;/&nbsp;IV");
-  const HERALD_CARD = `      <a class="card c-herald tilt rv d3" data-hover href="/products/herald-app">
-        <span class="frame"></span>
-        <div class="art r45"><img onerror="this.onerror=null;this.src='/assets/sigil.jpg'" src="/assets/sigil.jpg" alt="The sigil of Numinous: a winged eye within a mandala of sacred geometry" loading="lazy" decoding="async"></div>
-        <div class="body">
-          <span class="badge">✦&nbsp;&nbsp;FREE</span>
-          <h3>HERALD APP</h3>
-          <p>The next realm, delivered first. A free app. Not The Signal.</p>
-          <ul class="card-feats"><li>One letter when a realm opens</li><li>A free app, its own gate</li><li>Unsubscribe at any time</li></ul>
-          <span class="offer-terms">Free, forever. No card.</span>
-          <span class="go">Open The Herald <span class="ar">→</span></span>
-        </div>
-        <span class="num">IV&nbsp;/&nbsp;IV</span><span class="price free">FREE</span>
-        <span class="glowline"></span>
-      </a>`;
-  out = replaceOnce(
-    out,
-    `<span class="num">III&nbsp;/&nbsp;IV</span><span class="price">$12</span>
-        <span class="glowline"></span>
-      </a>
-    </div>`,
-    `<span class="num">III&nbsp;/&nbsp;IV</span><span class="price">$12</span>
-        <span class="glowline"></span>
-      </a>
-
-      <!-- IV · THE HERALD APP -->
-${HERALD_CARD}
-    </div>`,
-    "the Herald card joins the works",
-  );
-
-  /* 10 · the Herald newsletter block leaves the home: a gate is entered at its
-     own page, and the fourth card above is what names it. */
-  out = cut(
-    out,
-    "<!-- ======================= HERALD (NEWSLETTER) ======================= -->",
-    "</section>",
-    "the Herald newsletter block",
-  );
-
-  /* 11 · the works chapter counts four gates. */
-  out = replaceOnce(
-    out,
-    "CHAPTER&nbsp;I&nbsp;·&nbsp;THREE&nbsp;WORKS",
-    "CHAPTER&nbsp;I&nbsp;·&nbsp;FOUR&nbsp;GATES",
-    "the works chapter number",
-  );
-  out = replaceOnce(
-    out,
-    `<p class="sec-sub rv d1">Three works: The Signal is free, Watcher is a 28-day membership, and Wallpaper Vault is a one-time $12 purchase.</p>`,
-    `<p class="sec-sub rv d1">Four gates. The Signal is free forever. The Watcher is 7 days free, then $28 every 28 days, or $280 a year. The Wallpaper Vault is $12 once. The Herald app is free.</p>`,
-    "the works chapter line",
-  );
-
-  /* 12 · the stat band counts what the house keeps. */
-  out = replaceOnce(
-    out,
-    `<div class="stat rv"><b>3</b><span>WORKS</span></div>`,
-    `<div class="stat rv"><b>4</b><span>GATES</span></div>`,
-    "the stat band: four gates",
-  );
-  out = replaceOnce(
-    out,
-    `<div class="stat rv d2"><b>7</b><span>NIGHT&nbsp;GUARANTEE</span></div>`,
-    `<div class="stat rv d2"><b>7</b><span>NIGHT&nbsp;WATCHER&nbsp;TRIAL</span></div>`,
-    "the stat band: the Watcher trial",
-  );
-
-  /* 13 · one cycle, four weeks. */
-  out = replaceOnce(
-    out,
-    "DAYS&nbsp;·&nbsp;ONE&nbsp;CYCLE&nbsp;·&nbsp;FOUR&nbsp;MOONS",
-    "DAYS&nbsp;·&nbsp;ONE&nbsp;CYCLE&nbsp;·&nbsp;FOUR&nbsp;WEEKS",
-    "the cycle line: four weeks",
-  );
-
-  /* 14 · the pact states the seven nights, not the charge. */
-  out = replaceOnce(
-    out,
-    `<p class="text">Your card is charged when you join. If it isn't for you,`,
-    `<p class="text">If it isn't for you,`,
-    "the pact paragraph",
-  );
-
-  /* 15 · the cookie bar says plainly what it keeps, and it sits in the flow:
-     the bar no longer positions itself over the page. */
-  out = replaceOnce(
-    out,
-    `<p><b>✦</b> The Realm keeps its record light: one small entry in your browser remembers this choice. Whop injects its own first-party pixel into every page before our code runs. Details in the <a href="/cookies">cookie policy</a>.</p>`,
-    `<p><b>✦</b> This site remembers Accept or Decline in your browser. Details in the <a href="/cookies">cookie policy</a>.</p>`,
-    "the cookie bar's words",
-  );
-  out = replaceOnce(
-    out,
-    "#cookiebar{position:fixed;left:clamp(.8rem,2.5vw,1.6rem);bottom:clamp(.8rem,2.5vw,1.6rem);z-index:2300;",
-    "#cookiebar{",
-    "the cookie bar leaves the overlay",
-  );
-
-  /* 17 · the foot names all four gates, and the Watcher's line reads a moon. */
-  out = replaceOnce(
-    out,
-    `<li><a href="/products/the-numinary-3e" data-hover>The Watcher · $28 / moon</a></li>
-        </ul>`,
-    `<li><a href="/products/the-numinary-3e" data-hover>The Watcher · $28 a moon</a></li>
-          <li><a href="/products/wallpaper-vault" data-hover>Wallpaper Vault · $12</a></li>
-          <li><a href="/products/herald-app" data-hover>Herald app · Free</a></li>
-        </ul>`,
-    "the foot's gates",
-  );
-
-
-  return out;
-}
+/* the pulled home is no longer the storefront home: the index bundle's
+   own document is canonical, and the house keeps the funnel around it. */
 
 /* ---------- the emitted files ---------- */
 
@@ -581,9 +311,6 @@ export default {
     if (file.endsWith("src/site.js")) return siteSource(code);
     if (file.endsWith("src/records.js")) return recordsSource(code);
     return undefined;
-  },
-  home(html) {
-    return homeSource(html);
   },
   emit,
 };

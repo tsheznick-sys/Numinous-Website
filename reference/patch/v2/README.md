@@ -1,5 +1,44 @@
 # Numinous · House v2 — one design language, every page
 
+> **RUN 9 (2026-10-12) · the style swap.** The storefront now wears the index
+> bundle's own design. The sections below describe v2 as it stood before the
+> swap; where they disagree with this block, this block governs.
+>
+> * **The home** is the bundle's document, kept at
+>   `reference/patch/clean/home.html`, adopted verbatim by the build (its
+>   marker is `<!-- numinous-clean-home -->`) and wearing
+>   `/assets/numinous-clean.css`.
+> * **Every routed page** keeps its route, its copy and its funnel, and wears
+>   the same sheet plus `reference/patch/v2/subpages.css`, assembled by the
+>   build into `/assets/numinous-subpages.css`.
+> * **The design's own bytes.** The stylesheet rides in the kit
+>   (`reference/patch/clean/public/assets/numinous-clean.css`). The art and
+>   the five self-hosted fonts are too heavy for a kit that travels as text, so
+>   the build reads them out of the client's own index bundle
+>   (`assets/bg_hero.jpg`, `assets/logo_alpha.webp`, `assets/numinary.jpg`,
+>   `fonts/*.woff2`), verifies each against pinned sizes and checksums, caches
+>   them beside the clean source and stages them into `dist/client/`. The
+>   bundle link lives in `vite.config.js` (`DESIGN_BUNDLE`); a local path or a
+>   different URL can be passed as `NUMINOUS_DESIGN_BUNDLE` for a hand build.
+>   If the bundle cannot be read, the build fails loudly — it never publishes a
+>   house without its art and type.
+> * **The routed shell** is written by `vite.config.js` itself (chrome, font
+>   preloads, design links), so it no longer depends on the repo's
+>   `index.html` — a stale shell on `main` cannot leak old chrome or the old
+>   stylesheet into a gate page.
+> * **Retired and deleted in the same commit as this kit:**
+>   `reference/merged/theme.css`, `reference/patch/v2/house.css`, the old
+>   pulled home (`reference/web-version/src/home.html`) and `src/styles.css`.
+>   The build reads none of them any more: the design comes from
+>   `numinous-clean.css`, and the routed pages' sheet is `v2/subpages.css`.
+>   `index.html` — the Vite entry — still links `src/styles.css` until its own
+>   line is refreshed, so `vite.config.js` writes an empty stand-in for that one
+>   file when it is missing. Nothing in the site reads it.
+> * **Also removed in the same commit:** the retired menu drawer and the cart
+>   drawer wiring in `src/site.js` (the design has no cart; Whop takes the
+>   offering), the old-home transforms and old stylesheet literals in the three
+>   `reference/patch/*.mjs` modules, and the home-slim pass.
+
 This folder is the whole of the v2 overhaul. It is read at build time by
 `vite.config.js`'s overhaul loader (every `reference/patch/*.mjs` is loaded in
 alphabetical order, so `overhaul-v2.mjs` loads **after** `overhaul-home.mjs` and
@@ -11,7 +50,7 @@ alphabetical order, so `overhaul-v2.mjs` loads **after** `overhaul-home.mjs` and
 |---|---|
 | `../overhaul-v2.mjs` | The orchestrator. Rewrites the shell's pages and the refund record, appends the design layer, rewrites the home's copy, teaches the host's 404 the house voice, and emits the checkout insurance rules. |
 | `v2/site-pages.js` | The shell's pages, rewritten in one block — spliced into `src/site.js` in place of everything from `const works = [` to `const routes = {`. Same names, same contracts. Adds the `/checkout` route and its page. |
-| `v2/house.css` | The design layer. Appended last on every document (routed pages and the home), so it wins every tie against the home theme, the bridge and the three older polish layers. |
+| `v2/subpages.css` (was `v2/house.css`) | The subpage layer. Appended last on every document (routed pages and the home), so it wins every tie against the home theme, the bridge and the three older polish layers. |
 | `../../vite.config.js` | The build itself. Since RUN 7 it is part of the kit: the merge guard no longer requires the home's Herald form (the fourth work card replaces it), and the Herald hand-off script rides along only while the form exists. The bootstrap workflow already `git add`s this file. |
 
 No edit to `overhaul-home.mjs` or `overhaul-site.mjs`, no new dependency.
