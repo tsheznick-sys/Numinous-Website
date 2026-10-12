@@ -60,6 +60,38 @@ router now lets "/" load as a document:
 
     if ((url.pathname.replace(/\/$/, "") || "/") === "/") return;
 
+## The home hero's grid (second fix, 2026-10-12)
+
+The home hero is a **two-column grid** whose rows the polish layer assigns one
+by one: kicker row 1, title row 2, tagline row 3, description row 4, buttons row
+5, and the sigil in column 2 spanning rows 1–5. `homeSource()` replaces the
+hero's inner markup and adds two lines the home theme never knew about — the
+price (`.hero-value`) and the trust strip (`.v2-trust`) — but gave them no row
+of their own. The grid's auto-placement therefore dropped both into the first
+free cells *below* the buttons, in the text column: the price rendered under
+the actions it was written to precede, and the strip wrapped inside a narrow
+column instead of reading as a line of its own.
+
+Fix, in `v2/house.css` (the layer that loads last, so it wins these ties):
+
+| Element | Desktop (>760px) | Mobile (≤760px, one column) |
+|---|---|---|
+| `.hero-value` (the price) | column 1, row **5** | row 6 |
+| `.hero-cta` (the buttons) | column 1, row **6** | row 7 |
+| `.hero-sigil` (the art) | column 2, rows **1–6** | row 1 (unchanged) |
+| `.v2-trust` (the strip) | columns **1–2**, row **7** | row 8 |
+
+So the hero now reads in the order it was written — kicker · title · tagline ·
+description · price · buttons · trust — with the art centred against the whole
+text stack and the trust strip spanning the hero's full width (one line at
+≥1024px, two below, one fact per line on a phone).
+
+Verified with a cascade-and-grid resolver run over the built
+`numinous-home.css` at 1440 / 1280 / 900 / 390 px: the price sits **above** the
+buttons at every width, the strip spans both columns wherever there are two,
+and no two items share a grid cell. Before the fix the same resolver placed the
+price in row 6 under the row-5 buttons, in column 1 only.
+
 ## How the host actually routes (read this before touching the threshold)
 
 - Whop serves **exact file paths**. Every routed page is its own document at

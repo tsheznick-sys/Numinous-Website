@@ -295,6 +295,30 @@ h1, .hero-title {
 .v2-trust span::before { content: "✦"; color: var(--gold); font-size: 0.8em; }
 .v2-trust a { color: var(--gold-hi); }
 
+/* ---------- the home's hero is a two-column grid ---------- */
+/* The rhythm above is one centered column. The home's hero puts the art beside
+   the text, and its rows are spoken for: kicker · title · tagline ·
+   description · buttons, with the sigil spanning them. The two lines this
+   layer adds — the price and the trust strip — were given no row of their own,
+   so they auto-placed into the first free cell below the buttons: in the text
+   column, narrow, and out of reading order. They take their designed places
+   here — the price under the description, the strip across the whole hero. */
+.hero-inner > .hero-value { margin: 1rem 0 0; }
+.hero-inner > .v2-trust { margin-top: 1.25rem; justify-self: stretch; }
+
+@media (min-width: 761px) {
+  .hero-inner > .hero-value { grid-column: 1; grid-row: 5; }
+  .hero-inner > .hero-cta { grid-column: 1; grid-row: 6; }
+  .hero-inner > .hero-sigil { grid-row: 1 / span 6; }
+  .hero-inner > .v2-trust { grid-column: 1 / -1; grid-row: 7; }
+}
+
+@media (max-width: 760px) {
+  .hero-inner > .hero-value { grid-column: 1; grid-row: 6; }
+  .hero-inner > .hero-cta { grid-column: 1; grid-row: 7; }
+  .hero-inner > .v2-trust { grid-column: 1; grid-row: 8; }
+}
+
 /* a page that is not the home still needs a door: the inner-page band */
 .v2-band {
   border-block: 1px solid var(--line-soft);
