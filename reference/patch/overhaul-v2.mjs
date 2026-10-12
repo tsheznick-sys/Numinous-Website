@@ -118,6 +118,18 @@ function siteSource(code) {
     console.warn("[numinous v2] the /checkout route could not be registered");
   }
 
+  /* 2b · the storefront home is its own document. A link to "/" from inside
+     the shell must load that document; rendering a page here instead is how a
+     second, older home appears at the same address. */
+  out = replaceOnce(
+    out,
+    '  if (url.pathname === window.location.pathname && url.hash) return;',
+    '  if (url.pathname === window.location.pathname && url.hash) return;\n' +
+      '  /* "/" is the storefront home, its own document: let the browser load it. */\n' +
+      '  if ((url.pathname.replace(/\\/$/, "") || "/") === "/") return;',
+    "the router: the home stays its own document",
+  );
+
   /* 3 · the entrance veils and the persistent action, on every shell page.
      The veil is once per session, skippable, and absent when the reader asks
      for stillness; the action never rides on the two threshold pages. */

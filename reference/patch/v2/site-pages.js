@@ -319,7 +319,7 @@ function briefingFilms({ poster, blurb, films }) {
 
 function signalPage() {
   return `
-    <section class="gate">
+    <section>
       <div class="wrap gate">
         <div>
           <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / The Signal</p>
@@ -381,7 +381,7 @@ function signalPage() {
 
 function watcherPage() {
   return `
-    <section class="gate">
+    <section>
       <div class="wrap gate">
         <div>
           <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / The Watcher</p>
@@ -447,7 +447,7 @@ function watcherPage() {
 
 function heraldPage() {
   return `
-    <section class="gate">
+    <section>
       <div class="wrap gate">
         <div>
           <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / The Herald</p>
@@ -484,7 +484,7 @@ function heraldPage() {
 
 function vaultPage() {
   return `
-    <section class="gate">
+    <section>
       <div class="wrap gate">
         <div>
           <p class="crumbs"><a href="/">Home</a> / <a href="/collections/all">The Works</a> / Wallpaper Vault</p>
@@ -525,7 +525,7 @@ function vaultPage() {
 
 function collectionPage() {
   return `
-    <section class="gate">
+    <section>
       <div class="wrap">
         <div class="sec-head">
           <span class="v2-num">I</span>
