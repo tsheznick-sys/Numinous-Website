@@ -1,0 +1,439 @@
+/* ---------- the home's own acts · the pact and the questions ----------
+   The home is the design's own document: it carries the design's sheet and the
+   motion sheet, and none of the subpage sheet (see the note in mergeHome — the
+   subpage sheet speaks to shells the home does not have, and linking it would
+   re-dress the footer, the kickers and the works grid the design already owns).
+   So the two sections the house added to the home's last acts dress here, in
+   the design's own language: the gold rule, the bezel, the ink panel.
+   Both class families are the home's alone; no routed page uses them. */
+
+.pact__lede {
+  max-width: 40ch;
+}
+
+.pact__terms {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  max-width: 1000px;
+  margin: clamp(1.6rem, 4vw, 2.4rem) auto 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .012)), var(--ink);
+  list-style: none;
+  text-align: left;
+}
+
+.pact__term {
+  padding: 1.1rem 1.2rem;
+}
+
+.pact__term + .pact__term {
+  border-left: 1px solid var(--line);
+}
+
+.pact__term b {
+  display: block;
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.pact__term span {
+  display: block;
+  margin-top: .5rem;
+  color: var(--muted);
+  font-size: .86rem;
+  line-height: 1.55;
+}
+
+.pact__cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .7rem;
+  margin-top: clamp(1.3rem, 3vw, 1.8rem);
+}
+
+.pact__cta .button {
+  margin-top: 0;
+}
+
+.pact__note a,
+.faq-home__note a,
+.faq-home__answer a {
+  color: var(--gold);
+}
+
+/* the questions: one bezel, a gold rule between, and a plus that closes into a
+   minus — the whole state is paint and transform, so it costs the page nothing */
+
+.faq-home__list {
+  max-width: 940px;
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .012)), var(--ink);
+}
+
+.faq-home__item + .faq-home__item {
+  border-top: 1px solid var(--line);
+}
+
+.faq-home__item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  padding: 1.05rem 1.25rem;
+  color: var(--paper);
+  font-family: var(--serif);
+  font-size: clamp(1.12rem, 2.1vw, 1.5rem);
+  line-height: 1.2;
+  cursor: pointer;
+  list-style: none;
+  transition: color .25s;
+}
+
+.faq-home__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-home__item summary:hover {
+  color: #fff;
+}
+
+.faq-home__item[open] summary {
+  color: var(--gold);
+}
+
+.faq-home__sign {
+  position: relative;
+  flex: 0 0 auto;
+  width: .85rem;
+  height: .85rem;
+}
+
+.faq-home__sign::before,
+.faq-home__sign::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: var(--gold);
+}
+
+.faq-home__sign::before {
+  width: .85rem;
+  height: 1px;
+  transform: translate(-50%, -50%);
+}
+
+.faq-home__sign::after {
+  width: 1px;
+  height: .85rem;
+  transform: translate(-50%, -50%);
+  transition: transform .45s cubic-bezier(.22, 1, .36, 1), opacity .35s;
+}
+
+.faq-home__item[open] .faq-home__sign::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+  opacity: 0;
+}
+
+.faq-home__answer p {
+  max-width: 72ch;
+  margin: 0;
+  padding: 0 1.25rem 1.25rem;
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.62;
+}
+
+.faq-home__answer strong {
+  color: #e9ddc2;
+  font-weight: 700;
+}
+
+.faq-home__note {
+  max-width: 940px;
+  margin: 1.4rem auto 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+@media (max-width: 760px) {
+  .pact__terms {
+    grid-template-columns: 1fr;
+  }
+
+  .pact__term + .pact__term {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 460px) {
+  .faq-home__item summary {
+    gap: .8rem;
+    padding: .9rem 1rem;
+  }
+
+  .faq-home__answer p {
+    padding: 0 1rem 1.1rem;
+  }
+}
+
+/* ---------- the funnel's acts · the first visit, the free, the glance ----------
+   The same design language as the acts above: the gold kicker, the bezel, the
+   ink panel. Each act ends on the one door, the Signal's pre-checkout page. */
+
+.path__steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.path__step {
+  padding: 1.5rem 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: .8rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .012)), var(--ink);
+}
+
+.path__num {
+  display: inline-block;
+  padding: .3rem .5rem;
+  border: 1px solid rgba(239, 220, 177, .33);
+  border-radius: .22rem;
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: .6rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.path__step h3 {
+  margin: .9rem 0 0;
+  font-family: var(--serif);
+  font-size: 1.7rem;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.path__step p {
+  margin: .7rem 0 0;
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.55;
+}
+
+.home-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .75rem;
+  margin: 2.2rem auto 0;
+}
+
+.free__facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .012)), var(--ink);
+  list-style: none;
+  text-align: left;
+}
+
+.free__fact {
+  padding: 1.2rem 1.3rem;
+}
+
+.free__fact + .free__fact {
+  border-left: 1px solid var(--line);
+}
+
+.free__fact b {
+  display: block;
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.free__fact span {
+  display: block;
+  margin-top: .55rem;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.6;
+}
+
+.free__note {
+  max-width: 62ch;
+  margin: 1.4rem auto 0;
+  color: var(--muted);
+  font-size: .86rem;
+  text-align: center;
+}
+
+.glance {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: clamp(3.5rem, 7vw, 5rem) 0 0;
+  text-align: center;
+}
+
+.glance__title {
+  margin: .4rem 0 0;
+  font-family: var(--display);
+  font-size: clamp(1.7rem, 4.2vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: .02em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.glance__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 1080px;
+  margin: 2rem auto 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .012)), var(--ink);
+  text-align: left;
+}
+
+.glance__item {
+  padding: 1.2rem 1.2rem;
+}
+
+.glance__item + .glance__item {
+  border-left: 1px solid var(--line);
+}
+
+.glance__item dt {
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.glance__item dd {
+  margin: .5rem 0 0;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .path__steps,
+  .free__facts,
+  .glance__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .free__fact + .free__fact,
+  .glance__item + .glance__item,
+  .path__step + .path__step {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .path__step + .path__step {
+    margin-top: 0;
+  }
+}
+
+/* ---------- the proof · three comments, shown as written ----------
+   Validation, not a founder's story. The quotes are the commenters' own words,
+   translated, and each handle is shown with the commenter's permission. */
+
+.proof__list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(.9rem, 2vw, 1.4rem);
+  max-width: 1000px;
+  margin: clamp(1.6rem, 4vw, 2.4rem) auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.proof__item {
+  margin: 0;
+  padding: 1.4rem 1.3rem 1.3rem;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .012)), var(--ink);
+}
+
+.proof__item blockquote {
+  margin: 0;
+}
+
+.proof__item p {
+  margin: 0;
+  color: #efe7d8;
+  font-family: var(--serif);
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  line-height: 1.35;
+}
+
+.proof__item figcaption {
+  margin-top: 1rem;
+  color: var(--gold);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .proof__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- the product banners · the whole card is the door ----------
+   Each Works card is one link to its house pre-checkout page. The card keeps
+   its own layout (a plain block) and reads as one button: no underline, the
+   type keeps its colour, and the keyboard gets a visible ring on the card. */
+
+.work--link {
+  position: relative;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.work--link:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 4px;
+}
+
+.work--link:hover .text-link,
+.work--link:focus-visible .text-link {
+  color: var(--gold);
+}
