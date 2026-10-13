@@ -84,6 +84,13 @@ const DESIGN_FETCH = [
 ];
 const MERGED_MARK = "<!-- numinous-merged-home -->";
 // The consent record's single key, in the shell and on the home alike.
+// Every gate enters through the house's own pre-checkout page: The Signal
+// (free, forever), The Watcher (a moon and the year), the Wallpaper Vault and
+// the Herald. Any direct whop.com link to one of them — any query form, any
+// button on the home — becomes that gate's internal page.
+const PRE_CHECKOUT_HOME_RE =
+  /https:\/\/whop\.com\/checkout\/(ch_wYXFulML0v6LIoJ|plan_PQnMYNixMTjRQ|plan_Imfk0oedwYn7v|plan_Aew5DdipP3fKY|plan_hIKLCR4hGiv9B)\/?[^"'\s>]*/g;
+// The consent record's single key, in the shell and on the home alike.
 const COOKIE_KEY = "numinous-record";
 // The home carries this marker in the bundle's own document, so the merge can
 // prove it adopted the right page before anything is published.
@@ -415,13 +422,12 @@ function mergeHome(html, freeCheckout, housePolish = "") {
     .replaceAll("'/checkout/", "'https://whop.com/checkout/")
     // one consent record, one key, in the shell and on the home alike
     .replaceAll("numinous-consent", COOKIE_KEY)
-    // TASK 7 · the free gate runs through the house's own pre-checkout page:
-    // its film, the six chambers, the no-card promise, and only then Whop.
-    // The paid gates keep going straight to Whop's checkout.
-    .replaceAll(
-      "https://whop.com/checkout/ch_wYXFulML0v6LIoJ/",
-      "/checkout/ch_wYXFulML0v6LIoJ",
-    );
+    // TASK 7 · every way into The Signal and The Watcher runs through the
+    // house's own pre-checkout page first — the film, the rooms, the seven
+    // answers — and only then Whop's checkout. The pre-checkout pages' own
+    // buttons are the only whop.com links to these gates that may remain,
+    // because that is where Whop begins.
+    .replace(PRE_CHECKOUT_HOME_RE, "/checkout/$1");
   // The four gates must all be reachable from the home: this is the funnel's
   // proof, and it fails the build rather than shipping a home with a closed gate.
   const gates = ["ch_wYXFulML0v6LIoJ", "plan_PQnMYNixMTjRQ", "plan_Aew5DdipP3fKY", "plan_hIKLCR4hGiv9B"];
@@ -447,9 +453,23 @@ function mergeHome(html, freeCheckout, housePolish = "") {
       `[numinous] the home's pact states ${terms} of the three gates' terms — refusing to publish.`,
     );
   }
-  if (!out.includes("whop.com/checkout/")) {
+  // The funnel's one door: every gate must enter through the house's own
+  // pre-checkout page on the home, and the home hands no one straight to Whop
+  // any more. A home that jumps its own door is half-built.
+  const jumpedGates = [
+    "/checkout/ch_wYXFulML0v6LIoJ",
+    "/checkout/plan_PQnMYNixMTjRQ",
+    "/checkout/plan_Aew5DdipP3fKY",
+    "/checkout/plan_hIKLCR4hGiv9B",
+  ].filter((link) => !out.includes(link));
+  if (jumpedGates.length) {
     throw new Error(
-      "[numinous] no canonical whop.com checkout found in the merged home — refusing to publish.",
+      `[numinous] the home does not enter through ${jumpedGates.join(", ")} — refusing to publish a home that jumps the house's own pre-checkout page.`,
+    );
+  }
+  if (/https:\/\/whop\.com\/checkout\//.test(out)) {
+    throw new Error(
+      "[numinous] a direct whop.com checkout survived the home merge — refusing to publish a home that jumps the house's own door.",
     );
   }
   // The polish rides at the very end of the document, after the home's own
@@ -764,6 +784,39 @@ function houseMerge() {
       emitMotionLayer(root, clientDir);
       for (const mod of OVERHAUL) {
         if (typeof mod.emit === "function") mod.emit(clientDir, routes);
+      }
+      // 6 · the funnel's one door, at the source: The Signal and The Watcher
+      // enter through the house's own pre-checkout page — never straight on
+      // Whop from a gate page, the seven nights, or the order page. The home
+      // is flipped in mergeHome above; this catches a future edit that
+      // re-points one of the shell's pages at Whop before it can ship.
+      const pagesSrc = readFileSync(join(root, "reference", "patch", "v2", "site-pages.js"), "utf8");
+      const shellSrc = readFileSync(join(root, "src", "site.js"), "utf8");
+      const jumped = [
+        ["The Watcher's gate page", pagesSrc, "primaryHref: checkout.watcher"],
+        ["The Watcher's year seat", pagesSrc, "secondaryHref: ANNUAL_CHECKOUT"],
+        ["The Vault's gate page", pagesSrc, "primaryHref: checkout.vault"],
+        ["The Herald's gate page", pagesSrc, 'href="${checkout.herald}"'],
+        ["The seven nights page", shellSrc, '[checkout.watcher, "Take a seat"]'],
+      ]
+        .filter(([, source, needle]) => source.includes(needle))
+        .map(([where]) => where);
+      if (jumped.length) {
+        throw new Error(
+          `[numinous] a checkout button still jumps the house's own pre-checkout page — ${jumped.join(", ")}. Refusing to publish a funnel that skips its door.`,
+        );
+      }
+      const missingDoors = [
+        "/checkout/ch_wYXFulML0v6LIoJ",
+        "/checkout/plan_PQnMYNixMTjRQ",
+        "/checkout/plan_Imfk0oedwYn7v",
+        "/checkout/plan_Aew5DdipP3fKY",
+        "/checkout/plan_hIKLCR4hGiv9B",
+      ].filter((door) => !pagesSrc.includes(`"${door}"`));
+      if (missingDoors.length) {
+        throw new Error(
+          `[numinous] the house's pre-checkout links are missing from the shell's pages: ${missingDoors.join(", ")} — refusing to publish a funnel with no door.`,
+        );
       }
       console.log(
         `[numinous] house merge: ${design.length} design files staged, ${staged} pulled paths staged, ` +
