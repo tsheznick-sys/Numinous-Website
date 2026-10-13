@@ -729,24 +729,7 @@ const routes = {
   [gate("wallpaper-vault")]: { title: "Wallpaper Vault · Numinous", render: vaultPage },
   "/collections/all": { title: "The Works · Numinous", render: collectionPage },
   "/order-complete": { title: "The gate has opened · Numinous", render: orderCompletePage },
-  "/returns": {
-    title: "Seven Nights · Numinous",
-    render: () =>
-      prosePage({
-        kicker: "Returns",
-        title: "Seven Nights",
-        paragraphs: [
-          "Traveller, The Watcher gives you seven nights. If the room does not name what you saw, message within seven nights of the first payment and the full amount returns. Keep what you received.",
-          "The Signal is free, forever. After seven nights, Watcher payments are final for that cycle. You may cancel any moon. Access stays until the current 28-day cycle ends.",
-          "Any other work, if one is later opened, is final the moment it opens.",
-          `Write the house at ${onboard.support}. Refunds, when they are due, return through Whop.`,
-        ],
-        links: [
-          ["#/refund", "The House Refund Policy"],
-          [checkout.watcher, "Take a seat"],
-        ],
-      }),
-  },
+  "/returns": { title: "The Pact · Numinous", render: pactPage },
   "/terms": {
     title: "Terms · Numinous",
     render: () =>

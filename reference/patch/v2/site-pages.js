@@ -14,6 +14,19 @@ const SUPPORT_MAIL = `<a href="mailto:${SUPPORT}">${SUPPORT}</a>`;
 const ANNUAL_PLAN = "plan_Imfk0oedwYn7v";
 const ANNUAL_CHECKOUT = `https://whop.com/checkout/${ANNUAL_PLAN}?quantity=1&items=${ANNUAL_PLAN}:1`;
 
+/* The house's own pre-checkout pages — one door per gate. Every button that
+   used to hand the buyer straight to Whop opens here first: the film, the
+   rooms, the seven answers, the guarantee, the no-card promise — and only
+   then Whop. A pre-checkout page's own buttons are the only whop.com links to
+   a gate that remain, because that is where Whop begins. */
+const PRE_CHECKOUT = {
+  signal: "/checkout/ch_wYXFulML0v6LIoJ",
+  watcher: "/checkout/plan_PQnMYNixMTjRQ",
+  "watcher-annual": "/checkout/plan_Imfk0oedwYn7v",
+  vault: "/checkout/plan_Aew5DdipP3fKY",
+  herald: "/checkout/plan_hIKLCR4hGiv9B",
+};
+
 const works = [
   {
     id: "signal",
@@ -331,7 +344,7 @@ function signalPage() {
           <p class="kicker">The first gate · free forever</p>
           <h1>Every realm drops here first</h1>
           <p class="lede">Free forever. No card, no renewal. Every realm drops here 24 hours before the feed. Inside: Dispatches and The First Vision, a ten-page gift.</p>
-          <p><a class="btn solid" href="/checkout/ch_wYXFulML0v6LIoJ">Enter The Signal, free →</a></p>
+          <p><a class="btn solid" href="${PRE_CHECKOUT.signal}">Enter The Signal, free →</a></p>
           <p class="note">The free gate opens on the house page first — the film, what waits inside, and then the door to Whop. Nothing is asked of the card, at either step.</p>
           ${v2Trust("", ["Free forever", "No card"])}
           <p class="note">After you enter, a briefing opens the rooms. They wait in your Whop library. Card details never sit on this site; Whop processes the offering.</p>
@@ -396,9 +409,9 @@ function watcherPage() {
           <p class="lede">The room that runs on the moon. 7 days free, then $28 every 28 days, or $280 a year. Each 28-day cycle has four weekly chapters: The Realm, The Process, The Records, The Session. Cancel any moon. Access stays until the current cycle (or year) ends. Wallpaper Vault is separate and not included.</p>
           ${v2PriceBlock({
             primary: `<b>$28</b><span>per 28-day cycle</span>`,
-            primaryHref: checkout.watcher,
+            primaryHref: PRE_CHECKOUT.watcher,
             secondary: "Take the year · $280",
-            secondaryHref: ANNUAL_CHECKOUT,
+            secondaryHref: PRE_CHECKOUT["watcher-annual"],
             note: "Take a seat, $28 a moon",
           })}
           ${v2Guarantee()}
@@ -434,6 +447,7 @@ function watcherPage() {
         <div class="weeks">
           ${weeks.map(([when, name, text]) => `<article class="week"><b>${when}</b><strong>${name}</strong><p>${text}</p></article>`).join("")}
         </div>
+        <p class="v2-cta-row" style="text-align:center;margin-top:2rem"><a class="btn solid" href="${PRE_CHECKOUT.watcher}" data-gate="watcher">Take a seat · $28 a moon →</a></p>
       </div>
     </section>
     ${pactPanel()}
@@ -445,6 +459,7 @@ function watcherPage() {
         <div class="faq" style="text-align:left">
           ${faqs.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}
         </div>
+        <p class="v2-cta-row" style="margin-top:2rem"><a class="btn solid" href="${PRE_CHECKOUT.watcher}" data-gate="watcher">Take a seat · $28 a moon →</a></p>
       </div>
     </section>
   `;
@@ -460,7 +475,7 @@ function heraldPage() {
           <p class="kicker">The Herald · free forever</p>
           <h1>The next realm, delivered first.</h1>
           <p class="lede">One letter when a realm opens: the vision, the process, the lore — before the gates grow crowded. A free app. Not The Signal.</p>
-          <p><a class="btn solid" href="${checkout.herald}">Open The Herald, free →</a></p>
+          <p><a class="btn solid" href="${PRE_CHECKOUT.herald}">Open The Herald, free →</a></p>
           ${v2Trust("", ["Free forever", "No card"])}
           <p class="note">Free, forever. No card. The Herald does not store your email on this site — opening the gate is the letter, and the address lives with your Whop library.</p>
         </div>
@@ -499,7 +514,7 @@ function vaultPage() {
           <p class="lede">Fifteen wallpapers, each in phone, portrait, and desktop. $12 once. Final once opened.</p>
           ${v2PriceBlock({
             primary: `<b>$12</b><span>one time · no renewal</span>`,
-            primaryHref: checkout.vault,
+            primaryHref: PRE_CHECKOUT.vault,
             note: "Open the vault, $12",
           })}
           <p class="guarantee-card"><strong>Final once opened</strong> A download cannot be returned, so the Vault is final the moment it opens — except a corrupted file, a duplicate charge, or a listing that was materially wrong, each of which is set right: write to ${SUPPORT}. <a href="/refunds">Read the refund policy →</a></p>
@@ -550,6 +565,56 @@ function collectionPage() {
     ])}
     ${marqueeBand()}
     ${pactPanel()}
+  `;
+}
+
+/* ---------- the pact: seven nights, and the premium works it covers ---------- */
+
+function pactPage() {
+  /* every door here is the house pre-checkout page — never Whop straight from the pact */
+  return `
+    <section class="v2-record pact-record">
+      <header class="v2-record-head">
+        <span class="v2-num">✦</span>
+        <p class="kicker">The pact · the seven nights</p>
+        <h1>Seven Nights</h1>
+        <p class="v2-stamp">Est . MMXXVI · The records · ${RECORD_STAMP}</p>
+      </header>
+      <div class="v2-record-body">
+        <p>Traveller, The Watcher gives you seven nights. If the room does not name what you saw, message within seven nights of the first payment and the full amount returns. Keep what you received.</p>
+      </div>
+      <div class="pact-works">
+        <p class="kicker">Premium works</p>
+        <div class="pact-works__grid">
+          <article class="pact-work">
+            <p class="pact-work__eyebrow">The membership · $28 every 28 days</p>
+            <h2>The Watcher</h2>
+            <p>Seven nights to be sure. Write the house within seven nights of your first payment and the full amount returns. After that, each cycle is final. Cancel any moon; access stays to the end of the cycle you have paid for.</p>
+            <p class="pact-work__actions">
+              <a class="btn" href="/checkout/plan_PQnMYNixMTjRQ">Take a seat</a>
+              <a class="btn" href="/checkout/plan_Imfk0oedwYn7v">Take the year · $280</a>
+            </p>
+          </article>
+          <article class="pact-work">
+            <p class="pact-work__eyebrow">One-time · $12</p>
+            <h2>The Wallpaper Vault</h2>
+            <p>Fifteen wallpapers, each in phone, portrait, and desktop. $12 once, final once opened. The files are yours to keep.</p>
+            <p class="pact-work__actions">
+              <a class="btn" href="/checkout/plan_Aew5DdipP3fKY">Open the Vault</a>
+            </p>
+          </article>
+        </div>
+      </div>
+      <div class="v2-record-body">
+        <ul class="pact-terms">
+          <li><b>The Signal</b><span>Free, forever. No card, no renewal — every realm drops here first.</span></li>
+          <li><b>The Watcher</b><span>Seven nights to be sure. Cancel any moon; access stays to the end of the cycle you have paid for, and $280 carries the whole year.</span></li>
+          <li><b>The Wallpaper Vault</b><span>$12 once, final once opened. The files are yours to keep.</span></li>
+        </ul>
+        <p>Any other work, if one is later opened, is final the moment it opens. Write the house at ${onboard.support}. Refunds, when they are due, return through Whop.</p>
+        <p><a class="btn" href="#/refund">The House Refund Policy</a> <a class="btn" href="/checkout/plan_PQnMYNixMTjRQ">Take a seat</a></p>
+      </div>
+    </section>
   `;
 }
 
@@ -826,6 +891,13 @@ function checkoutPage() {
   const href = gateFor ? gateFor.url : "/collections/all";
 
   document.title = gateFor ? `${gateFor.title} · Numinous` : "The threshold · Numinous";
+  if (gateFor) {
+    const own = `https://jointhenuminouses.whop.site/checkout/${id}`;
+    const canon = document.querySelector('link[rel="canonical"]');
+    if (canon) canon.setAttribute("href", own);
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute("content", own);
+  }
 
   const card = gateFor && gateFor.film
     ? deepThreshold(gateFor)
@@ -943,7 +1015,9 @@ const completions = [
     slug: "herald-app",
     title: "The Herald",
     cta: "Open the Herald on Whop",
+    libraryCta: "Browse the Whop store",
     library: HOUSE_LIBRARY,
+    poster: "/assets/sigil.jpg",
     lede:
       "The Herald is free, forever. Open it and let the next realm find you; its own gate, never The Signal.",
     holds: [
@@ -1007,6 +1081,18 @@ function orderCompletePage() {
      the checkout link carried (?gate=), the stamp the house put in this tab on
      the way out, and the plan/ch id Whop may still hand back in the URL. */
   const stamped = (window.__numinousLinks && window.__numinousLinks.gate()) || "";
+  /* A bare visit names no purchase, so it claims none. It is sent to the
+     Watcher's own pre-checkout page — the house door this page sits behind —
+     and nothing here says the visitor is inside. A real return from Whop
+     always carries a status, a gate or a plan, so it never lands here. */
+  if (!window.location.search && !stamped) {
+    try {
+      window.location.replace(PRE_CHECKOUT.watcher);
+    } catch (error) {
+      /* a page that will not move still offers the way forward */
+    }
+    return `<section class="v2-threshold"><div class="v2-threshold-card"><p class="eyebrow">The threshold</p><h1>Take a seat first.</h1><p class="v2-threshold-note">Nothing was taken on this visit. <a href="${PRE_CHECKOUT.watcher}">Continue to The Watcher →</a></p></div></section>`;
+  }
   const named = (params.get("work") || params.get("gate") || stamped || "").toLowerCase();
   const annual = named === "watcher-annual";
   const work = annual ? "watcher" : named;
@@ -1051,7 +1137,11 @@ function orderCompletePage() {
   }
 
   const library = taken ? taken.library : HOUSE_LIBRARY;
-  const cta = taken ? taken.cta : "Open your library";
+  const cta = taken ? taken.libraryCta || taken.cta : "Open your library";
+  /* The sequence ends at the product page: the house's own page for what was
+     taken. The Whop library stays one step beside it, never the first. */
+  const product = taken ? `/products/${taken.slug}` : "/collections/all";
+  const productCta = taken ? `Open ${taken.title}` : "See the works";
   const holds = taken
     ? `
     <section>
@@ -1099,14 +1189,9 @@ function orderCompletePage() {
             <p class="eyebrow">What you unlocked</p>
             <h2>${taken.title}</h2>
             <p>${UNLOCKED[taken.key] || "The rooms and files wait in your Whop library — this page was only the threshold."}</p>
-            <p style="margin-top:1rem"><a class="btn" href="${library}" rel="noopener">${cta} →</a></p>
+            <p style="margin-top:1rem"><a class="btn solid" href="${product}">${productCta} →</a> <a class="btn" href="${library}" rel="noopener">${cta} →</a></p>
           </div>
         </div>`
-            : ""
-        }
-        ${
-          taken && taken.key === "watcher" && !annual
-            ? `<p class="v2-annual">Prefer a year? The same seat, twelve cycles, one payment of $280 — <a href="${ANNUAL_CHECKOUT}" data-gate="watcher-annual">take the year →</a></p>`
             : ""
         }
         <div class="sec-head" style="margin-top:3rem">
@@ -1139,7 +1224,8 @@ function orderCompletePage() {
         <h1>Traveller, you are inside.</h1>
         <p class="lede">${taken ? taken.lede : "Whatever you took, the rooms and files wait in your Whop library, not on this storefront. This page was only the threshold."}</p>
         <p>
-          <a class="btn solid" href="${library}" rel="noopener">${cta} →</a>
+          <a class="btn solid" href="${product}">${productCta} →</a>
+          <a class="btn" href="${library}" rel="noopener">${cta} →</a>
           <a class="btn" href="/">Return to Numinous</a>
         </p>
         ${v2Trust(`<a href="mailto:${SUPPORT}">Write to the house</a>`)}

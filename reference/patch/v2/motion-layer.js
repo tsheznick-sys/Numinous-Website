@@ -34,6 +34,7 @@
 
   const FINE = "(hover: hover) and (pointer: fine)";
   const NARROW = "(max-width: 760px)";
+  const TABLET = "(min-width: 761px) and (max-width: 1024px)";
   const REDUCED = "(prefers-reduced-motion: reduce)";
 
   const mq = (query) => window.matchMedia(query).matches;
@@ -44,8 +45,10 @@
    * Every gate's checkout link carries its own return path. Whop takes the
    * redirect_url when it honours one and ignores it when it does not — either
    * way the house does not lose the thread: the gate is also stamped on the
-   * way out, so the threshold after the offering still knows what was taken.
-   * One map, one implementation, on every document including the home. */
+   * way out, from the first door (the house's own pre-checkout page) to the
+   * last (Whop's checkout), so the page after the offering still knows what
+   * was taken. One map, one implementation, on every document including the
+   * home. */
 
   const GATE_OF_ID = {
     ch_wYXFulML0v6LIoJ: "signal",
@@ -58,8 +61,24 @@
   const RETURN_PAGE = "/order-complete";
   const GATE_KEYS = [...new Set(Object.values(GATE_OF_ID))];
 
-  const checkoutId = (href) => (String(href).match(/checkout\/([A-Za-z0-9_]+)/) || [])[1] || "";
+  /* The gates are named by their plan or channel id, wherever in the address it
+     sits — the last hop to Whop, the house's own door, or the ?from= the boot
+     forwards with. */
+  const checkoutId = (href) => {
+    const text = String(href);
+    const named = text.match(/checkout\/((?:plan|ch)_[A-Za-z0-9_]+)/);
+    if (named) return named[1];
+    return (text.match(/checkout\/([A-Za-z0-9_]+)/) || [])[1] || "";
+  };
   const gateOfHref = (href) => GATE_OF_ID[checkoutId(href)] || "";
+
+  /* Two kinds of door: the house's own pre-checkout page (internal, opened
+     first) and Whop's checkout (absolute, the last step). Both are named for
+     their gate. Only Whop's door takes the return hint, because that is the
+     one that leads out of the house and has to find its way back. */
+  const WHOP_DOOR = 'a[href*="whop.com/checkout/"]';
+  const HOUSE_DOOR = 'a[href^="/checkout/"], a[href*="whop.site/checkout/"]';
+  const ANY_DOOR = WHOP_DOOR + ", " + HOUSE_DOOR;
 
   /* The return path is absolute and https, as Whop requires. The host is read
      from the document, so the preview and the live site each wire their own. */
@@ -69,10 +88,13 @@
 
   function decorate(root) {
     const scope = root || document;
-    scope.querySelectorAll('a[href*="whop.com/checkout/"]').forEach((a) => {
+    scope.querySelectorAll(ANY_DOOR).forEach((a) => {
       const key = a.dataset.gate || gateOfHref(a.getAttribute("href"));
       if (!key) return;
       a.dataset.gate = key;
+      /* an internal page needs no hint — the hint belongs on the door that
+         leaves the house */
+      if (!a.matches(WHOP_DOOR)) return;
       if (/redirect_url=/.test(a.getAttribute("href"))) return;
       const join = a.getAttribute("href").includes("?") ? "&" : "?";
       a.setAttribute("href", a.getAttribute("href") + join + "redirect_url=" + encodeURIComponent(returnHref(key)));
@@ -87,7 +109,7 @@
     document.addEventListener(
       "click",
       (event) => {
-        const a = event.target.closest && event.target.closest('a[href*="whop.com/checkout/"]');
+        const a = event.target.closest && event.target.closest(ANY_DOOR);
         if (!a) return;
         const key = a.dataset.gate || gateOfHref(a.getAttribute("href"));
         if (!key) return;
@@ -195,10 +217,10 @@
      switched on. Every hidden node is watched by the guard at the end. */
   const GROUPS =
     ".works, .steps, .films, .weeks, .stats-grid, .cards, .footer-grid, .v2-next, " +
-    ".faq-home__list, .pact__terms";
+    ".faq-home__list, .pact__terms, .proof__list";
   const PIECES =
     "[data-mv], .card, .step, .week, .film, .stat, .metric, .v2-threshold-card, .v2-invite, .v2-unlock, .v2-next-card, .v2-annual, .guarantee-card, " +
-    ".faq-home__item, .pact__term";
+    ".faq-home__item, .pact__term, .proof__item";
 
   function reveals(root) {
     const hidden = new Set();
@@ -301,7 +323,9 @@
         ".film img, .v2-threshold-card img, .num-art img, .sec-art img, .unlock-media img, " +
         ".pact__seal",
     );
-    const wide = mq(FINE) && !mq(NARROW);
+    /* the scroll drift is for every screen wider than a phone — tablets and
+       desktops alike. The pointer-led half of the art is never on a phone. */
+    const wide = !mq(NARROW);
     art.forEach((img, index) => {
       try {
       const big = img.closest(".hero, .v2-threshold-card, .num-art, .unlock-media") !== null;
@@ -378,7 +402,10 @@
      and the spring on press are here. Desktop only, and never on the way to
      Whop: the pointerup tween is non-blocking, the default action untouched. */
   function buttons(root) {
-    if (!mq(FINE)) return;
+    if (!mq(FINE)) {
+      press(root);
+      return;
+    }
     root.querySelectorAll(".btn, .button, .cta-row a, button").forEach((btn) => {
       let pull = null;
       const move = (event) => {
@@ -410,6 +437,144 @@
         btn.removeEventListener("pointercancel", leave);
         if (pull) pull.stop();
       });
+    });
+  }
+
+  /* On a touch screen (phone or tablet) there is no pull, only the press: the
+     button settles a breath smaller under the finger and comes back on lift.
+     Nothing waits on it — the tap goes to Whop's checkout at once. */
+  function press(root) {
+    root.querySelectorAll(".btn, .button, .cta-row a").forEach((btn) => {
+      const down = () => animate(btn, { scale: 0.975 }, { duration: 0.12, ease: "easeOut" });
+      const up = () => animate(btn, { scale: 1 }, { duration: 0.35, ease: EASE });
+      btn.addEventListener("pointerdown", down);
+      btn.addEventListener("pointerup", up);
+      btn.addEventListener("pointercancel", up);
+      btn.addEventListener("pointerleave", up);
+      keep(() => {
+        btn.removeEventListener("pointerdown", down);
+        btn.removeEventListener("pointerup", up);
+        btn.removeEventListener("pointercancel", up);
+        btn.removeEventListener("pointerleave", up);
+      });
+    });
+  }
+
+  /* ---------- 6b · the rules: a hairline draws under each kicker -------- */
+
+  /* The kicker is the house's small gold line above a title. On arrival a
+     hairline draws beneath it — transform only, on a pseudo-element, so no
+     text moves. A centred kicker gets its rule centred. */
+  function rules(root) {
+    root.querySelectorAll(".kicker").forEach((el) => {
+      const style = window.getComputedStyle(el);
+      if (style.textAlign === "center" || style.justifyContent === "center") {
+        el.classList.add("mv-rule--center");
+      }
+      el.classList.add("mv-rule");
+      if (el.getBoundingClientRect().top > window.innerHeight * 0.92) {
+        keep(inView(el, () => el.classList.add("mv-in"), { amount: 0.9 }));
+      } else {
+        el.classList.add("mv-in");
+      }
+    });
+  }
+
+  /* ---------- 6c · the reading line -------------------------------------- */
+
+  /* A gold hairline across the top of the page that fills as the visitor
+     reads. It is scroll-linked to the page itself on every screen. */
+  function progress() {
+    if (!scroll || !animate) return;
+    let bar = document.querySelector(".mv-progress");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.className = "mv-progress";
+      bar.setAttribute("aria-hidden", "true");
+      document.body.appendChild(bar);
+    }
+    keep(scroll(animate(bar, { scaleX: [0, 1] }, { ease: "linear" })));
+    keep(() => {
+      bar.style.transform = "scaleX(0)";
+    });
+  }
+
+  /* ---------- 6d · the light at the edge (desktop pointer) --------------- */
+
+  /* The cards answer the cursor with light, never movement: the glow follows
+     the pointer across the face of the card. Desktop with a fine pointer only;
+     it is a paint layer (a pseudo-element's opacity), so Motion keeps the
+     transform and nothing fights over it. */
+  const LIGHT = ".card, .work, .step, .week, .film, .guarantee-card, .v2-next-card";
+
+  function light(root) {
+    if (!mq(FINE) || mq(NARROW)) return;
+    root.querySelectorAll(LIGHT).forEach((el) => {
+      el.classList.add("mv-light");
+      const move = (event) => {
+        const box = el.getBoundingClientRect();
+        el.style.setProperty("--mx", event.clientX - box.left + "px");
+        el.style.setProperty("--my", event.clientY - box.top + "px");
+      };
+      el.addEventListener("pointermove", move);
+      keep(() => {
+        el.removeEventListener("pointermove", move);
+        el.classList.remove("mv-light");
+      });
+    });
+  }
+
+  /* ---------- 6e · the journey: the page moves as you move down it ------- */
+
+  /* Scroll-linked, so it runs in both directions: going down, each section's
+     heading drifts against the page and its groups of cards lag behind the
+     reading, and going back up reverses it exactly. The amount is set by the
+     screen — a deep drift on a desktop, a lighter one on a tablet, and only a
+     breath on a phone. Transform only; the containers are not the elements
+     the reveals move, so nothing fights over a transform. */
+  const HEADS = ".section-head, .sec-head, .watcher__inner > div:first-child";
+  const GROUPS_FLOW =
+    ".works, .steps, .films, .weeks, .cards, .proof__list, .stats-grid, .faq-home__list, .free__facts, .pact__terms";
+
+  function journey(root) {
+    if (!scroll || !animate) return;
+    const amount = mq(NARROW) ? 8 : mq(TABLET) ? 24 : 44;
+    const lag = amount * 0.55;
+    root.querySelectorAll(HEADS).forEach((head) => {
+      const frame = head.closest("section") || head;
+      keep(
+        scroll(animate(head, { y: [amount, -amount] }, { ease: "linear" }), {
+          target: frame,
+          offset: ["start end", "end start"],
+        }),
+      );
+    });
+    root.querySelectorAll(GROUPS_FLOW).forEach((group) => {
+      const frame = group.closest("section") || group;
+      keep(
+        scroll(animate(group, { y: [lag, -lag] }, { ease: "linear" }), {
+          target: frame,
+          offset: ["start end", "end start"],
+        }),
+      );
+    });
+  }
+
+  /* A gold light travels down the page with the reading: a fixed, faint
+     glow that starts above the fold and ends below it as the page runs out.
+     Tablets and desktops only — a phone keeps its screen to itself. */
+  function glow() {
+    if (!scroll || !animate || mq(NARROW)) return;
+    let light = document.querySelector(".mv-glow");
+    if (!light) {
+      light = document.createElement("div");
+      light.className = "mv-glow";
+      light.setAttribute("aria-hidden", "true");
+      document.body.appendChild(light);
+    }
+    keep(scroll(animate(light, { y: ["-40vh", "100vh"] }, { ease: "linear" })));
+    keep(() => {
+      light.style.transform = "translateY(-40vh)";
     });
   }
 
@@ -522,6 +687,11 @@
     step(wallpapers);
     step(counters);
     step(buttons);
+    step(rules);
+    step(progress);
+    step(light);
+    step(journey);
+    step(glow);
     step(films);
     step(questions);
   }
