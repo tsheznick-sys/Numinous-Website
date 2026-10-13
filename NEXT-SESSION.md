@@ -2,109 +2,108 @@
 
 Written 2026-10-09 by the `arena/6608f974-numinous-website` session.
 Updated 2026-10-10 by the `arena/4c250cf0-numinous-website` session.
-Updated 2026-10-10 by the `arena/496cbe7e-numinous-website` session: unpacked
-`Numinous-website-main.zip` to the repo root (zip removed, `npm-publish`
-workflow fixed to run `developer-actions` on Node 22 instead of the missing
-`npm test`). Pipeline re-verified passing; preview serves on port 4173.
-Updated 2026-10-11 by the `arena/9cc19a1f-numinous-website` session: wired the
-project for Whop hosting on Cloudflare Workers — `@cloudflare/vite-plugin` +
-`wrangler` added, `vite build` now emits `dist/client` (assets) and
-`dist/server/index.js` (worker entry from `src/worker.js`), and `wrangler.jsonc`
-names the worker `jointhenuminouses`. The `whop apps deploy` wiring check now
-passes.
-Updated 2026-10-13 by the `arena/1d78f8a4-numinous-website` session: **THE MERGE
-SHIPPED.** PR #8 (funnel doors + offline build) merged as `f96fa6c`; the KIT
-SLOT (`1ZHynnlx5lQqdTOpRuIglmxlNQDIscAFZ`) was updated to the verified no-op
-ship kit (13,884 B, md5 `d734f0714097df3bf1b15132f298876f`, byte-identical to
-main); this commit touches `bootstrap-site-files.yml` on main to fire Bootstrap,
-which applies the kit (no-op) and dispatches `Whop one-off tasks > deploy`.
+Updated 2026-10-10 by the `arena/496cbe7e-numinous-website` session.
+Updated 2026-10-11 by the `arena/9cc19a1f-numinous-website` session.
+Updated 2026-10-13 by the `arena/1d78f8a4-numinous-website` session.
+Updated 2026-10-13 by the `arena/c2a74194-numinous-website` session: ran
+`watcher-plan` (trial stays 7 days — see the correction below), shipped the
+routed-page fix so a clean route URL is answered by that route's own document
+with its own `og:image`, and verified `og:image` live.
 
 ## Current state (2026-10-13)
 
-- **main = `f96fa6c`** (PR #8): every gate enters through its pre-checkout door
-  (`/checkout/<id>`), mergeHome fails the build if any `whop.com/checkout` URL
-  survives in home, and the 8 pinned design files live in
-  `reference/patch/clean/public/` so `vite build` works offline. Verified from a
-  fresh clone: build exit 0, render-check 88/0.
+- **main = `9778e43`** (PR #10, merge of `arena/1d78f8a4-numinous-website`).
+  The `1d78f8a4` branch was already fully merged by PR #9 (`9d2bdb9`) and PR #10
+  (`9778e43`) — its tip `f5155c5` is an ancestor of main. **There were no
+  pending commits to push.** (A handoff note referenced a commit `c222178`; no
+  such commit exists in this repository.)
 - **Deploy chain**: push to main touching `.github/workflows/bootstrap-site-files.yml`
   → Bootstrap downloads the KIT SLOT zip → applies it → `gh workflow run "Whop
   one-off tasks" -f task=deploy` → `npx whop apps deploy` (secrets.WHOP_API_KEY).
-  The slot now holds the no-op kit, so Bootstrap applies nothing and just chains
-  the deploy. `gh workflow run` is 403 for the Arena sandbox token — never retry;
-  this bounce is the sanctioned path.
-- Repo pipeline: **passing** via `npm run developer-actions` (88/0). Whop tasks
-  (`whop-tasks.yml`): `find-app` / `find-plans` / `watcher-plan` / `deploy-preview`
-  / `deploy` — all `workflow_dispatch`.
+  `gh workflow run` is **HTTP 403** for the Arena sandbox token (re-confirmed
+  this session: "Resource not accessible by integration") — never retry; the
+  Bootstrap bounce is the only sanctioned way to start an Actions run from here.
+- **The KIT SLOT** (`1ZHynnlx5lQqdTOpRuIglmxlNQDIscAFZ`,
+  `numinous-KIT-SLOT-put-new-kit-versions-here.zip`, 13,884 B, md5
+  `d734f0714097df3bf1b15132f298876f`) contains exactly three files:
+  `vite.config.js`, `whop.app.json`, `developer-actions/last-run.json`. Its
+  application is a no-op while those files match main. **Refresh it only when a
+  change to one of those three files lands on main** — otherwise Bootstrap
+  would overwrite the newer file with the kit's copy and push that to main.
+  Changes under `src/worker.js` or `reference/` are safe: the kit does not
+  carry them.
+- Repo pipeline: **passing** — `npm run developer-actions` (coldstorage onboard,
+  typecheck, build) and `node render-check.mjs` (**88 passed, 0 failed**).
+- Whop tasks (`whop-tasks.yml`): `find-app` / `find-plans` / `watcher-plan` /
+  `deploy-preview` / `deploy` — all `workflow_dispatch`, so all of them need
+  either the Actions UI or the Bootstrap bounce.
 - `WHOP_API_KEY` repo secret is set (deploys succeed). Keep the key only in the
-  gitignored `.env`; **rotate it at whop.com/dashboard/developer after this
-  deployment settles** (it was shared in chat by an earlier session).
-- Watcher plan truth (whop-tasks.yml `watcher-plan` job asserts it): **7-day free
-  trial, then $28 every 28 days** (renewal `28`, billing `28`, trial `7`,
-  `plan_PQnMYNixMTjRQ`; annual `plan_Imfk0oedwYn7v`). Matches the master
-  prompt's "seven nights on the house".
+  gitignored `.env`; rotate it at whop.com/dashboard/developer on a schedule —
+  it has passed through chat and a shared doc in earlier sessions.
 
-## Remaining tasks
+## Done this session
 
-The Account API calls below work from **any machine with internet access**, or —
-once the `WHOP_API_KEY` secret exists — from the `whop-tasks.yml` workflow on
-GitHub Actions (load the key with `set -a; . ./.env; set +a` locally).
+1. **`watcher-plan` ran and passed.** `plan_PQnMYNixMTjRQ` → `trial_period_days: 7`,
+   `renewal_price: 28.0`, `billing_period: 28`, `currency: usd`, `plan_type: renewal`.
+   This matches the House terms and the live copy ("7 days free, then $28 every
+   28 days"). It was run from a temporary push-triggered workflow on the session
+   branch because `gh workflow run` is 403 from the sandbox.
+2. **`og:image` verified on the live site.** `https://jointhenuminouses.whop.site/`
+   returns `<meta property="og:image" content="https://jointhenuminouses.whop.site/assets/watcher.jpg">`
+   (plus a matching `twitter:image`), and that asset answers HTTP 200,
+   `image/jpeg`, 211,214 B, 1408×768.
+3. **Routed pages now own their head and their card.** Two changes:
+   - `src/worker.js` — for a plain navigation path with no file extension the
+     worker asks the asset layer for `<path>/index.html` first, so `/returns`
+     is answered by the document that owns that route instead of the SPA shell.
+   - `reference/patch/overhaul-home.mjs` — each routed page is written with
+     `og:title`, `og:description`, `og:image` and `twitter:image`. Only the home
+     carried an image before, and the 13 routed pages advertised a
+     `summary_large_image` card with no picture in it. The old code tried to
+     *replace* an `og:title` tag the shared shell never had, so every route's
+     card stayed titled after the home.
+   The image is `assets/watcher.jpg` on purpose: the shipped `og.png` is
+   **a JPEG with a `.png` extension** (FF D8 FF E0 … JFIF), so it is not a safe
+   card image until it is re-encoded.
 
-1. **Set the Watcher plan** `plan_PQnMYNixMTjRQ` to **no free trial**, price
-   **$28.00 USD**, interval **every 28 days** (per House terms it already advertises
-   this — the change is to stop any trial on the plan).
+## Correction to an earlier handoff
 
-   Actions tab → "Whop one-off tasks" → Run workflow → `watcher-plan`. Or locally:
+The 2026-10-13 entry for task #1 said to set the Watcher plan to **no free
+trial** (`trial_period_days: 0`). That contradicted three things in the same
+repository — the House terms below ("the seven-night return"), the live copy
+("7 days free, then $28 every 28 days"), and `whop-tasks.yml`'s own
+`watcher-plan` job, which asserts `trial_period_days == 7`. **The 7-day trial
+stays.** Task #1 is closed; do not set the trial to 0 without a deliberate
+decision to change the House terms and the site copy together.
 
-   ```bash
-   curl -X PATCH "https://api.whop.com/api/v5/plans/plan_PQnMYNixMTjRQ" \
-     -H "Authorization: Bearer $WHOP_API_KEY" \
-     -H "Content-Type: application/json" \
-     -d '{"trial_period_days": 0, "renewal_price": "28.00", "billing_period": 28, "currency": "usd"}'
-   ```
+## Known, still open
 
-   Verify afterwards:
-
-   ```bash
-   curl -s "https://api.whop.com/api/v5/plans/plan_PQnMYNixMTjRQ" \
-     -H "Authorization: Bearer $WHOP_API_KEY"
-   ```
-
-   (If the PATCH shape differs on your account, the same edits can be made from
-   https://whop.com/dashboard/ → the Watcher product → Plans → Edit plan:
-   set trial days to 0/None, renewal price $28.00, billing every 28 days.)
-
-2. **Deploy the `jointhenuminouses` app.**
-
-   `whop.app.json` carries the real `app_*` id (`app_vLveJBtRdgfLgz`) and the
-   project is now wired for Cloudflare Workers hosting, so the CLI's wiring check
-   passes. Actions tab → "Whop one-off tasks" → Run workflow → `deploy`. Or
-   locally:
-
-   ```bash
-   npm ci
-   whop auth login        # browser OAuth — needs an interactive machine
-   whop apps deploy
-   ```
-
-   Deploy publishes the Whop build (`dist/whop-build.zip`, packed from
-   `dist/client/` static assets plus the `dist/server/index.js` worker entry) to
-   `https://jointhenuminouses.whop.site`.
-
-3. **Key hygiene — done, then re-rotate after the tasks.**
-   The original key was committed to this repo (in `.env`, then tracked, and in
-   `.env.example`) and remains in public git history (see merged PR #2 "Add
-   WHOP_API_KEY to .env file"). The 2026-10-09 session untracked `.env` and
-   scrubbed `.env.example`; on 2026-10-10 the user supplied a fresh key via a
-   shared Google Doc, now kept only in the gitignored `.env`. Because that key
-   has also passed through the doc, rotate it once more at
-   https://whop.com/dashboard/developer/ after the plan edit and deploy are done,
-   and update the repo secret accordingly. Never paste it into chat.
+- **The host answers every path with the home document.** The asset layer resolves
+  exact file paths and falls back to `/index.html`; it applies no
+  `html_handling` redirects, so a clean route URL never reached its own
+  `<route>/index.html`. `src/worker.js` now bridges that for the routes the
+  build ships. The client-side guard (`assets/numinous-gate-boot.js`, carried by
+  the home) and `_redirects` remain as fallbacks for anything the worker misses.
+  Verify after the next deploy that `/returns` serves the seven-nights document
+  and not the home.
+- **Whop's platform script rewrites the served `<title>`, `description` and icon**
+  at runtime (`data-whop-metadata="reassert"`). The static head is correct; what
+  a browser tab shows for a route may not be.
+- **Key hygiene.** The original key was committed to this repo (see merged PR #2
+  "Add WHOP_API_KEY to .env file") and remains in public git history. Rotate it
+  at https://whop.com/dashboard/developer/ and update the repo secret.
 
 ## Notes
 
 - The sandbox preview of the built storefront (not a Whop deploy) is served with
   `npm run preview` → port 4173.
+- The sandbox has **no network egress** except to github.com, codeload.github.com,
+  api.github.com, registry.npmjs.org, pypi.org and files.pythonhosted.org. It
+  cannot reach whop.site, api.whop.com, or the Actions log receiver
+  (`results-receiver.actions.githubusercontent.com`). To inspect the live site or
+  read a job's output, run a temporary workflow that commits its report back to
+  the branch, then `git fetch` and read the file. Delete the workflow afterwards.
 - House terms that must not change: The Signal stays free forever; the Watcher
-  stays $28 / 28 days with the seven-night return; the Vault is a final one-time
-  $12; the Herald stays free; all checkout stays on Whop; support is
+  stays $28 / 28 days **with the seven-night return**; the Vault is a final
+  one-time $12; the Herald stays free; all checkout stays on Whop; support is
   numinous.support@gmail.com.

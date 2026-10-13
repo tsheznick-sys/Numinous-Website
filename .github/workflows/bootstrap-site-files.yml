@@ -9,6 +9,13 @@ name: Bootstrap site files (one-time)
 # md5 d734f0714097df3bf1b15132f298876f). This run applies it (nothing to
 # commit) and dispatches Whop one-off tasks > deploy — the funnel-doors build
 # goes live.
+#
+# 2026-10-13 (second bounce): arms the deploy for the routed-page fix — the
+# worker now answers a clean route URL with that route's own document, and the
+# overhaul gives each routed page its og:image, og:title and og:description.
+# The kit carries vite.config.js, whop.app.json and developer-actions/last-run.json
+# only; none of those files change here, so its application stays a no-op and
+# the KIT SLOT needs no refresh.
 
 on:
   workflow_dispatch:
