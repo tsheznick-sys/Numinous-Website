@@ -66,6 +66,15 @@ with its own `og:image`, and verified `og:image` live.
    **a JPEG with a `.png` extension** (FF D8 FF E0 … JFIF), so it is not a safe
    card image until it is re-encoded.
 
+   Verified live after the deploy (build `apbu_wfljNECmPsu89`):
+
+   | URL | before | after |
+   | --- | --- | --- |
+   | `/returns` | home, 23,390 B, canonical `/` | seven-nights document, 4,611 B, canonical `/returns` |
+   | `/products/the-signal-e6` | home, 23,390 B | Signal document, 4,669 B, its own title |
+   | `/checkout/plan_PQnMYNixMTjRQ` | home | home — unchanged, it has no document of its own |
+   | `/definitely-not-a-route` | home | home — unchanged fallback |
+
 ## Correction to an earlier handoff
 
 The 2026-10-13 entry for task #1 said to set the Watcher plan to **no free
@@ -78,14 +87,14 @@ decision to change the House terms and the site copy together.
 
 ## Known, still open
 
-- **The host answers every path with the home document.** The asset layer resolves
-  exact file paths and falls back to `/index.html`; it applies no
-  `html_handling` redirects, so a clean route URL never reached its own
-  `<route>/index.html`. `src/worker.js` now bridges that for the routes the
-  build ships. The client-side guard (`assets/numinous-gate-boot.js`, carried by
-  the home) and `_redirects` remain as fallbacks for anything the worker misses.
-  Verify after the next deploy that `/returns` serves the seven-nights document
-  and not the home.
+- **Routes with no document of their own still fall back to the home.** The
+  checkout doors (`/checkout/plan_…`, `/checkout/ch_…`) and any unknown path are
+  answered by the home document, because the build ships no document at those
+  paths. That is unchanged and intended — the home carries
+  `assets/numinous-gate-boot.js`, which forwards a gate path client-side. The
+  thresholds are not visible to a crawler that does not run scripts.
+- **Every routed page shares one card image** (`assets/watcher.jpg`). Pages with
+  art of their own could carry it instead; nothing enforces that yet.
 - **Whop's platform script rewrites the served `<title>`, `description` and icon**
   at runtime (`data-whop-metadata="reassert"`). The static head is correct; what
   a browser tab shows for a route may not be.
