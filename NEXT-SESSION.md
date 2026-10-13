@@ -12,28 +12,36 @@ project for Whop hosting on Cloudflare Workers — `@cloudflare/vite-plugin` +
 `dist/server/index.js` (worker entry from `src/worker.js`), and `wrangler.jsonc`
 names the worker `jointhenuminouses`. The `whop apps deploy` wiring check now
 passes.
+Updated 2026-10-13 by the `arena/1d78f8a4-numinous-website` session: **THE MERGE
+SHIPPED.** PR #8 (funnel doors + offline build) merged as `f96fa6c`; the KIT
+SLOT (`1ZHynnlx5lQqdTOpRuIglmxlNQDIscAFZ`) was updated to the verified no-op
+ship kit (13,884 B, md5 `d734f0714097df3bf1b15132f298876f`, byte-identical to
+main); this commit touches `bootstrap-site-files.yml` on main to fire Bootstrap,
+which applies the kit (no-op) and dispatches `Whop one-off tasks > deploy`.
 
-## Current state
+## Current state (2026-10-13)
 
-- Repo pipeline (coldstorage onboard checks, typecheck, `vite build` with the Whop
-  plugin, `dist/whop-build.zip` pack): **passing** via `npm run developer-actions`.
-- Whop-side actions (plan edit, deploy): **unreachable from the Arena sandbox** —
-  egress is restricted to github.com / npm / PyPI. They now run via **GitHub
-  Actions** instead (runners have unrestricted egress):
-  - `.github/workflows/developer-actions.yml` passes the `WHOP_API_KEY` secret to
-    `npm run developer-actions` on every push/PR.
-  - `.github/workflows/whop-tasks.yml` is a **manual** (`workflow_dispatch`)
-    workflow with two tasks: `watcher-plan` (PATCH + verify) and `deploy`.
-    Trigger from the Actions tab → workflow → "Run workflow".
-- `WHOP_API_KEY` is in the gitignored `.env` (supplied via a shared Google Doc,
-  presumed the rotated replacement for the leaked key). **One manual step
-  remains:** the sandbox's `gh` token cannot write Actions secrets (HTTP 403), so
-  the `WHOP_API_KEY` repo secret must be added by a human at
-  Settings → Secrets and variables → Actions, value taken from `.env` — never
-  paste it into chat. Until then the Whop steps log blocked/failed, but the build
-  pipeline still passes.
-- `whop.app.json` does not exist yet — only `whop.app.example.json` with a
-  placeholder `app_xxxxxxxx` id. The real `app_*` id is required before any deploy.
+- **main = `f96fa6c`** (PR #8): every gate enters through its pre-checkout door
+  (`/checkout/<id>`), mergeHome fails the build if any `whop.com/checkout` URL
+  survives in home, and the 8 pinned design files live in
+  `reference/patch/clean/public/` so `vite build` works offline. Verified from a
+  fresh clone: build exit 0, render-check 88/0.
+- **Deploy chain**: push to main touching `.github/workflows/bootstrap-site-files.yml`
+  → Bootstrap downloads the KIT SLOT zip → applies it → `gh workflow run "Whop
+  one-off tasks" -f task=deploy` → `npx whop apps deploy` (secrets.WHOP_API_KEY).
+  The slot now holds the no-op kit, so Bootstrap applies nothing and just chains
+  the deploy. `gh workflow run` is 403 for the Arena sandbox token — never retry;
+  this bounce is the sanctioned path.
+- Repo pipeline: **passing** via `npm run developer-actions` (88/0). Whop tasks
+  (`whop-tasks.yml`): `find-app` / `find-plans` / `watcher-plan` / `deploy-preview`
+  / `deploy` — all `workflow_dispatch`.
+- `WHOP_API_KEY` repo secret is set (deploys succeed). Keep the key only in the
+  gitignored `.env`; **rotate it at whop.com/dashboard/developer after this
+  deployment settles** (it was shared in chat by an earlier session).
+- Watcher plan truth (whop-tasks.yml `watcher-plan` job asserts it): **7-day free
+  trial, then $28 every 28 days** (renewal `28`, billing `28`, trial `7`,
+  `plan_PQnMYNixMTjRQ`; annual `plan_Imfk0oedwYn7v`). Matches the master
+  prompt's "seven nights on the house".
 
 ## Remaining tasks
 
