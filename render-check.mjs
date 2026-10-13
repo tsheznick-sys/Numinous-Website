@@ -256,6 +256,9 @@ has("/order-complete?gate=signal", "The First Vision wait in your Whop library")
 has("/order-complete?gate=signal", "v2-next-card");
 /* a bare visit to the post-checkout page names no purchase: it goes behind the Watcher's door */
 has("/order-complete", "Continue to The Watcher");
+has("/order-complete?gate=signal", "/products/the-signal-e6");
+has("/order-complete?gate=watcher", "/products/the-numinary-3e");
+
 lacks("/order-complete", "you are inside");
 has("/checkout?from=/checkout/plan_hIKLCR4hGiv9B", "The Herald");
 lacks("/order-complete?gate=signal", "The gate has opened · Numinous");

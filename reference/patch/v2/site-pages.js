@@ -959,6 +959,7 @@ const completions = [
     title: "The Herald",
     cta: "Open the Herald on Whop",
     library: HOUSE_LIBRARY,
+    poster: "/assets/sigil.jpg",
     lede:
       "The Herald is free, forever. Open it and let the next realm find you; its own gate, never The Signal.",
     holds: [
@@ -1079,6 +1080,10 @@ function orderCompletePage() {
 
   const library = taken ? taken.library : HOUSE_LIBRARY;
   const cta = taken ? taken.cta : "Open your library";
+  /* The sequence ends at the product page: the house's own page for what was
+     taken. The Whop library stays one step beside it, never the first. */
+  const product = taken ? `/products/${taken.slug}` : "/collections/all";
+  const productCta = taken ? `Open ${taken.title}` : "See the works";
   const holds = taken
     ? `
     <section>
@@ -1126,7 +1131,7 @@ function orderCompletePage() {
             <p class="eyebrow">What you unlocked</p>
             <h2>${taken.title}</h2>
             <p>${UNLOCKED[taken.key] || "The rooms and files wait in your Whop library — this page was only the threshold."}</p>
-            <p style="margin-top:1rem"><a class="btn" href="${library}" rel="noopener">${cta} →</a></p>
+            <p style="margin-top:1rem"><a class="btn solid" href="${product}">${productCta} →</a> <a class="btn" href="${library}" rel="noopener">${cta} →</a></p>
           </div>
         </div>`
             : ""
@@ -1166,7 +1171,8 @@ function orderCompletePage() {
         <h1>Traveller, you are inside.</h1>
         <p class="lede">${taken ? taken.lede : "Whatever you took, the rooms and files wait in your Whop library, not on this storefront. This page was only the threshold."}</p>
         <p>
-          <a class="btn solid" href="${library}" rel="noopener">${cta} →</a>
+          <a class="btn solid" href="${product}">${productCta} →</a>
+          <a class="btn" href="${library}" rel="noopener">${cta} →</a>
           <a class="btn" href="/">Return to Numinous</a>
         </p>
         ${v2Trust(`<a href="mailto:${SUPPORT}">Write to the house</a>`)}
