@@ -170,6 +170,7 @@ const cases = [
   // dashboard setting alone can name the purchase — no plan in the URL needed.
   ["/order-complete", "?gate=signal"],
   ["/order-complete", "?gate=watcher"],
+  ["/order-complete", "?gate=herald"],
 ];
 
 const rendered = {};
@@ -263,6 +264,8 @@ has("/returns", "/checkout/plan_PQnMYNixMTjRQ");
 has("/returns", "/checkout/plan_Aew5DdipP3fKY");
 has("/returns", "/checkout/plan_Imfk0oedwYn7v");
 lacks("/returns", "whop.com/checkout/");
+lacks("/order-complete?gate=watcher", "Prefer a year");
+has("/order-complete?gate=herald", "Browse the Whop store");
 
 lacks("/order-complete", "you are inside");
 has("/checkout?from=/checkout/plan_hIKLCR4hGiv9B", "The Herald");

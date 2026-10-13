@@ -891,6 +891,13 @@ function checkoutPage() {
   const href = gateFor ? gateFor.url : "/collections/all";
 
   document.title = gateFor ? `${gateFor.title} · Numinous` : "The threshold · Numinous";
+  if (gateFor) {
+    const own = `https://jointhenuminouses.whop.site/checkout/${id}`;
+    const canon = document.querySelector('link[rel="canonical"]');
+    if (canon) canon.setAttribute("href", own);
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute("content", own);
+  }
 
   const card = gateFor && gateFor.film
     ? deepThreshold(gateFor)
@@ -1008,6 +1015,7 @@ const completions = [
     slug: "herald-app",
     title: "The Herald",
     cta: "Open the Herald on Whop",
+    libraryCta: "Browse the Whop store",
     library: HOUSE_LIBRARY,
     poster: "/assets/sigil.jpg",
     lede:
@@ -1129,7 +1137,7 @@ function orderCompletePage() {
   }
 
   const library = taken ? taken.library : HOUSE_LIBRARY;
-  const cta = taken ? taken.cta : "Open your library";
+  const cta = taken ? taken.libraryCta || taken.cta : "Open your library";
   /* The sequence ends at the product page: the house's own page for what was
      taken. The Whop library stays one step beside it, never the first. */
   const product = taken ? `/products/${taken.slug}` : "/collections/all";
@@ -1184,11 +1192,6 @@ function orderCompletePage() {
             <p style="margin-top:1rem"><a class="btn solid" href="${product}">${productCta} →</a> <a class="btn" href="${library}" rel="noopener">${cta} →</a></p>
           </div>
         </div>`
-            : ""
-        }
-        ${
-          taken && taken.key === "watcher" && !annual
-            ? `<p class="v2-annual">Prefer a year? The same seat, twelve cycles, one payment of $280 — <a href="${PRE_CHECKOUT["watcher-annual"]}" data-gate="watcher-annual">take the year →</a></p>`
             : ""
         }
         <div class="sec-head" style="margin-top:3rem">
