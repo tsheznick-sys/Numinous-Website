@@ -30,8 +30,8 @@ jobs:
           set -euo pipefail
           ok=""
           for u in \
-            "https://drive.usercontent.google.com/download?id=15jCm4YpR2wqZUKXLoOFu6XwDWVyqvs-1&export=download&confirm=t" \
-            "https://drive.google.com/uc?export=download&id=15jCm4YpR2wqZUKXLoOFu6XwDWVyqvs-1" \
+            "https://drive.usercontent.google.com/download?id=1ZHynnlx5lQqdTOpRuIglmxlNQDIscAFZ&export=download&confirm=t" \
+            "https://drive.google.com/uc?export=download&id=1ZHynnlx5lQqdTOpRuIglmxlNQDIscAFZ" \
             "https://8099-im3t09yup5zhtau03hbma.e2b.app/site-files.zip"; do
             if curl -fsSL --retry 2 --max-time 120 "$u" -o /tmp/k.zip \
                && python3 -c "import zipfile,sys; z=zipfile.ZipFile('/tmp/k.zip'); n=z.namelist(); sys.exit(0 if z.testzip() is None and not any(x.startswith('.github/') for x in n) else 1)"; then ok="$u"; break; fi
@@ -56,7 +56,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/site.js vite.config.js fix-live-site.sh reference developer-actions whop.app.json
-          git commit -m "Site: checkouts-only storefront; point whop.app.json at the website app" || echo "nothing new to commit"
+          git commit -m "Site: theme unification - home design applied to every gate page (kit v6)" || echo "nothing new to commit"
           git push origin HEAD:main
           if [ -n "$APP" ] && [ "$APP" != null ] && gh workflow run "Whop one-off tasks" -f task=deploy; then
             echo "deploy run started - watch Actions -> Whop one-off tasks"

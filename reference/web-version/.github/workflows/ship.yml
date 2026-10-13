@@ -1,0 +1,77 @@
+name: ship
+
+# Mirrors scripts/ship.sh for a hosted runner. Requires the repo owner to:
+#   1. Create the GitHub repo and push this project (see CI-SETUP.md).
+#   2. Add repository secret WHOP_API_KEY (Settings -> Secrets and variables
+#      -> Actions) with the Whop API key for deploys.
+# Without the secret, only the verification job runs (typecheck + seal gates
+# + build) - safe on every push.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun install
+      - name: Typecheck
+        run: ./node_modules/.bin/tsc --noEmit
+      - name: Seal gates
+        run: |
+          # Em-dash law: only the 8 legal-verbatim lines may carry em dashes.
+          em=$(grep -c "—" src/home.html || true)
+          [ "${em:-0}" -le 8 ] || { echo "FAIL: home em-dash lines $em > 8"; exit 1; }
+          appem=$((grep -rn "—" src/ --include="*.tsx" --include="*.ts" || true) | wc -l)
+          [ "${appem:-0}" -eq 0 ] || { echo "FAIL: $appem em-dash lines in app source"; exit 1; }
+          grep -q "The Watcher is \$28 a moon" src/home.html
+          grep -q "The Signal is free" src/home.html
+          grep -q 'name="referrer"' src/home.html
+          grep -q "Content-Security-Policy" src/home.html
+          grep -q 'id="heraldHoney"' src/home.html
+          grep -q "ch_vrkSRxgzQ23IzXH" src/lib/site.ts
+          if grep -rihoE "codex|collector" src/home.html src/routes/__root.tsx | grep -qiE "." ; then
+            echo "FAIL: sealed work named on a public surface"; exit 1
+          fi
+      - name: Build
+        run: npm run build
+
+  deploy:
+    needs: verify
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun install
+      - name: Install Whop CLI
+        run: curl -fsSL https://whop.com/install.sh | sh
+      - name: Deploy (requires WHOP_API_KEY secret)
+        if: ${{ vars.ENABLE_DEPLOY == 'true' }}
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+        run: |
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          whop auth login --api-key "$WHOP_API_KEY"
+          whop apps deploy
+          whop auth logout --all
+      - name: Live smoke
+        if: ${{ vars.ENABLE_DEPLOY == 'true' }}
+        run: |
+          sleep 8
+          curl -sf https://thenuminouses.whop.site/.well-known/security.txt > /dev/null
+          curl -sf -o /dev/null https://thenuminouses.whop.site/
+          curl -sf https://thenuminouses.whop.site/api/health | grep -q '"ok":true'
+          loc=$(curl -s -o /dev/null -w "%{redirect_url}" "https://thenuminouses.whop.site/checkout/plan_PQnMYNixMTjRQ?quantity=1&items=plan_PQnMYNixMTjRQ%3A1")
+          case "$loc" in
+            https://whop.com/checkout/*) : ;;
+            *) echo "FAIL: watcher checkout no longer 307s to Whop"; exit 1 ;;
+          esac
+          echo "SHIP OK"
