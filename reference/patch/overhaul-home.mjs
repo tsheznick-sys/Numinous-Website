@@ -205,15 +205,27 @@ export default {
           /<meta\s+[^>]*name="description"[^>]*>/,
           `<meta name="description" content="${meta[1]}">`,
         );
-        html = html.replace(
-          /<meta property="og:title"[^>]*>/,
-          `<meta property="og:title" content="${meta[0]}">`,
-        );
       }
+      /* The card the route shares. og:title and og:description are written
+         here rather than replaced above: the shared shell carries no og:title
+         tag to replace, so a replace silently left every route's card titled
+         after the home. og:image and twitter:image ride with them — a
+         summary_large_image card with no image is a card with no picture, and
+         only the home ever carried one. The image is the same work the home
+         shares (assets/watcher.jpg, served from the site root on every
+         deploy), so a gate shares a card that is the house's own. */
+      const card = meta
+        ? `<meta property="og:title" content="${meta[0]}">\n` +
+          `<meta property="og:description" content="${meta[1]}">\n`
+        : "";
       const og =
         `<meta property="og:url" content="${site}${path}">\n` +
         `<meta property="og:site_name" content="Numinous">\n` +
+        `<meta property="og:type" content="website">\n` +
+        card +
+        `<meta property="og:image" content="${site}/assets/watcher.jpg">\n` +
         `<meta name="twitter:card" content="summary_large_image">\n` +
+        `<meta name="twitter:image" content="${site}/assets/watcher.jpg">\n` +
         (path === "/order-complete" ? `<meta name="robots" content="noindex">\n` : "");
       html = html.replace(/<\/head>/, `${canonical}\n${og}</head>`);
       writeFileSync(file, html);
