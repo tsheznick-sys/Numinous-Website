@@ -4,6 +4,11 @@ name: Bootstrap site files (one-time)
 # workflow's own token create or update files under .github/workflows. This
 # version ships no workflow files (the kit excludes them) and starts the deploy
 # with the workflow that already exists on main. Committing it starts it.
+#
+# 2026-10-13: the KIT SLOT now holds the post-PR#8 no-op ship kit (13,884 B,
+# md5 d734f0714097df3bf1b15132f298876f). This run applies it (nothing to
+# commit) and dispatches Whop one-off tasks > deploy — the funnel-doors build
+# goes live.
 
 on:
   workflow_dispatch:
