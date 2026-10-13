@@ -1376,3 +1376,90 @@ a:hover .go .ar,.card:hover .go .ar{transform:translateX(3px)}
     aspect-ratio: 16 / 9;
   }
 }
+
+/* ---------- the pact · premium works and the three terms ---------- */
+.pact-record .pact-works {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 1.25rem 2.5rem;
+}
+
+.pact-works .kicker {
+  margin: 0 0 1.1rem;
+  color: var(--gold);
+}
+
+.pact-works__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 760px) {
+  .pact-works__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pact-work {
+  padding: 1.6rem 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(212, 175, 95, .06), rgba(8, 10, 14, .6));
+}
+
+.pact-work__eyebrow {
+  margin: 0 0 .45rem;
+  color: var(--gold);
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.pact-work h2 {
+  margin: 0 0 .7rem;
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.pact-work p {
+  color: #cfc7b4;
+  line-height: 1.6;
+}
+
+.pact-work__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-top: 1rem;
+}
+
+.pact-terms {
+  display: grid;
+  gap: .75rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.pact-terms li {
+  display: grid;
+  gap: .25rem;
+  padding: .9rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.pact-terms b {
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: .72rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.pact-terms span {
+  color: #cfc7b4;
+}

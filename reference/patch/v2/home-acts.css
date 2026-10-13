@@ -537,3 +537,50 @@
     animation: none;
   }
 }
+
+/* ---------- the chain · Homepage → Pre-checkout → Checkout → Post-checkout → Product ---------- */
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: .4rem .9rem;
+  margin: 2.25rem auto 0;
+  padding: 0;
+  list-style: none;
+  max-width: 920px;
+  color: var(--muted);
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.chain li {
+  display: inline-flex;
+  align-items: center;
+  gap: .9rem;
+}
+
+.chain li + li::before {
+  content: "→";
+  color: var(--gold);
+  letter-spacing: 0;
+}
+
+.chain a {
+  color: var(--gold);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(212, 175, 95, .45);
+}
+
+.chain a:hover,
+.chain a:focus-visible {
+  color: var(--paper);
+  border-bottom-color: var(--gold);
+  outline: none;
+}
+
+.chain [aria-current="page"] {
+  color: var(--paper);
+}

@@ -258,6 +258,11 @@ has("/order-complete?gate=signal", "v2-next-card");
 has("/order-complete", "Continue to The Watcher");
 has("/order-complete?gate=signal", "/products/the-signal-e6");
 has("/order-complete?gate=watcher", "/products/the-numinary-3e");
+has("/returns", "Premium works");
+has("/returns", "/checkout/plan_PQnMYNixMTjRQ");
+has("/returns", "/checkout/plan_Aew5DdipP3fKY");
+has("/returns", "/checkout/plan_Imfk0oedwYn7v");
+lacks("/returns", "whop.com/checkout/");
 
 lacks("/order-complete", "you are inside");
 has("/checkout?from=/checkout/plan_hIKLCR4hGiv9B", "The Herald");

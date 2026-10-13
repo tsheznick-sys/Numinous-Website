@@ -568,6 +568,56 @@ function collectionPage() {
   `;
 }
 
+/* ---------- the pact: seven nights, and the premium works it covers ---------- */
+
+function pactPage() {
+  /* every door here is the house pre-checkout page — never Whop straight from the pact */
+  return `
+    <section class="v2-record pact-record">
+      <header class="v2-record-head">
+        <span class="v2-num">✦</span>
+        <p class="kicker">The pact · the seven nights</p>
+        <h1>Seven Nights</h1>
+        <p class="v2-stamp">Est . MMXXVI · The records · ${RECORD_STAMP}</p>
+      </header>
+      <div class="v2-record-body">
+        <p>Traveller, The Watcher gives you seven nights. If the room does not name what you saw, message within seven nights of the first payment and the full amount returns. Keep what you received.</p>
+      </div>
+      <div class="pact-works">
+        <p class="kicker">Premium works</p>
+        <div class="pact-works__grid">
+          <article class="pact-work">
+            <p class="pact-work__eyebrow">The membership · $28 every 28 days</p>
+            <h2>The Watcher</h2>
+            <p>Seven nights to be sure. Write the house within seven nights of your first payment and the full amount returns. After that, each cycle is final. Cancel any moon; access stays to the end of the cycle you have paid for.</p>
+            <p class="pact-work__actions">
+              <a class="btn" href="/checkout/plan_PQnMYNixMTjRQ">Take a seat</a>
+              <a class="btn" href="/checkout/plan_Imfk0oedwYn7v">Take the year · $280</a>
+            </p>
+          </article>
+          <article class="pact-work">
+            <p class="pact-work__eyebrow">One-time · $12</p>
+            <h2>The Wallpaper Vault</h2>
+            <p>Fifteen wallpapers, each in phone, portrait, and desktop. $12 once, final once opened. The files are yours to keep.</p>
+            <p class="pact-work__actions">
+              <a class="btn" href="/checkout/plan_Aew5DdipP3fKY">Open the Vault</a>
+            </p>
+          </article>
+        </div>
+      </div>
+      <div class="v2-record-body">
+        <ul class="pact-terms">
+          <li><b>The Signal</b><span>Free, forever. No card, no renewal — every realm drops here first.</span></li>
+          <li><b>The Watcher</b><span>Seven nights to be sure. Cancel any moon; access stays to the end of the cycle you have paid for, and $280 carries the whole year.</span></li>
+          <li><b>The Wallpaper Vault</b><span>$12 once, final once opened. The files are yours to keep.</span></li>
+        </ul>
+        <p>Any other work, if one is later opened, is final the moment it opens. Write the house at ${onboard.support}. Refunds, when they are due, return through Whop.</p>
+        <p><a class="btn" href="#/refund">The House Refund Policy</a> <a class="btn" href="/checkout/plan_PQnMYNixMTjRQ">Take a seat</a></p>
+      </div>
+    </section>
+  `;
+}
+
 /* ---------- the records: prose and legal, with the house band ---------- */
 
 function prosePage({ kicker, title, paragraphs, links = [] }) {
