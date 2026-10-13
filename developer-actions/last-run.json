@@ -1,7 +1,7 @@
 {
   "name": "website-developer-actions",
   "on_behalf_of": "Whop AI",
-  "ran_at": "2026-10-10T13:45:23.912Z",
+  "ran_at": "2026-10-11T17:31:44.125Z",
   "live_site": "https://jointhenuminouses.whop.site",
   "actions": [
     {
@@ -17,7 +17,7 @@
     {
       "name": "build",
       "status": "passed",
-      "detail": "dist/client/assets/index-CN1GYKpZ.css  10.01 kB │ gzip:  3.04 kB dist/client/assets/index-BmvqXe3I.js   38.34 kB │ gzip: 11.96 kB ✓ built in 164ms [whop] packed 16 files → dist/whop-build.zip (sha256 4d05c5421248…)"
+      "detail": "[numinous] overhaul: image weights - banner.png 0 KB OK (<300 KB); heaviest: sigil.jpg 303KB, watcher.jpg 206KB, signal.jpg 166KB, vault.jpg 132KB, banner.png 0KB, og.png 0KB [numinous] overhaul: home slimmed 208568 -> 51721 bytes (1 stylesheet from 5 blocks, 5 scripts externalised) [numinous] house merge: 18 pulled paths staged, theme on 12 routed pages, polish 12829 bytes, home adopted (208568 bytes, herald hands off to https://whop.com/checkout/ch_wYXFulML0v6LIoJ/), _redirects + gate boot written [whop] packed 61 files → dist/whop-build.zip (sha256 1eec1b1d2dbe…)"
     },
     {
       "name": "whop-economic-intelligence",

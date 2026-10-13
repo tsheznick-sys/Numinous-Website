@@ -1,0 +1,161 @@
+name: Whop site app (find + deploy the website)
+
+# The site at https://jointhenuminouses.whop.site is served by a *website* app.
+# `whop apps list` hides website apps unless --app_type website is passed, which
+# is why whop.app.json ended up linked to the Numinous Agent (a b2c app) and
+# deploys never reached the live site. This workflow finds the right app and can
+# deploy to it / roll it back.
+#
+# Trigger: Actions tab -> "Whop site app (find + deploy the website)" -> Run workflow.
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Which task to run
+        required: true
+        type: choice
+        options:
+          - find-and-deploy
+          - which-app
+          - deploy-site
+          - list-builds
+          - rollback
+          - pull-source
+      app_id:
+        description: Website app id (app_...) - required for deploy-site, list-builds, pull-source
+        required: false
+      build_id:
+        description: Build id (abld_...) - required for rollback
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  site-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the storefront
+        uses: actions/checkout@v5
+
+      - name: Use Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: find-and-deploy - locate the website app for the route, then ship the site
+        if: ${{ inputs.task == 'find-and-deploy' }}
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+        run: |
+          set -euo pipefail
+          # 1. the website app whose route is jointhenuminouses
+          npx whop apps list --app_type website --first 50 --format json > /tmp/apps.json || true
+          APP_ID="$(jq -r '(.data // .apps // .items // [])[]? | select(((.route // "") | ascii_downcase) == "jointhenuminouses") | .id' /tmp/apps.json | head -1)"
+          # 2. fallback: resolve the route directly (docs: apps get accepts a route)
+          if [ -z "$APP_ID" ] || [ "$APP_ID" = "null" ]; then
+            npx whop apps get jointhenuminouses --format json > /tmp/get.json || true
+            APP_ID="$(jq -r '.id // .data.id // .data.app.id // empty' /tmp/get.json 2>/dev/null | head -1)"
+          fi
+          if [ -z "$APP_ID" ] || [ "$APP_ID" = "null" ]; then
+            echo "::error::No website app found for route jointhenuminouses - run task=which-app to list them."
+            exit 1
+          fi
+          echo "website app: $APP_ID"
+          # 3. build + typecheck + upload + promote, and record the app in whop.app.json
+          npx whop apps deploy --app "$APP_ID"
+          echo "---"
+          echo "Deployed to $APP_ID -> https://jointhenuminouses.whop.site"
+
+      - name: Record the corrected app pointer (whop.app.json)
+        if: ${{ inputs.task == 'find-and-deploy' }}
+        run: |
+          if git diff --quiet -- whop.app.json; then
+            echo "whop.app.json already points at the right app"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add whop.app.json
+            git commit -m "Point whop.app.json at the website app that serves jointhenuminouses"
+            git push
+          fi
+
+      - name: which-app - find the website app that owns the route
+        if: ${{ inputs.task == 'which-app' }}
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+        run: |
+          echo "== website apps on this key (the list that matters) =="
+          npx whop apps list --app_type website --first 50 --format json \
+            | jq -r '(.data // .items // [])[]? | "\(.id)\troute=\(.route // "?")\tname=\(.name // "?")\thosted=\(.hosted_url // "?")"' || true
+          echo "== resolve the route directly =="
+          npx whop apps get jointhenuminouses --format json || true
+          echo "---"
+          echo "Look for the row whose route is jointhenuminouses. Put that app_ id in"
+          echo "whop.app.json (replace the current app_vLveJBtRdgfLgz, which is the"
+          echo "Numinous Agent b2c app), then run this workflow with task=deploy-site."
+
+      - name: deploy-site - ship this repo's build to the website app
+        if: ${{ inputs.task == 'deploy-site' }}
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+          APP_ID: ${{ inputs.app_id }}
+        run: |
+          if [ -z "$APP_ID" ]; then
+            echo "::error::Set the app_id input to the website app id (run task=which-app first)."
+            exit 1
+          fi
+          npx whop apps deploy --app "$APP_ID"
+          echo "---"
+          echo "Deployed to $APP_ID. Verify /products/the-numinary-3e on the live site."
+
+      - name: list-builds - every web build of the app, newest first
+        if: ${{ inputs.task == 'list-builds' }}
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+          APP_ID: ${{ inputs.app_id }}
+        run: |
+          if [ -z "$APP_ID" ]; then
+            echo "::error::Set the app_id input to the website app id."
+            exit 1
+          fi
+          npx whop apps builds list --app_id "$APP_ID" --platform web --first 50 --format json \
+            | jq -r '(.data // .builds // .items // [])[]? | "\(.id)\t\(.status // "?")\t\(.created_at // "?")\t\(.checksum // "")"' || true
+
+      - name: rollback - promote an older build
+        if: ${{ inputs.task == 'rollback' }}
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+          BUILD_ID: ${{ inputs.build_id }}
+        run: |
+          if [ -z "$BUILD_ID" ]; then
+            echo "::error::Set the build_id input to the abld_ id you want live (see task=list-builds)."
+            exit 1
+          fi
+          npx whop apps builds promote "$BUILD_ID"
+
+      - name: pull-source - download the app's deployed source
+        if: ${{ inputs.task == 'pull-source' }}
+        env:
+          WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
+          APP_ID: ${{ inputs.app_id }}
+        run: |
+          if [ -z "$APP_ID" ]; then
+            echo "::error::Set the app_id input to the website app id."
+            exit 1
+          fi
+          npx whop apps pull --app "$APP_ID" --dir pulled-site --overwrite true
+          find pulled-site -maxdepth 3 -type f | head -60
+
+      - name: Upload pulled source
+        if: ${{ inputs.task == 'pull-source' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulled-site-source
+          path: pulled-site
+          if-no-files-found: warn

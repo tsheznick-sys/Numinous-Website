@@ -1,97 +1,70 @@
-# Next session handoff — Numinous storefront
+# Numinous — session handoff
 
-Written 2026-10-09 by the `arena/6608f974-numinous-website` session.
-Updated 2026-10-10 by the `arena/4c250cf0-numinous-website` session.
-Updated 2026-10-10 by the `arena/496cbe7e-numinous-website` session: unpacked
-`Numinous-website-main.zip` to the repo root (zip removed, `npm-publish`
-workflow fixed to run `developer-actions` on Node 22 instead of the missing
-`npm test`). Pipeline re-verified passing; preview serves on port 4173.
+## Status: COMPLETE — the merge is live and verified (2026-10-11 ~07:43Z)
 
-## Current state
+Live site: **https://jointhenuminouses.whop.site** — build **`apbu_ewEt5fcR4bXIn`**
+(deploy #19 `runs/38122148823`, auto-fired by bootstrap #8 `runs/38122131272`).
 
-- Repo pipeline (coldstorage onboard checks, typecheck, `vite build` with the Whop
-  plugin, `dist/whop-build.zip` pack): **passing** via `npm run developer-actions`.
-- Whop-side actions (plan edit, deploy): **unreachable from the Arena sandbox** —
-  egress is restricted to github.com / npm / PyPI. They now run via **GitHub
-  Actions** instead (runners have unrestricted egress):
-  - `.github/workflows/developer-actions.yml` passes the `WHOP_API_KEY` secret to
-    `npm run developer-actions` on every push/PR.
-  - `.github/workflows/whop-tasks.yml` is a **manual** (`workflow_dispatch`)
-    workflow with two tasks: `watcher-plan` (PATCH + verify) and `deploy`.
-    Trigger from the Actions tab → workflow → "Run workflow".
-- `WHOP_API_KEY` is in the gitignored `.env` (supplied via a shared Google Doc,
-  presumed the rotated replacement for the leaked key). **One manual step
-  remains:** the sandbox's `gh` token cannot write Actions secrets (HTTP 403), so
-  the `WHOP_API_KEY` repo secret must be added by a human at
-  Settings → Secrets and variables → Actions, value taken from `.env` — never
-  paste it into chat. Until then the Whop steps log blocked/failed, but the build
-  pipeline still passes.
-- `whop.app.json` does not exist yet — only `whop.app.example.json` with a
-  placeholder `app_xxxxxxxx` id. The real `app_*` id is required before any deploy.
+Main tip: **`df71ee8`** — "Site: checkouts-only storefront; point whop.app.json at the
+website app" — `src/site.js`, +14/−1: the `/index.html` strip in `currentPath()` and the
+`replaceState` canonicalization in `render()`. (Its `vite.config.js` half shipped earlier in
+`373a980`.) That was the last missing piece.
 
-## Remaining tasks
+### Verified live (microlink real-browser probes, all `200`, `redirects: []`)
 
-The Account API calls below work from **any machine with internet access**, or —
-once the `WHOP_API_KEY` secret exists — from the `whop-tasks.yml` workflow on
-GitHub Actions (load the key with `set -a; . ./.env; set +a` locally).
+| URL | Rendered page (title) |
+| --- | --- |
+| `/` | NUMINOUS · The Realms, Opened (the merged home) |
+| `/products/the-signal-e6` | The Signal · Numinous |
+| `/products/the-numinary-3e` | Watcher · Numinous |
+| `/products/herald-app` | Herald app · Numinous |
+| `/products/wallpaper-vault` | Wallpaper Vault · Numinous |
+| `/collections/all` | The Works · Numinous |
+| `/returns` | Seven Nights · Numinous |
+| `/terms` | Terms · Numinous |
+| `/privacy` | Privacy · Numinous |
+| `/cookies` | Cookies · Numinous |
 
-1. **Set the Watcher plan** `plan_PQnMYNixMTjRQ` to **no free trial**, price
-   **$28.00 USD**, interval **every 28 days** (per House terms it already advertises
-   this — the change is to stop any trial on the plan).
+Films: `/assets/briefing/films/signal-briefing-1440.mp4` → `video/mp4`, 5,891,190 B and
+`watcher-briefing-1440.mp4` → `video/mp4`, 6,064,532 B (both `200`, `accept-ranges: bytes`,
+immutable). Wired by `briefingFilms()` on the Signal and Watcher gate pages
+(`src/site.js` lines ~322 and ~370).
 
-   Actions tab → "Whop one-off tasks" → Run workflow → `watcher-plan`. Or locally:
+## How routing works on this host (do not re-derive)
 
-   ```bash
-   curl -X PATCH "https://api.whop.com/api/v5/plans/plan_PQnMYNixMTjRQ" \
-     -H "Authorization: Bearer $WHOP_API_KEY" \
-     -H "Content-Type: application/json" \
-     -d '{"trial_period_days": 0, "renewal_price": "28.00", "billing_period": 28, "currency": "usd"}'
-   ```
+- Whop serves **exact file paths only**; every other navigation falls back to the SPA
+  `/index.html` (the home). `_redirects` in the asset dir is **inert** here — keep it as
+  harmless insurance, never rely on it. The worker is bypassed for navigations.
+- The **gate boot** (`/assets/numinous-gate-boot.js`, injected into the home's `<head>` by
+  `vite.config.js` `mergeHome`) forwards a clean gate path (and its trailing-slash form) to
+  `<route>/index.html`, preserving query + hash. It is a no-op on `/`, on any `*/index.html`,
+  and on unknown paths.
+- The routed document runs the app: `currentPath()` strips `/index.html` + trailing slashes,
+  `render()` `history.replaceState`s the address bar back to the clean route (query/hash kept),
+  then renders the gate's own page with the house theme.
 
-   Verify afterwards:
+## Remaining chores (optional — none block the site)
 
-   ```bash
-   curl -s "https://api.whop.com/api/v5/plans/plan_PQnMYNixMTjRQ" \
-     -H "Authorization: Bearer $WHOP_API_KEY"
-   ```
+1. **Rotate `WHOP_API_KEY`** (it was supplied into `.env`, gitignored; rotate now that
+   deploy work is done).
+2. **Delete the one-time workflows** when you no longer need them:
+   `.github/workflows/bootstrap-site-files.yml` and `.github/workflows/pull-web-version.yml`.
+3. **Whop dashboard (optional polish):** per-product pre-checkout redirect → the work's gate
+   page; post-checkout → back to the site. Not built (dashboard-side, login-walled).
+4. There is **no `/welcome` page** in this design (0 references) — the ref sitemap's 7 URLs
+   are all covered by the 9 routes above.
 
-   (If the PATCH shape differs on your account, the same edits can be made from
-   https://whop.com/dashboard/ → the Watcher product → Plans → Edit plan:
-   set trial days to 0/None, renewal price $28.00, billing every 28 days.)
+## Kit packaging rule (if ever needed again)
 
-2. **Deploy the `jointhenuminouses` app.**
+Always pack with **real in-zip paths** — `zip -X -q -9 kit.zip src/site.js vite.config.js`.
+**Never `zip -j`**: flattening put `site.js` at the repo root and the workflow's
+`git add src/site.js` committed nothing (that was bootstrap #7's silent miss).
+Verify with `unzip -l` before uploading.
 
-   Actions tab → "Whop one-off tasks" → Run workflow → `deploy` (fails with a
-   clear message until `whop.app.json` has the real `app_*` id; the CLI may still
-   require `whop auth login`, which needs an interactive machine). Or locally:
+## Repo
 
-   ```bash
-   cp whop.app.example.json whop.app.json
-   # edit whop.app.json: replace app_xxxxxxxx with the real app_* id for the
-   # "Numinous" app whose route is jointhenuminouses
-   npm ci
-   whop auth login        # browser OAuth — needs an interactive machine
-   whop apps deploy
-   ```
-
-   Deploy publishes the contents of the Whop build (`dist/whop-build.zip`, packed
-   from `dist/client/`) to `https://jointhenuminouses.whop.site`.
-
-3. **Key hygiene — done, then re-rotate after the tasks.**
-   The original key was committed to this repo (in `.env`, then tracked, and in
-   `.env.example`) and remains in public git history (see merged PR #2 "Add
-   WHOP_API_KEY to .env file"). The 2026-10-09 session untracked `.env` and
-   scrubbed `.env.example`; on 2026-10-10 the user supplied a fresh key via a
-   shared Google Doc, now kept only in the gitignored `.env`. Because that key
-   has also passed through the doc, rotate it once more at
-   https://whop.com/dashboard/developer/ after the plan edit and deploy are done,
-   and update the repo secret accordingly. Never paste it into chat.
-
-## Notes
-
-- The sandbox preview of the built storefront (not a Whop deploy) is served with
-  `npm run preview` → port 4173.
-- House terms that must not change: The Signal stays free forever; the Watcher
-  stays $28 / 28 days with the seven-night return; the Vault is a final one-time
-  $12; the Herald stays free; all checkout stays on Whop; support is
-  numinous.support@gmail.com.
+Local clone: branch `arena/9cc19a1f-numinous-website` (commits `9bfccaa`, `554ea15`, this one).
+`push-ready/kit-v7.zip` = the final kit (`src/site.js`, md5 `14cf92631523d1e7cf5ce92895dc8768`).
+Drive kit file `15jCm4YpR2wqZUKXLoOFu6XwDWVyqvs-1` holds it (version 17).
+`reference/web-version/` in this clone is a synthetic fixture (regenerate with
+`node /tmp/mergecheck/fixture.mjs` if it disappears).
