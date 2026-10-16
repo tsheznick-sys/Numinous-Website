@@ -3,20 +3,30 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Numinous storefront, kept in step with https://jointhenuminouses.whop.site",
+  "description": "Numinous 2.0 storefront on Whop",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5173 --strictPort",
-    "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 4173 --strictPort",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4174 --strictPort",
     "deploy": "whop apps deploy",
-    "typecheck": "node --check src/site.js && node --check src/records.js && node --check src/worker.js && node --check scripts/developer-actions.mjs",
+    "typecheck": "tsc -b sandbox/numinous2",
     "developer-actions": "node scripts/developer-actions.mjs",
     "verify:build": "node scripts/verify-build.mjs"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.63.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "4.7.0",
     "@whop/cli": "0.25.0",
+    "typescript": "7.0.2",
     "vite": "^6.3.5",
     "wrangler": "^4.149.0"
+  },
+  "dependencies": {
+    "framer-motion": "14.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router-dom": "7.18.4"
   }
 }

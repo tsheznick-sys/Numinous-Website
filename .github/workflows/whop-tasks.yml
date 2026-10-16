@@ -249,6 +249,9 @@ jobs:
             exit 1
           fi
 
+      - name: Validate Numinous 2.0 release package
+        run: npm run build && npm run verify:build
+
       - name: Upload a preview build (does NOT go live)
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
@@ -284,6 +287,9 @@ jobs:
             echo "::error::whop.app.json still contains the placeholder app_xxxxxxxx id."
             exit 1
           fi
+
+      - name: Validate Numinous 2.0 release package
+        run: npm run build && npm run verify:build
 
       - name: Deploy to jointhenuminouses.whop.site
         env:

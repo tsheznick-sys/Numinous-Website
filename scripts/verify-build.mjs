@@ -1,45 +1,49 @@
-/** Static release checks for the adopted home and the routed documents. */
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import vm from "node:vm";
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 
-const root = "dist/client";
-const text = (file) => readFileSync(join(root, file), "utf8");
-const assert = (condition, message) => {
-  if (!condition) throw new Error(`Build verification failed: ${message}`);
-};
-const home = text("index.html");
-assert(home.includes('id="hero-title"') && home.includes("Witness the"), "editorial home is missing");
-assert(home.includes('href="/checkout/ch_wYXFulML0v6LIoJ"'), "free gate must use pre-checkout");
-assert(home.includes("7 days free on the monthly plan"), "monthly trial terms must remain visible");
-assert(!home.includes('href="https://whop.com/checkout/'), "home must not skip pre-checkout");
-for (const css of ["numinous-clean.css", "numinous-home-acts.css", "numinous-subpages.css"]) {
-  assert(existsSync(join(root, "assets", css)), `${css} missing`);
+const client = 'dist/client';
+const asset = (file) => join(client, file);
+const check = (condition, message) => { if (!condition) throw new Error(`Production build verification: ${message}`); };
+const html = readFileSync(asset('index.html'), 'utf8');
+check(html.includes('/assets/index-') && html.includes('Numinous 2.0'), 'React home shell must be built');
+check(!html.includes('numinous-clean.css'), 'old storefront must not be published');
+for (const [route, title, image] of [
+ ['gates/signal', 'The Signal', 'signal.jpg'],
+ ['gates/watcher', 'The Watcher', 'watcher.jpg'],
+ ['gates/vault', 'Wallpaper Vault', 'vault.jpg'],
+ ['gates/numinary-agent', 'The Numinary Agent', 'numinary.jpg'],
+ ['gates/signal/enter', 'Review The Signal', 'signal.jpg'],
+ ['gates/watcher/enter', 'Review The Watcher', 'watcher.jpg'],
+ ['returns', 'The Pact', 'bg_hero.jpg'],
+ ['products/the-numinary-3e', 'The Watcher', 'watcher.jpg'],
+]) {
+ const doc = readFileSync(asset(`${route}/index.html`), 'utf8');
+ check(doc.includes(`<title>${title} — Numinous</title>`), `${route} title`);
+ check(doc.includes(`https://jointhenuminouses.whop.site/media/${image}`), `${route} social artwork`);
+ check(doc.includes('/assets/index-'), `${route} hydration script`);
 }
-const cards = {
-  "products/the-signal-e6": "signal.jpg",
-  "products/the-numinary-3e": "watcher.jpg",
-  "products/wallpaper-vault": "vault.jpg",
-  "products/herald-app": "numinary.jpg",
-  "collections/all": "bg_hero.jpg",
-};
-for (const [route, image] of Object.entries(cards)) {
-  const html = text(join(route, "index.html"));
-  assert(html.includes(`property="og:image" content="https://jointhenuminouses.whop.site/assets/${image}"`), `${route}: incorrect card image`);
-  assert(html.includes(`name="twitter:image" content="https://jointhenuminouses.whop.site/assets/${image}"`), `${route}: incorrect Twitter image`);
-  assert(existsSync(join(root, "assets", image)), `${route}: image asset missing`);
-  assert(html.includes(`rel="canonical" href="https://jointhenuminouses.whop.site/${route}"`), `${route}: incorrect canonical`);
+check(!existsSync(asset('checkout/_redirects')) && !existsSync(asset('_redirects')), 'legacy checkout path must not lose its plan ID');
+const publicDir = 'sandbox/numinous2/public';
+for (const filename of [
+ 'signal-briefing-1440.mp4', 'signal-briefing-720.webm', 'watcher-briefing-1440.mp4',
+ 'signal-invite-1440.mp4', 'watcher-invite-1440.mp4',
+ 'signal-briefing-1440.vtt', 'watcher-briefing-1440.vtt',
+ 'signal-invite-1440.vtt', 'watcher-invite-1440.vtt',
+]) {
+ const original = readFileSync(join(publicDir, 'media', filename));
+ const built = readFileSync(asset(`media/${filename}`));
+ check(createHash('sha256').update(original).digest('hex') === createHash('sha256').update(built).digest('hex'), `${filename} media changed in packaging`);
 }
-assert(!text("_redirects").includes("/checkout/*"), "wildcard redirect loses checkout plan ID");
-assert(!/^\/\S+\/ \/\S+\/index\.html 200$/m.test(text("_redirects")), "trailing slash redirect loops at the asset layer");
-// The old checkout URL must survive the handoff, with any query intact.
-const boot = text("assets/numinous-gate-boot.js");
-const id = "plan_PQnMYNixMTjRQ";
-let forwarded = "";
-const location = {
-  pathname: `/checkout/${id}`, search: "?quantity=1", hash: "",
-  replace(to) { forwarded = to; },
-};
-vm.runInNewContext(boot, { window: { location } });
-assert(forwarded === `/checkout/index.html?quantity=1&from=%2Fcheckout%2F${id}`, "checkout boot lost the plan ID or query");
-console.log("verify-build: home, gates, route cards, and checkout fallback passed");
+const js = readFileSync(join(client, 'assets', readdirSync(asset('assets')).find((f) => f.endsWith('.js'))), 'utf8');
+for (const id of ['ch_wYXFulML0v6LIoJ', 'plan_PQnMYNixMTjRQ', 'plan_Imfk0oedwYn7v', 'plan_Aew5DdipP3fKY']) {
+ check(js.includes(id), `Whop checkout ${id} missing`);
+}
+check(js.includes('signal-briefing-720.webm'), 'compatible Signal source missing');
+check(existsSync('dist/server/index.js') && existsSync('dist/server/wrangler.json'), 'Whop worker output missing');
+const packed = execFileSync('unzip', ['-Z', '-1', 'dist/whop-build.zip'], { encoding: 'utf8' });
+for (const file of ['client/index.html', 'client/gates/signal/index.html', 'client/media/signal-briefing-720.webm', 'client/media/watcher-invite-1440.mp4', 'server/index.js']) {
+ check(packed.includes(`${file}\n`), `${file} missing from Whop upload`);
+}
+console.log('verify-build: production React routes, social metadata, Whop handoffs, unchanged films, and upload archive passed');

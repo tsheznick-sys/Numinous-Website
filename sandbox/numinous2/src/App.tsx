@@ -13,16 +13,17 @@ import { ProductPage } from './pages/ProductPage';
 function RouteMeta() {
  const location = useLocation();
  useEffect(() => {
-  const path = location.pathname; const query = new URLSearchParams(location.search); const segments = path.split('/').filter(Boolean);
+  const path = location.pathname.replace(/\/+$/, '') || '/'; const query = new URLSearchParams(location.search); const segments = path.split('/').filter(Boolean);
   let title = 'Numinous 2.0 — Witness the Impossible'; let description = 'Cinematic visions of the divine and mythical. Four gates into a living record.';
+  let image = '/media/bg_hero.jpg';
   if (path === '/gates' || path === '/collections/all') { title = 'The Four Gates — Numinous'; description = 'Enter The Signal, The Watcher, Wallpaper Vault, or The Numinary Agent.'; }
   if (path.startsWith('/gates/')) {
    const product = productByGate(segments[1]);
    if (segments[1] === 'confirmed') { const offer = query.get('offer'); const returned = products.find((p) => p.id === offer) || (offer === 'herald' ? productById('agent') : null); title = returned ? `${returned.title} return status — Numinous` : 'Return status — Numinous'; description = returned ? `Browser return and Whop verification guidance for ${returned.title}.` : 'Check your Whop receipt and account to verify an order.'; }
-   else if (segments[2] === 'enter') { title = `Enter ${product.title} — Numinous`; description = `Review ${product.title} before secure checkout through Whop.`; }
-   else { title = `${product.title} — Numinous`; description = product.longDescription; }
+   else if (segments[2] === 'enter') { title = `Enter ${product.title} — Numinous`; description = `Review ${product.title} before secure checkout through Whop.`; image = product.image; }
+   else { title = `${product.title} — Numinous`; description = product.longDescription; image = product.image; }
   }
-  if (path.startsWith('/products/')) { const product = productBySlug(segments[1]); title = `${product.title} — Numinous`; description = product.longDescription; }
+  if (path.startsWith('/products/')) { const product = productBySlug(segments[1]); title = `${product.title} — Numinous`; description = product.longDescription; image = product.image; }
   if (path === '/checkout') { const product = productById(query.get('offer') || 'signal'); title = `Enter ${product.title} — Numinous`; description = `Review ${product.title} before secure checkout through Whop.`; }
   if (segments.length === 1 && legalRecords[segments[0]]) { const record = legalRecords[segments[0]]; title = `${record.title} — Numinous`; description = record.introduction; }
   document.title = title;
@@ -31,6 +32,12 @@ function RouteMeta() {
   document.querySelector('meta[property="og:description"]')?.setAttribute('content', description);
   document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', title);
   document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', description);
+  const socialImage = `https://jointhenuminouses.whop.site${image}`;
+  document.querySelector('meta[property="og:image"]')?.setAttribute('content', socialImage);
+  document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', socialImage);
+  let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+  canonical.href = `https://jointhenuminouses.whop.site${path}`;
  }, [location.pathname, location.search]);
  return null;
 }

@@ -1,79 +1,20 @@
-# Numinous
+# Numinous 2.0
 
-Storefront for [jointhenuminouses.whop.site](https://jointhenuminouses.whop.site), the House of Numinous on Whop.
+This repository builds the Numinous storefront for `jointhenuminouses.whop.site`. The approved, editable React/Vite experience is in [`sandbox/numinous2/`](sandbox/numinous2/); the repository-root Vite configuration is its **Whop/Cloudflare deployment adapter**. Root builds no longer publish the previous static storefront in `reference/`.
 
-The live site is the source of truth for copy, prices, and gates. This repository is the onboarded copy an agent can build and check. Payments stay on Whop. This site does not collect card details.
-
-## Gates
-
-| Work | Price | Where it opens |
-| --- | --- | --- |
-| The Signal | Free, forever | [checkout](https://whop.com/checkout/ch_wYXFulML0v6LIoJ/) |
-| The Watcher | $28 / 28 days, seven-night return | [plan_PQnMYNixMTjRQ](https://jointhenuminouses.whop.site/checkout/plan_PQnMYNixMTjRQ?quantity=1&items=plan_PQnMYNixMTjRQ:1) |
-| Wallpaper Vault | $12, final when opened | [plan_Aew5DdipP3fKY](https://jointhenuminouses.whop.site/checkout/plan_Aew5DdipP3fKY?quantity=1&items=plan_Aew5DdipP3fKY:1) |
-| Herald app | Free | [plan_hIKLCR4hGiv9B](https://jointhenuminouses.whop.site/checkout/plan_hIKLCR4hGiv9B?quantity=1&items=plan_hIKLCR4hGiv9B:1) |
-
-## Developer actions
-
-```bash
-npm install
-npm run developer-actions   # coldstorage onboard checks, typecheck, Whop pack
-npm run dev                 # local site
-```
-
-`npm run developer-actions` is what the agent runs. It:
-
-1. Applies the cold-storage onboard checks in `coldstorage/onboard.json` — the live storefront must still honour the House terms and Whop’s payment terms.
-2. Typechecks the site modules.
-3. Builds with the Whop Vite plugin and packs `dist/whop-build.zip`.
-4. If `WHOP_API_KEY` is set, or `whop auth login` has already succeeded, lists Economic Intelligence for `thenuminouses` and executes a ready recommendation whose title is the coldstorage onboard.
-
-The sandbox cannot finish Whop’s browser login. Put the Account API key in `.env` as `WHOP_API_KEY=` (that file is gitignored). The developer-action script loads it. Do not commit the key or paste it into chat.
-
-## Asking for changes
-
-Changes have to stay inside both sets of terms.
-
-- House terms: Signal stays free. Watcher stays $28 every 28 days with the seven-night return. Other works are final when they open. Seats are not resold. Support is numinous.support@gmail.com. The September 8, 2026 Vault records stay available.
-- Whop terms: checkout, refunds, and the first-party pixel stay on Whop. Do not add a card form. Do not store the Herald email on this site. [Whop terms](https://whop.com/tos/) · [Whop privacy](https://whop.com/privacy/).
-
-To link this directory to the hosted app once you are signed in:
-
-```bash
-cp whop.app.example.json whop.app.json
-# put the real app_ id in whop.app.json, then
-whop apps dev
-whop apps deploy
-```
-
-## Design and release checks
-
-The home is authored in `reference/patch/clean/home.html`; its core styles are in
-`reference/patch/clean/public/assets/numinous-clean.css`, with home-only styles
-in `reference/patch/v2/home-acts.css`. Routed pages use that same core sheet
-plus `reference/patch/v2/subpages.css`. The build adopts the home into
-`dist/client/index.html` and creates a separate document for each route. Do not
-edit `dist/` directly. Product social cards are selected by route in
-`reference/patch/overhaul-home.mjs`. Checkout paths keep their original plan ID
-through the home boot, then reach the pre-checkout threshold; the `_redirects`
-file must not map `/checkout/<id>` to `/checkout/index.html` because that strips
-the ID in the Cloudflare asset layer.
-
-After a change, run:
+## Build and check
 
 ```sh
-npm run typecheck && node render-check.mjs && npm run build && npm run verify:build
+npm ci
+npm run build
+npm run verify:build
+# Optional: separate preview of the Whop/Cloudflare production package on port 4174
+npm run preview
 ```
 
-`npm run preview` exposes the built site on port 4173. The preview is not a Whop deployment and does not alter live plans.
+The root build typechecks the React app, bundles the Cloudflare worker and the Vite client, copies the sandbox's films/fonts/art directly into `dist/client`, generates route-specific social/canonical metadata documents, and packs `dist/whop-build.zip`. It does **not** copy media into a second committed directory. The build verifier checks that the archive contains all films, the compatible Signal WebM, metadata pages and the expected Whop handoffs. `dist/` is ignored; never edit it as source.
 
-## Numinous 2.0 sandbox candidate (not deployed)
-
-The two source/compiled archives supplied on 2026-10-16 are staged as the
-**editable** standalone site in [`sandbox/numinous2/`](sandbox/numinous2/).
-That folder has its own lockfile and scripts; it is deliberately separate from
-the root Whop/Cloudflare Worker deployment. The root `npm run build` and
-`npm run deploy` still target the incumbent storefront, not this candidate.
+For the sandbox-only preview and its more extensive route/media smoke tests:
 
 ```sh
 cd sandbox/numinous2
@@ -82,6 +23,20 @@ npm run test:smoke
 npm run preview -- --port 4173 --strictPort
 ```
 
-Read [`SANDBOX_STATUS.md`](sandbox/numinous2/SANDBOX_STATUS.md) before proposing
-a launch. The current port 4173 preview can run either build; check its process
-label to see which is showing. **Do not deploy the candidate from the root.**
+Port 4173 remains the sandbox candidate; port 4174 previews the packaged root build. The root `index.html` hydrates the same React app from `sandbox/numinous2/src/`. The root `wrangler.jsonc` preserves clean URLs and SPA fallback, so `/checkout/<old-plan-id>` reaches the client with the plan ID intact instead of going straight to Whop or silently becoming the wrong gate.
+
+## Customer journey
+
+- Four home/collection cards link to their **gate detail** pages.
+- Each detail page leads to a product-specific pre-checkout review. Whop owns checkout, receipts and actual entitlement; a browser-return query string is never proof of payment or access.
+- Signal is free. The monthly Watcher has seven days free, then $28 every 28 days; the $280 annual option is separate. The seven-night return window follows the first Watcher payment. Prices and final terms must be checked on Whop.
+- Four narrated films retain the original scene order and 2:43 / 2:42 / 1:20 / 1:13 runtimes. The autoplay hero is muted; user-controlled films have sound. Signal also has a VP9/Opus WebM playback alternative and direct format links.
+- Existing `/products/*`, `/collections/all`, `/checkout/<plan-id>`, `/welcome`, and `/order-complete` links route into the current Gates experience. The live entry routes are `/gates/:gate` and `/gates/:gate/enter`.
+
+Details of soundtrack provenance, editable media scripts, return links and outstanding human review are in [`sandbox/numinous2/audio/README.md`](sandbox/numinous2/audio/README.md), [`SANDBOX_STATUS.md`](sandbox/numinous2/SANDBOX_STATUS.md) and [`POST_CHECKOUT_CONFIRMATION_LINKS.md`](sandbox/numinous2/POST_CHECKOUT_CONFIRMATION_LINKS.md). **Creator/title credit text for the four supplied audio backgrounds is still missing**; the pages say the credit is pending rather than inventing an attribution. The user authorized website-video use; final attribution should be supplied and reviewed.
+
+## Whop release
+
+`whop.app.json` targets the Whop website app for route `jointhenuminouses`. The manual [Whop one-off tasks](.github/workflows/whop-tasks.yml) workflow supports `deploy-preview` and `deploy`: both run the root build and verifier before upload, using the repository's `WHOP_API_KEY` Actions secret. Deploying promotes the site; a GitHub merge by itself does not. Do not use the sandbox's own `vite build` output for Whop hosting.
+
+The old source pages under `reference/` and old `render-check.mjs` are archival, not production input. Payments stay on Whop; this website does not collect card details or store Whop credentials.

@@ -10,9 +10,10 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/worker.js",
   "assets": {
-    // The plugin injects the built client directory (dist/client); these flags
-    // govern how the asset layer answers paths with no matching file.
+    // The plugin injects dist/client. Route-specific index documents carry
+    // social metadata; unmatched legacy paths still reach the React shell.
     "binding": "ASSETS",
+    "html_handling": "drop-trailing-slash",
     "not_found_handling": "single-page-application"
   }
 }

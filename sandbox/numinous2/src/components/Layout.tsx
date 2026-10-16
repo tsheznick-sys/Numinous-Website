@@ -16,8 +16,9 @@ export function SiteNav() {
  const [open, setOpen] = useState(false);
  const menuButton = useRef<HTMLButtonElement>(null);
  const menu = useRef<HTMLElement>(null);
- const onSignal = location.pathname === '/gates/signal';
- const onSignalEntry = location.pathname === '/gates/signal/enter';
+ const currentPath = location.pathname.replace(/\/+$/, '') || '/';
+ const onSignal = currentPath === '/gates/signal';
+ const onSignalEntry = currentPath === '/gates/signal/enter';
  const headerAction = onSignalEntry ? { to: '/gates', label: 'All gates' } : onSignal ? { to: '/gates/signal/enter', label: 'Review Signal' } : { to: '/gates/signal', label: 'Explore Signal' };
  useEffect(() => { setOpen(false); }, [location.pathname, location.search]);
  useEffect(() => {
