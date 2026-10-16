@@ -25,8 +25,8 @@
    How the host routes (do not re-derive): Whop serves exact file
    paths; every routed page is its own document at <route>/index.html,
    and a clean route URL is answered with the storefront home, whose
-   head carries the gate boot that forwards it. `_redirects` in the
-   asset dir is INERT — it is written as insurance only. The older
+   head carries the gate boot that forwards it. `_redirects` is not used for checkout IDs: asset redirects would erase
+   the ID. The older
    checkout family (/checkout/plan_…, /checkout/ch_…) is therefore
    answered with the home too: the boot in the home's head hands it to
    /checkout/index.html with the original query plus ?from=<old path>.
@@ -52,18 +52,6 @@ const read = (rel) => readFileSync(join(HERE, rel), "utf8");
 
 const CSS = read("v2/subpages.css");
 const PAGES = read("v2/site-pages.js");
-
-const ANNUAL_PLAN = "plan_Imfk0oedwYn7v";
-const ANNUAL_ORDER = "quantity=1&items=" + ANNUAL_PLAN + ":1";
-const MONTHLY_PLAN = "plan_PQnMYNixMTjRQ";
-const MONTHLY_ORDER = "quantity=1&items=" + MONTHLY_PLAN + ":1";
-/* host-relative on purpose: the merge rewrites this form to the canonical
-   whop.com checkout as it builds, so the home keeps one source of truth. */
-const MONTHLY_LINK = "/checkout/" + MONTHLY_PLAN + "?" + MONTHLY_ORDER;
-const VAULT_PLAN = "plan_Aew5DdipP3fKY";
-const HERALD_PLAN = "plan_hIKLCR4hGiv9B";
-const SIGNAL_CHANNEL = "ch_wYXFulML0v6LIoJ";
-const PLAN_IDS = [MONTHLY_PLAN, ANNUAL_PLAN, VAULT_PLAN, HERALD_PLAN, SIGNAL_CHANNEL];
 
 /* a splice that reports itself: a miss is loud in the build log and never
    stops the build — the storefront simply keeps its previous behaviour. */
@@ -260,32 +248,20 @@ function recordsSource(code) {
 /* ---------- the emitted files ---------- */
 
 function emit(clientDir) {
-  /* The older checkout links: every plan and channel the house has ever put in
-     the world points at the threshold document. This file is insurance only —
-     the host answers those paths with the home, whose forward does the work —
-     but a host that does honour it must land in the same place. */
+  /* Do not redirect /checkout/<id> to /checkout/index.html at the asset
+     layer: Cloudflare normalizes the target to /checkout/, losing the plan ID.
+     The SPA fallback keeps the original URL so the home's gate boot can send
+     ?from=<original path> to the threshold. */
+
+  /* A directory URL already resolves to its index. Redirecting that trailing
+     slash to index.html loops after Cloudflare canonicalizes /index.html back
+     to the directory, so retain only the clean-URL rules. */
   const redirects = join(clientDir, "_redirects");
   if (existsSync(redirects)) {
-    let rules = readFileSync(redirects, "utf8");
-    if (!rules.includes("/checkout/" + MONTHLY_PLAN)) {
-      const lines = [
-        "",
-        "# v2 · the older house checkout links → the threshold page (insurance)",
-        "# The host answers unresolvable paths with the storefront home, which",
-        "# forwards this family itself; these rules cover a host that reads this.",
-      ];
-      for (const id of PLAN_IDS) {
-        lines.push("/checkout/" + id + " /checkout/index.html 200");
-        lines.push("/checkout/" + id + "/ /checkout/index.html 200");
-      }
-      lines.push("/checkout/* /checkout/index.html 200");
-      writeFileSync(redirects, rules.replace(/\s*$/, "\n") + lines.join("\n") + "\n");
-      console.log(
-        "[numinous v2] _redirects: " + PLAN_IDS.length + " checkout paths (and a catch-all) point at the threshold",
-      );
-    }
-  } else {
-    console.warn("[numinous v2] no _redirects file to extend");
+    const rules = readFileSync(redirects, "utf8");
+    writeFileSync(redirects, rules.split("\n")
+      .filter((line) => !/^\/\S+\/ \/\S+\/index\.html 200$/.test(line))
+      .join("\n"));
   }
 
   const doc = join(clientDir, "checkout", "index.html");

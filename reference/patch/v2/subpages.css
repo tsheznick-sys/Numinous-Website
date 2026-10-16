@@ -1463,3 +1463,33 @@ a:hover .go .ar,.card:hover .go .ar{transform:translateX(3px)}
 .pact-terms span {
   color: #cfc7b4;
 }
+
+/* 2026 refresh: the inner house now shares the portal's editorial rhythm. */
+#main > section > .wrap { width:min(1320px,calc(100% - 6rem));padding:clamp(5rem,8vw,8rem) 0; }
+#main .kicker,#main .eyebrow { letter-spacing:.2em; }
+#main h1 { max-width:16ch;font-size:clamp(3.5rem,6.5vw,6.8rem);letter-spacing:-.05em;line-height:.9; }
+#main h2 { font-size:clamp(2.8rem,4.5vw,4.8rem);letter-spacing:-.035em;line-height:.98; }
+#main h3 { font-family:var(--serif);font-size:1.45rem;font-weight:400;letter-spacing:0;text-transform:none; }
+#main p { color:#bdbab0;line-height:1.8; }
+#main .lede { max-width:57ch;color:#d1c9bc;font-size:clamp(1.06rem,1.7vw,1.3rem);line-height:1.6; }
+#main .crumbs { color:var(--gold);letter-spacing:.18em; }
+#main .sec-head { max-width:870px; }
+#main .sec-title { font-family:var(--serif);font-size:clamp(2.6rem,4.7vw,4.8rem);font-weight:400;letter-spacing:-.035em;text-transform:none; }
+#main .v2-num { color:var(--gold);font-family:var(--serif);font-weight:400;letter-spacing:-.045em;text-shadow:none; }
+#main .gate { gap:clamp(2rem,7vw,7rem); }
+#main .num-art { padding:.65rem;border-radius:2px;background:#121a1e;box-shadow:0 26px 60px -30px #000; }
+#main .num-art img { border-radius:0; }
+#main .btn { min-height:3.15rem;padding:.95rem 1.35rem;border-radius:2px;letter-spacing:.13em;box-shadow:none; }
+#main .btn.solid { border-color:#d8b47a;background:#d8b47a;color:#111415;box-shadow:none; }
+#main .btn.solid:hover { background:#f0d19b; }
+#main .guarantee-card { border-radius:2px;background:#11181d;box-shadow:none; }
+#main .v2-band { background:linear-gradient(110deg,rgba(8,12,16,.94),rgba(8,12,16,.65)),url('/assets/bg_hero.jpg') center/cover; }
+#main .v2-band-inner { width:min(950px,calc(100% - 6rem)); }
+#main .stats { background:#0e1519; }
+#main .v2-threshold-card,#main .v2-next-card,#main .checkout-panel,#main .arrival__card { border-radius:2px; }
+@media(max-width:760px) {
+  #main > section > .wrap { width:calc(100% - 2rem);padding:4.5rem 0; }
+  #main h1 { font-size:clamp(3rem,11vw,4.5rem); }
+  #main h2 { font-size:clamp(2.5rem,9vw,3.7rem); }
+  #main .v2-band-inner { width:calc(100% - 2rem); }
+}

@@ -171,8 +171,8 @@ export default {
         "The Herald sends one dispatch a week: new realms, release notes and the occasional first look.",
       ],
       "/collections/all": [
-        "Every Work - Three Gates and the Vault | Numinous",
-        "The complete catalogue: The Signal, The Watcher and the Wallpaper Vault, with prices and what each one opens.",
+        "The Four Gates - Explore Numinous | Numinous",
+        "Explore all four gates: The Signal, The Watcher, the Wallpaper Vault and the Herald, with prices and what each one opens.",
       ],
       "/terms": ["Terms of Service | Numinous", "The terms that govern the Numinous storefront, the four works and your account."],
       "/privacy": ["Privacy Policy | Numinous", "What Numinous collects, why, and the cookies and processors involved."],
@@ -206,27 +206,31 @@ export default {
           `<meta name="description" content="${meta[1]}">`,
         );
       }
-      /* The card the route shares. og:title and og:description are written
-         here rather than replaced above: the shared shell carries no og:title
-         tag to replace, so a replace silently left every route's card titled
-         after the home. og:image and twitter:image ride with them — a
-         summary_large_image card with no image is a card with no picture, and
-         only the home ever carried one. The image is the same work the home
-         shares (assets/watcher.jpg, served from the site root on every
-         deploy), so a gate shares a card that is the house's own. */
+      /* Each work carries its own art into link previews. Policy pages use
+         the house portal; no route borrows the Watcher card by default. */
+      const cardImages = {
+        "/products/the-signal-e6": "signal.jpg",
+        "/products/the-numinary-3e": "watcher.jpg",
+        "/products/wallpaper-vault": "vault.jpg",
+        "/products/herald-app": "numinary.jpg",
+        "/collections/all": "bg_hero.jpg",
+      };
+      const image = `${site}/assets/${cardImages[path] || "bg_hero.jpg"}`;
       const card = meta
         ? `<meta property="og:title" content="${meta[0]}">\n` +
-          `<meta property="og:description" content="${meta[1]}">\n`
+          `<meta property="og:description" content="${meta[1]}">\n` +
+          `<meta name="twitter:title" content="${meta[0]}">\n` +
+          `<meta name="twitter:description" content="${meta[1]}">\n`
         : "";
       const og =
         `<meta property="og:url" content="${site}${path}">\n` +
         `<meta property="og:site_name" content="Numinous">\n` +
         `<meta property="og:type" content="website">\n` +
         card +
-        `<meta property="og:image" content="${site}/assets/watcher.jpg">\n` +
+        `<meta property="og:image" content="${image}">\n` +
         `<meta name="twitter:card" content="summary_large_image">\n` +
-        `<meta name="twitter:image" content="${site}/assets/watcher.jpg">\n` +
-        (path === "/order-complete" ? `<meta name="robots" content="noindex">\n` : "");
+        `<meta name="twitter:image" content="${image}">\n` +
+        (["/order-complete", "/checkout"].includes(path) ? `<meta name="robots" content="noindex">\n` : "");
       html = html.replace(/<\/head>/, `${canonical}\n${og}</head>`);
       writeFileSync(file, html);
       retitled += 1;

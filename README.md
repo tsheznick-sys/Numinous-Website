@@ -45,3 +45,24 @@ cp whop.app.example.json whop.app.json
 whop apps dev
 whop apps deploy
 ```
+
+## Design and release checks
+
+The home is authored in `reference/patch/clean/home.html`; its core styles are in
+`reference/patch/clean/public/assets/numinous-clean.css`, with home-only styles
+in `reference/patch/v2/home-acts.css`. Routed pages use that same core sheet
+plus `reference/patch/v2/subpages.css`. The build adopts the home into
+`dist/client/index.html` and creates a separate document for each route. Do not
+edit `dist/` directly. Product social cards are selected by route in
+`reference/patch/overhaul-home.mjs`. Checkout paths keep their original plan ID
+through the home boot, then reach the pre-checkout threshold; the `_redirects`
+file must not map `/checkout/<id>` to `/checkout/index.html` because that strips
+the ID in the Cloudflare asset layer.
+
+After a change, run:
+
+```sh
+npm run typecheck && node render-check.mjs && npm run build && npm run verify:build
+```
+
+`npm run preview` exposes the built site on port 4173. The preview is not a Whop deployment and does not alter live plans.

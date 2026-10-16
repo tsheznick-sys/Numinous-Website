@@ -10,6 +10,22 @@ Updated 2026-10-13 by the `arena/c2a74194-numinous-website` session: ran
 routed-page fix so a clean route URL is answered by that route's own document
 with its own `og:image`, and verified `og:image` live.
 
+## 2026-10-16 branch update — not deployed
+
+- Drive folder `18i73CMzsZy0L2KqrPYAUmHOn_2i_Orsd` was a byte-for-byte snapshot
+  of main at `9778e43`, not newer site changes. Current main at session start:
+  `7cc20e1` (PR #12). Its 7-day Watcher trial remains in force.
+- This branch refreshes the home into an editorial portal, carries its typography,
+  colors and chrome onto routed pages, assigns work-specific social card images,
+  and removes checkout `_redirects` that stripped plan IDs on Cloudflare preview.
+  The home gate boot preserves the ID with `?from=`; `npm run verify:build` covers
+  that contract. No plan setting or live deployment was changed here.
+- Verify with `npm run typecheck`, `node render-check.mjs`, `npm run build`,
+  `npm run verify:build`. Preview with `npm run preview` on port 4173. Review the
+  design and terms before merging/deploying. A future Bootstrap deployment must
+  still account for the existing KIT SLOT; this branch does not touch the three
+  files in that kit.
+
 ## Current state (2026-10-13)
 
 - **main = `9778e43`** (PR #10, merge of `arena/1d78f8a4-numinous-website`).
