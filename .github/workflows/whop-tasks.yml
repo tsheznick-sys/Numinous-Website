@@ -10,6 +10,10 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
+  # One release retry after PR #14 lands; its explicitly named merge commit is
+  # the only main push this job accepts. Other pushes never auto-deploy.
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       task:
@@ -267,7 +271,7 @@ jobs:
           echo "with task=deploy to promote it to jointhenuminouses.whop.site."
 
   deploy:
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.task == 'deploy') || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.number == 13 && github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.task == 'deploy') || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.number == 13 && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push' && contains(github.event.head_commit.message, 'Release Numinous 2.0 [release-numinous2]')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out the storefront
@@ -300,5 +304,21 @@ jobs:
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
         run: |
-          npx whop auth status --format json || true
-          npx whop apps deploy
+          if [ -z "${WHOP_API_KEY:-}" ]; then
+            echo "::error::WHOP_API_KEY is not available in this workflow event; no deployment occurred."
+            exit 1
+          fi
+          # The preceding step built and verified the exact upload archive.
+          # Capture a short, redacted diagnostic in the check annotations because
+          # some connected agents cannot retrieve GitHub's separate log host.
+          set +e
+          npx whop apps deploy --skip_build > /tmp/whop-deploy.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/whop-deploy.log
+          if [ "$status" -ne 0 ]; then
+            while IFS= read -r line; do
+              echo "::error title=Whop deployment failed::$line"
+            done < <(grep -Ei 'error|fail|denied|unauthoriz|forbidden|upload|size|maximum|limit|credential|WHOP' /tmp/whop-deploy.log | tail -12 | sed -E 's/apik_[A-Za-z0-9_-]+/[redacted]/g; s/(Bearer )[A-Za-z0-9._-]+/\1[redacted]/g' || true)
+            exit "$status"
+          fi
