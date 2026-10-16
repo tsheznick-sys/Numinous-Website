@@ -261,11 +261,17 @@ jobs:
       - name: Validate Numinous 2.0 release package
         run: npm run build && npm run verify:build
 
+      - name: Stage production-only source below Whop's 50 MB limit
+        id: release
+        run: |
+          node scripts/stage-release.mjs > /tmp/numinous-release-dir
+          echo "dir=$(cat /tmp/numinous-release-dir)" >> "$GITHUB_OUTPUT"
+
       - name: Upload a preview build (does NOT go live)
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
         run: |
-          npx whop apps deploy --preview
+          npx whop apps deploy --dir "${{ steps.release.outputs.dir }}" --preview --skip_build
           echo "---"
           echo "Preview uploaded. Inspect the build id above, then run this workflow"
           echo "with task=deploy to promote it to jointhenuminouses.whop.site."
@@ -300,6 +306,12 @@ jobs:
       - name: Validate Numinous 2.0 release package
         run: npm run build && npm run verify:build
 
+      - name: Stage production-only source below Whop's 50 MB limit
+        id: release
+        run: |
+          node scripts/stage-release.mjs > /tmp/numinous-release-dir
+          echo "dir=$(cat /tmp/numinous-release-dir)" >> "$GITHUB_OUTPUT"
+
       - name: Deploy to jointhenuminouses.whop.site
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
@@ -312,7 +324,7 @@ jobs:
           # Capture a short, redacted diagnostic in the check annotations because
           # some connected agents cannot retrieve GitHub's separate log host.
           set +e
-          npx whop apps deploy --skip_build > /tmp/whop-deploy.log 2>&1
+          npx whop apps deploy --dir "${{ steps.release.outputs.dir }}" --skip_build > /tmp/whop-deploy.log 2>&1
           status=$?
           set -e
           cat /tmp/whop-deploy.log
