@@ -49,7 +49,7 @@
   pre-checkout summary card, AAC audio in every built MP4, caption files, and
   that the homepage background remains muted.
 
-## Full-length film pass — requested soundtracks mixed
+## Full-length film pass — prior two-track mix (superseded)
 
 - All four sandbox films have been re-rendered from their original local
   scene plates at the **same lengths and scene order**, with gentle motion,
@@ -59,16 +59,30 @@
 - The selected feminine voice now narrates across every film. The ten voiced
   blocks span all four original timelines; captions reach three seconds from
   each end. This is not a claim that Whop payment or entitlement was tested.
-- Both replacement tracks are mixed into the sandbox MP4s: MAGNUS DEI by
-  arcana for the pre-checkout briefings; NEVER Leave by Ambient Outpost for the
-  post-return invitations. The user confirmed website-video usage permission
-  and provided three-minute Drive excerpts below 100 MB. Music ducks under
-  narration, swells between blocks and fades at each end. The source MP3s
-  remain outside Git; only synchronized MP4s are committed. Creator credits
-  are displayed beside controlled videos. Permission terms and the final
-  desktop/phone listening check still need human review before deployment.
-  See [`audio/README.md`](audio/README.md) for hashes, provenance, scripts and
-  reproducible mixing instructions.
+- This pass originally used MAGNUS DEI by arcana on both briefings and
+  NEVER Leave by Ambient Outpost on both return invitations. **Those
+  two-track mixes and creator labels have been replaced** by the four distinct
+  supplied backgrounds documented below. This paragraph is historical, not
+  a description of the current preview.
+
+## Four supplied background films — revised voiceover review mix
+
+- The user supplied four three-minute AV files and requested their **audio
+  only**, one background for each matching product film. The site retains its
+  original Numinous visuals, scene timelines and film lengths. The unrelated
+  input pictures were not embedded or served.
+- Replaced the two shared music beds with four extracted audio beds. The
+  selected feminine narration now plays at **natural speed** rather than being
+  time-stretched; three overlong invitation blocks were re-recorded to fit.
+  Background gain is normalized per film, ducked under the voice and gently
+  EQ'd for intelligibility. Short WebVTT cues occupy the upper image instead
+  of obscuring the filmed lower-third headings.
+- The user affirmed public website-video permission but **creator credit text
+  for the four new files is pending**. The sandbox shows a pending credit
+  placeholder rather than an inaccurate old attribution. Before release,
+  verify license terms and listen to all four complete films for unwanted
+  speech/promotional audio and caption/audio timing. File hashes and remix
+  instructions: [`audio/README.md`](audio/README.md).
 
 ## Do not deploy yet — release gates
 
@@ -89,10 +103,11 @@
    client-side React. The static HTML is a single shared document, unlike the
    root storefront's route-specific HTML/OG cards. Generate route-specific
    static documents or add an SSR/Worker adapter before launch.
-5. **Music permission and media review:** confirm the public/commercial
-   synchronized-video license terms for both creator recordings (the user has
-   affirmed permission, but the terms were not independently verified). Listen
-   to each finished video and check caption synchronization on desktop/phone.
+5. **Music permission and media review:** obtain creator/title credit text for
+   all four newly supplied audio beds and confirm public/commercial
+   synchronized-video terms (the user affirmed permission, but the terms were
+   not independently verified). Listen for extraneous speech and check caption
+   synchronization on desktop and phone.
 6. **Security/visual review:** `npm audit` on the supplied dependency lock
    reports 5 high and 2 moderate **development/build-tool** advisories
    (Tailwind v3 and transitive packages). `npm audit --omit=dev` reports 0

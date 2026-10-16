@@ -35,8 +35,8 @@ check((home.match(/class="gate-card__hit"/g) || []).length === 4, 'four linked h
 check((collection.match(/class="collection-card__hit"/g) || []).length === 4, 'four linked collection cards');
 check(watcher.includes('class="checkout-offer__hit"') && watcher.includes('aria-label="Read details about The Watcher"'), 'pre-checkout product card links to details');
 check(home.includes('muted=""') && home.includes('controls=""'), 'hero is silent but selected briefing has controls');
-check(home.includes('MAGNUS DEI by arcana') && watcher.includes('MAGNUS DEI by arcana'), 'pre-entry music credit');
-check(render('/gates/confirmed?offer=watcher&status=completed').includes('NEVER Leave by Ambient Outpost'), 'return invitation music credit');
+check(home.includes('Soundtrack credit pending review') && watcher.includes('Soundtrack credit pending review'), 'pre-entry music credit must await attribution');
+check(render('/gates/confirmed?offer=watcher&status=completed').includes('Soundtrack credit pending review'), 'return music credit must await attribution');
 check(home.includes('aria-controls="mobile-gates-menu"') && home.includes('aria-expanded="false"'), 'mobile menu control');
 check(home.includes('The Numinary Agent') && home.includes('The Watcher'), 'four-gate navigation');
 check(render('/gates/vault').includes('Wallpaper Vault'), 'Vault route');
@@ -45,11 +45,15 @@ const source = [readFileSync('src/data.ts', 'utf8'), ...readdirSync('src/pages')
 for (const asset of new Set([...source.matchAll(/\/media\/([\w.-]+\.(?:jpg|webp|png|mp4))/g)].map((m) => m[1]))) {
  check(existsSync(join('dist/media', asset)), `missing built media ${asset}`);
 }
-for (const [film, end] of [['signal-briefing', '02:40.000'], ['watcher-briefing', '02:39.000'], ['signal-invite', '01:17.000'], ['watcher-invite', '01:10.000']]) {
+for (const [film, end] of [['signal-briefing', 163], ['watcher-briefing', 162], ['signal-invite', 80], ['watcher-invite', 73]]) {
  const video = readFileSync(`dist/media/${film}-1440.mp4`);
  check(video.includes(Buffer.from('soun')) && video.includes(Buffer.from('mp4a')), `${film} needs AAC audio`);
  const captions = readFileSync(`dist/media/${film}-1440.vtt`, 'utf8');
- check(captions.startsWith('WEBVTT') && captions.includes(`00:${end}`), `${film} needs captions through final scene`);
+ const cues = [...captions.matchAll(/(\d\d):(\d\d):(\d\d)\.(\d\d\d) --> (\d\d):(\d\d):(\d\d)\.(\d\d\d) line:18% position:50% size:84% align:center/g)];
+ check(captions.startsWith('WEBVTT') && cues.length > 10, `${film} needs short, positioned English captions`);
+ const last = cues.at(-1);
+ const endSeconds = Number(last[5])*3600 + Number(last[6])*60 + Number(last[7]) + Number(last[8])/1000;
+ check(endSeconds >= end - 12 && endSeconds <= end, `${film} narration captions must reach its final scene`);
  check(existsSync(`audio/${film}-1.mp3`), `${film} needs its first narrated block`);
 }
 check(render('/gates/signal').includes('/media/signal-briefing-1440.vtt'), 'Signal briefing captions linked');

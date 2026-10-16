@@ -100,3 +100,6 @@ body{background:#030302}.site-frame{background:radial-gradient(95rem 65rem at 50
 @media(prefers-reduced-motion:reduce){.checkout-option{transition:none}}
 
 .film-credit{display:block;margin:.65rem 0 0;color:var(--mist);font-size:.72rem;line-height:1.5}
+
+/* Keep native captions above the film's on-screen lower-third copy. */
+video::cue{background:rgba(6,6,12,.87);color:#fff6e4;text-shadow:0 1px 3px #000}

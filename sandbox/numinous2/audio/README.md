@@ -12,51 +12,68 @@ substitute for subtitles.
 
 The ten numbered MP3 clips here are the user's selected feminine narrator.
 Their factual scripts are in [`full-length-scripts.md`](full-length-scripts.md)
-and track the films' original scene groups. `mix-audio.py` fits each recording
-to its timed block without shifting pitch and keeps the narration present
-through the final scene. A short music-only beat closes each film.
+and track the films' original scene groups. `mix-audio.py` now places each recording at its **natural speed**. It no
+longer stretches or compresses the voice to fill a chapter. Three invitation
+clips were re-recorded shorter to fit naturally. Score-only pauses separate
+spoken blocks, and the voice still reaches each final scene.
 
-## Music provenance and mix
+## Four supplied background sources — review mix
 
-The user confirmed they have permission to use both recordings in public,
-potentially commercial website videos. **The permission has not been
-independently verified; confirm its terms before production deployment.**
-The licensed excerpts were supplied via Drive, not copied from YouTube:
+The user provided four three-minute audio/video files, selected their **audio
+only** as one background per film, and requested that the current Numinous
+pictures and original lengths remain. The source pictures (including unrelated
+imagery and a subscribe graphic) are **not** used. We extracted the Opus audio
+streams without re-encoding and trimmed them at each site's film length during
+mixing. They were provided through Drive, not downloaded from video sites:
 
-- Before checkout, both briefing films: **MAGNUS DEI** by **arcana** — Drive
-  file `1m5Nm35_vVBRXZER7_su8-7UciL9wk-nZ`, 3:00, 128 kb/s MP3, MD5
-  `4ed1cb68fef77b69de5772490502da69`.
-- After checkout, both return invitations: **NEVER Leave** by **Ambient
-  Outpost** — Drive file `13JaJjUTd7z6CgaKJuygKtG1In6JgCvtt`, 3:00,
-  128 kb/s MP3, MD5 `1f5d1e9fdd1be306404acb20f9fc9b0f`.
+| Film | Drive file ID | Input MD5 | Role |
+| --- | --- | --- | --- |
+| Signal briefing | `1TjXyt8q7Rp6o9WqcRtCXw5qQVT69rvI7` | `f7759228306ff8f4e1327da4d26caaff` | pre-checkout bed |
+| Watcher briefing | `1Kai4PMdlRCuSg28GvT7AQh5f-uCVQOLI` | `6d3518e0c9d6e67ec6b51ed3d0c713f3` | pre-checkout bed |
+| Signal return invitation | `1heiYS2ErgyE7SqGYju2kNd-UVz5J2s3H` | `f9e80bbdaab9ec7539dd54a2a9fb557d` | post-checkout bed |
+| Watcher return invitation | `1UpBsx3Ae2a1NIzvErMtvEzSJCzC4YKZX` | `8202ac1de4f35cfad73284a1b1f0ac6c` | post-checkout bed |
 
-The original 2–3 hour MP3s exceeded the connector's 100 MB limit. The 3-minute
-excerpts were downloaded to a temporary directory; no stand-alone music is
-committed or served to browsers. `mix-audio.py` uses moderate music levels,
-a narration-driven sidechain duck with a gentle release, and final limiting.
-The four exported MP4s contain only the synchronized, mixed soundtrack.
+The user affirmed permission for use of all four soundtracks in public website
+videos, but creator/title credit details are **pending** and the exact license
+terms have **not** been independently verified. The sandbox marks credits as
+pending rather than attributing these new sounds to the previous two creators.
+Do not deploy before attribution, rights verification and a human listening
+pass confirming there is no unrelated speech or promotional audio in the beds.
+The original AV files and stand-alone extracted audio are not committed; only
+synchronized MP4s are served. `mix-audio.py` measures each bed's mean level,
+adds a speech-range EQ notch, ducks it dynamically under narration, and
+limits the output. Short native WebVTT cues are positioned above the picture's
+lower-third titles instead of covering them.
 
-To reproduce the sandbox mix from those Drive excerpts:
+To reproduce, download the four Drive files above to a temporary directory
+and extract each audio stream, e.g.:
 
 ```sh
 python3 -m pip install -r scripts/requirements-media.txt
-# From sandbox/numinous2; download both identified Drive MP3s separately.
-# Re-render first ONLY if the picture changes:
-python3 scripts/render-films.py
-MUSIC_PRE=/path/to/magnus-dei-excerpt.mp3 \
-MUSIC_POST=/path/to/never-leave-excerpt.mp3 python3 scripts/mix-audio.py
+FFMPEG=$(python3 -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
+"$FFMPEG" -i /tmp/01_Signal_Briefing_PreCheckout.mp4.webm \
+  -map 0:a:0 -vn -c:a copy /tmp/signal-briefing.ogg
+# Repeat for the other three files, preserving their Opus streams.
+# From sandbox/numinous2, set all four background paths:
+MUSIC_SIGNAL_BRIEFING=/tmp/signal-briefing.ogg \
+MUSIC_WATCHER_BRIEFING=/tmp/watcher-briefing.ogg \
+MUSIC_SIGNAL_INVITE=/tmp/signal-invite.ogg \
+MUSIC_WATCHER_INVITE=/tmp/watcher-invite.ogg \
+  python3 scripts/mix-audio.py
 npm run test:smoke
 ```
 
+Re-render first with `python3 scripts/render-films.py` **only** if the picture
+changes. It replaces the sandbox MP4s with silent visual masters; follow it
+with the audio mix. The script can remix an existing MP4 safely because it
+copies only its video stream, never its old soundtrack.
+
 The re-render reads the original plates and timeline from
-`../../../reference/web-version/` and overwrites the four sandbox MP4s with
-silent visual masters. The mix script copies only the video stream, so it can
-be rerun with a new score without rendering the picture again. It also
-updates captions. Keep the source recordings out of Git; only the mixed MP4s are committed.
-The script still supports the repository ambient bed as a fallback for local
-experiments, but production mixes should pass both music paths explicitly.
+`../../../reference/web-version/`. Keep the source recordings out of Git.
+The old two-track and local ambient inputs remain possible for comparison,
+but the review mix should pass **all four** new paths explicitly.
 
 Review soundtrack balance and caption synchronization by ear on desktop and
-phone. Caption timing is calculated per script sentence, not forced-aligned
-at the word level. The homepage's looping background stays muted; the other
-films play with sound only after a visitor presses Play.
+phone. Caption timing is estimated by phrase length from natural speech clips,
+not forced-aligned at the word level. The homepage's looping background
+stays muted; other films play with sound only after a visitor presses Play.
