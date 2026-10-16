@@ -90,17 +90,19 @@ def main() -> None:
    raise SystemExit(f"Missing {kind} music: {music}")
   if f"MUSIC_{kind}" not in os.environ:
    print(f"NOTE: {name} still uses the OLD ambient placeholder; not the licensed replacement",flush=True)
+  total = timeline[-1]
+  if duration_of(exe, music) < total:
+   raise ValueError(f"{kind} music is shorter than {total}s: {music}")
   target = HERE / "public/media" / f"{name}-1440.mp4"
   voices = [HERE / "audio" / f"{name}-{i}.mp3" for i in range(1,len(timeline))]
   if not target.is_file() or any(not voice.is_file() for voice in voices):
    raise SystemExit(f"Missing polished film or narration for {name}")
   captions(name,scripts[name])
-  total = timeline[-1]
   # The soundtrack ducks under narration. Each voice clip is gently retimed to
   # its storyboard block and leaves a second at the start / 3 seconds at end.
   filters = [f"[1:a]atrim=duration={total},asetpts=PTS-STARTPTS,"
              f"afade=t=in:st=0:d=2,afade=t=out:st={total-3}:d=3,"
-             "volume=0.32[bed]"]
+             f"volume={0.36 if kind == 'PRE' else 0.51}[bed]"]
   for i, voice in enumerate(voices):
    start,end = timeline[i:i+2]
    allotted = end-start-4
@@ -111,8 +113,11 @@ def main() -> None:
    filters.append(f"[{i+2}:a]atempo={speed:.5f},atrim=duration={allotted},"
                   f"afade=t=in:st=0:d=0.25,afade=t=out:st={allotted-0.9:.2f}:d=0.9,"
                   f"adelay={(start+1)*1000}:all=1,apad,atrim=duration={total}[voice{i}]")
-  inputs="[bed]"+"".join(f"[voice{i}]" for i in range(len(voices)))
-  filters.append(f"{inputs}amix=inputs={len(voices)+1}:duration=longest:normalize=0,alimiter=limit=0.95[a]")
+  narrators="".join(f"[voice{i}]" for i in range(len(voices)))
+  filters.append(f"{narrators}amix=inputs={len(voices)}:duration=longest:normalize=0[narr]")
+  filters.append("[narr]asplit=2[guide][dialog]")
+  filters.append("[bed][guide]sidechaincompress=threshold=0.015:ratio=8:attack=120:release=850[ducked]")
+  filters.append("[ducked][dialog]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95[a]")
   temp=target.with_suffix(".mix.mp4")
   args=[exe,"-hide_banner","-loglevel","error","-y","-i",str(target),"-i",str(music)]
   for voice in voices:

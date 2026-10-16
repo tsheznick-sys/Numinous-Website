@@ -35,6 +35,8 @@ check((home.match(/class="gate-card__hit"/g) || []).length === 4, 'four linked h
 check((collection.match(/class="collection-card__hit"/g) || []).length === 4, 'four linked collection cards');
 check(watcher.includes('class="checkout-offer__hit"') && watcher.includes('aria-label="Read details about The Watcher"'), 'pre-checkout product card links to details');
 check(home.includes('muted=""') && home.includes('controls=""'), 'hero is silent but selected briefing has controls');
+check(home.includes('MAGNUS DEI by arcana') && watcher.includes('MAGNUS DEI by arcana'), 'pre-entry music credit');
+check(render('/gates/confirmed?offer=watcher&status=completed').includes('NEVER Leave by Ambient Outpost'), 'return invitation music credit');
 check(home.includes('aria-controls="mobile-gates-menu"') && home.includes('aria-expanded="false"'), 'mobile menu control');
 check(home.includes('The Numinary Agent') && home.includes('The Watcher'), 'four-gate navigation');
 check(render('/gates/vault').includes('Wallpaper Vault'), 'Vault route');

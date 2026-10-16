@@ -49,7 +49,7 @@
   pre-checkout summary card, AAC audio in every built MP4, caption files, and
   that the homepage background remains muted.
 
-## Full-length film pass — soundtrack approval pending
+## Full-length film pass — requested soundtracks mixed
 
 - All four sandbox films have been re-rendered from their original local
   scene plates at the **same lengths and scene order**, with gentle motion,
@@ -59,11 +59,16 @@
 - The selected feminine voice now narrates across every film. The ten voiced
   blocks span all four original timelines; captions reach three seconds from
   each end. This is not a claim that Whop payment or entitlement was tested.
-- The audio bed is **still the old ambient file as a placeholder**, not the
-  two replacement recordings the user requested. Their full Drive MP3s are
-  over the connector's 100 MB cap; the user is preparing shorter licensed
-  excerpts. Do not publish these provisional mixes. Instructions and script
-  transcripts: [`audio/README.md`](audio/README.md).
+- Both replacement tracks are mixed into the sandbox MP4s: MAGNUS DEI by
+  arcana for the pre-checkout briefings; NEVER Leave by Ambient Outpost for the
+  post-return invitations. The user confirmed website-video usage permission
+  and provided three-minute Drive excerpts below 100 MB. Music ducks under
+  narration, swells between blocks and fades at each end. The source MP3s
+  remain outside Git; only synchronized MP4s are committed. Creator credits
+  are displayed beside controlled videos. Permission terms and the final
+  desktop/phone listening check still need human review before deployment.
+  See [`audio/README.md`](audio/README.md) for hashes, provenance, scripts and
+  reproducible mixing instructions.
 
 ## Do not deploy yet — release gates
 
@@ -84,7 +89,11 @@
    client-side React. The static HTML is a single shared document, unlike the
    root storefront's route-specific HTML/OG cards. Generate route-specific
    static documents or add an SSR/Worker adapter before launch.
-5. **Security/visual review:** `npm audit` on the supplied dependency lock
+5. **Music permission and media review:** confirm the public/commercial
+   synchronized-video license terms for both creator recordings (the user has
+   affirmed permission, but the terms were not independently verified). Listen
+   to each finished video and check caption synchronization on desktop/phone.
+6. **Security/visual review:** `npm audit` on the supplied dependency lock
    reports 5 high and 2 moderate **development/build-tool** advisories
    (Tailwind v3 and transitive packages). `npm audit --omit=dev` reports 0
    runtime dependency advisories. Do not force-upgrade without visual

@@ -84,6 +84,8 @@ video. See [`audio/README.md`](audio/README.md) to reproduce the mix.
 ### Current film review state
 
 The four original films have been re-rendered with accurate on-screen wording
-and full-length narration; see [`audio/README.md`](audio/README.md). The
-requested licensed music replacement is **pending shorter audio files**. The
-preview's old ambient bed is provisional, not release-approved.
+and full-length narration. The supplied short, licensed pre-/post-checkout
+music excerpts are now mixed into the sandbox films with creator credits. See
+[`audio/README.md`](audio/README.md) for provenance and repeatable mixing.
+Human review of audio/captions and music permission terms is still required
+before a production release.
