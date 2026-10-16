@@ -11,15 +11,12 @@
  * binding it serves the single-page shell for unknown paths, and otherwise it
  * reports the miss.
  *
- * One exception is deliberate. The asset layer answers a clean route URL such
- * as /returns with the single-page shell, so the document that owns that
- * route — kept in the build at /returns/index.html, carrying its own title,
- * canonical and social card — is never reached, and every path on the site
- * shares the home's head. For a plain navigation path with no file extension
- * the worker therefore asks for the directory index first and only falls back
- * to the shell when the route has no document of its own. Nothing else moves:
- * an asset that exists is still served as-is, and an unknown path still lands
- * on the home.
+ * The approved React storefront also emits route-specific index documents
+ * for crawler metadata. With drop-trailing-slash asset handling, clean route
+ * URLs serve those documents directly. If an unmatched request does reach this
+ * worker, it tries that route document and then falls back to the React shell.
+ * Checkout plan IDs are never rewritten by the worker: React receives the
+ * original pathname and redirects to the matching pre-checkout review page.
  */
 
 const SHELL = "/index.html";

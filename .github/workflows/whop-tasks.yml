@@ -5,6 +5,11 @@ name: Whop one-off tasks
 # Trigger: Actions tab -> "Whop one-off tasks" -> Run workflow -> pick a task.
 
 on:
+  # One approved release: merging PR #13 promotes the validated Numinous 2.0
+  # package. Future PR merges do not deploy automatically.
+  pull_request:
+    types: [closed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       task:
@@ -249,6 +254,9 @@ jobs:
             exit 1
           fi
 
+      - name: Validate Numinous 2.0 release package
+        run: npm run build && npm run verify:build
+
       - name: Upload a preview build (does NOT go live)
         env:
           WHOP_API_KEY: ${{ secrets.WHOP_API_KEY }}
@@ -259,7 +267,7 @@ jobs:
           echo "with task=deploy to promote it to jointhenuminouses.whop.site."
 
   deploy:
-    if: ${{ inputs.task == 'deploy' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.task == 'deploy') || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.number == 13 && github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out the storefront
@@ -284,6 +292,9 @@ jobs:
             echo "::error::whop.app.json still contains the placeholder app_xxxxxxxx id."
             exit 1
           fi
+
+      - name: Validate Numinous 2.0 release package
+        run: npm run build && npm run verify:build
 
       - name: Deploy to jointhenuminouses.whop.site
         env:
