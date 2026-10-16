@@ -26,6 +26,15 @@ check(render('/gates/confirmed?offer=watcher&status=completed').includes('Verify
 check(render('/gates/confirmed?offer=watcher').includes('No recognized checkout status'), 'statusless return must be unverified');
 check(render('/gates/confirmed?offer=unknown&status=success').includes('unknown gate'), 'unknown offer must not become Signal');
 const home = render('/');
+const collection = render('/gates');
+for (const [gate, title] of [['signal', 'The Signal'], ['watcher', 'The Watcher'], ['vault', 'Wallpaper Vault'], ['numinary-agent', 'The Numinary Agent']]) {
+ check(home.includes(`aria-label="View ${title} details" href="/gates/${gate}"`), `home ${title} full-card destination`);
+ check(collection.includes(`aria-label="View ${title} details" href="/gates/${gate}"`), `collection ${title} full-card destination`);
+}
+check((home.match(/class="gate-card__hit"/g) || []).length === 4, 'four linked home cards');
+check((collection.match(/class="collection-card__hit"/g) || []).length === 4, 'four linked collection cards');
+check(watcher.includes('class="checkout-offer__hit"') && watcher.includes('aria-label="Read details about The Watcher"'), 'pre-checkout product card links to details');
+check(home.includes('muted=""') && home.includes('controls=""'), 'hero is silent but selected briefing has controls');
 check(home.includes('aria-controls="mobile-gates-menu"') && home.includes('aria-expanded="false"'), 'mobile menu control');
 check(home.includes('The Numinary Agent') && home.includes('The Watcher'), 'four-gate navigation');
 check(render('/gates/vault').includes('Wallpaper Vault'), 'Vault route');
@@ -34,5 +43,12 @@ const source = [readFileSync('src/data.ts', 'utf8'), ...readdirSync('src/pages')
 for (const asset of new Set([...source.matchAll(/\/media\/([\w.-]+\.(?:jpg|webp|png|mp4))/g)].map((m) => m[1]))) {
  check(existsSync(join('dist/media', asset)), `missing built media ${asset}`);
 }
+for (const film of ['signal-briefing', 'watcher-briefing', 'signal-invite', 'watcher-invite']) {
+ const video = readFileSync(`dist/media/${film}-1440.mp4`);
+ check(video.includes(Buffer.from('soun')) && video.includes(Buffer.from('mp4a')), `${film} needs AAC audio`);
+ check(readFileSync(`dist/media/${film}-1440.vtt`, 'utf8').startsWith('WEBVTT'), `${film} needs English captions`);
+}
+check(render('/gates/signal').includes('/media/signal-briefing-1440.vtt'), 'Signal briefing captions linked');
+check(render('/gates/confirmed?offer=watcher&status=success').includes('/media/watcher-invite-1440.vtt'), 'Watcher invitation captions linked');
 check(existsSync('dist/assets'), 'built client assets');
-console.log('sandbox smoke: route, trial, checkout, confirmation, menu and media checks passed');
+console.log('sandbox smoke: routes, clickable cards, trial, checkout, return states, menu, narrated media and captions passed');

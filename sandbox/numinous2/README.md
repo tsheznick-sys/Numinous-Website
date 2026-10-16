@@ -71,3 +71,12 @@ npm run preview -- --host 0.0.0.0 --port 4173 --strictPort
 This is a static SPA preview. It does not prove compatibility with the root
 Whop/Cloudflare Worker deployment. Product pages, prices and returns must be
 reviewed with the [sandbox status](./SANDBOX_STATUS.md) before launch.
+
+## Product cards and narrated films
+
+The entire home and collection product cards link to each work's detail page;
+the review-page product summary links back to that detail page. The four
+Signal/Watcher briefing and invitation videos now contain ambient music and
+spoken factual narration, with matching English captions. The homepage
+background stays silent; sound begins only when a visitor plays a controlled
+video. See [`audio/README.md`](audio/README.md) to reproduce the mix.

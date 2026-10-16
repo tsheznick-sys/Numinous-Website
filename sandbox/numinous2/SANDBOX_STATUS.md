@@ -33,6 +33,22 @@
   corresponding pre-checkout page and avoid treating unknown Gates as Signal.
 - Added source-level render and media checks (`npm run test:smoke`).
 
+## 2026-10-16 cards and video sound update
+
+- The full surface of each of the four home and collection product cards is
+  now a single, keyboard-focusable link to its product detail page. The
+  pre-checkout product summary card also links back to its detail page. Cards
+  are never nested links and still have a separate checkout action below.
+- All four previously silent briefing/invitation MP4s now have one stereo AAC
+  track: the existing local ambient bed plus the user-selected feminine,
+  factual product narration. They have English WebVTT captions. Controlled
+  films are audible on user-initiated playback; the looping homepage backdrop
+  stays muted. Source voice clips and the repeatable mix script are in
+  [`audio/`](audio/README.md) and `scripts/mix-audio.py`.
+- `npm run test:smoke` checks all eight grid-card destinations, the
+  pre-checkout summary card, AAC audio in every built MP4, caption files, and
+  that the homepage background remains muted.
+
 ## Do not deploy yet — release gates
 
 1. **Hosting integration:** this archive is a standalone static SPA. The root
