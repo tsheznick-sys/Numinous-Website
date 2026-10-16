@@ -1,5 +1,10 @@
 # Numinous 2.0 — sandbox review (2026-10-16)
 
+> **Release update, 2026-10-16:** The reviewed React source in this directory is
+> now the main Whop-hosted site at `jointhenuminouses.whop.site`. The production
+> build is made from the repository root; the port 4173 preview remains a
+> separate QA sandbox. [Release job](https://github.com/tsheznick-sys/Numinous-Website/actions/runs/38952425872) passed after a production-only source archive solved Whop's 50 MB upload limit. The notes below record pre-release work and should not be read as a claim that checkout was transaction-tested. Creator/title credits for four supplied backgrounds are still missing; replace the honest pending-credit placeholders once the user supplies them.
+
 ## Source and preview
 
 - `numinous2-rebuild.zip` supplied the editable React/Vite/TypeScript source.
@@ -10,10 +15,11 @@
   Matching local films were restored from this repo's
   `reference/web-version/public/assets/briefing/films/`. No remote media is
   needed for the preview.
-- This candidate lives in `sandbox/numinous2/` so the existing Whop-hosted
-  storefront stays intact. Run `npm ci && npm run test:smoke` here, then
-  `npm run preview -- --port 4173 --strictPort`. The port 4173 preview currently
-  shows this candidate, **not** the root storefront.
+- This candidate was developed in `sandbox/numinous2/` without changing the
+  previous Whop storefront during review. The root build now consumes this
+  source for production. Run `npm ci && npm run test:smoke` here, then
+  `npm run preview -- --port 4173 --strictPort` for an isolated QA preview;
+  the root Whop package preview uses port 4174.
 
 ## Repairs performed in the sandbox
 

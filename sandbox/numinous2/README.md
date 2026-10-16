@@ -1,9 +1,10 @@
-> **Sandbox candidate, not the live Whop deployment.** This directory is the
-> editable source from the two Drive archives supplied on 2026-10-16. The
+> **Editable source of the live Whop storefront.** This directory began as an
+> isolated sandbox from the two Drive archives supplied on 2026-10-16. The
 > compiled archive matched the untouched source build byte-for-byte (Vite
-> hashes `index-BkAWubPN.css` and `index-s1iOg19l.js`). The source has since
-> received sandbox repairs; see [SANDBOX_STATUS.md](./SANDBOX_STATUS.md).
-> Do not run the root `npm run deploy` for this candidate.
+> hashes `index-BkAWubPN.css` and `index-s1iOg19l.js`). The reviewed source
+> is now packaged for Whop by the repository-root build. Keep using this
+> directory's preview and smoke tests for QA; release from the root workflow.
+> See [SANDBOX_STATUS.md](./SANDBOX_STATUS.md) for the release update.
 
 # Numinous 2.0 website rebuild
 
@@ -87,5 +88,5 @@ The four original films have been re-rendered with accurate on-screen wording
 and full-length narration. The newly supplied four video files contribute audio only (one separate
 background per film), mixed under natural-speed voiceovers. Creator credits
 for these new soundtracks are pending; see [`audio/README.md`](audio/README.md)
-for provenance and repeatable mixing. Human listening review, accurate
-attribution and music permission verification remain required before release.
+for provenance and repeatable mixing. Human listening review and accurate creator/title attribution remain follow-up
+work for the live site; the supplied audio was authorized for website-video use.
