@@ -66,3 +66,22 @@ npm run typecheck && node render-check.mjs && npm run build && npm run verify:bu
 ```
 
 `npm run preview` exposes the built site on port 4173. The preview is not a Whop deployment and does not alter live plans.
+
+## Numinous 2.0 sandbox candidate (not deployed)
+
+The two source/compiled archives supplied on 2026-10-16 are staged as the
+**editable** standalone site in [`sandbox/numinous2/`](sandbox/numinous2/).
+That folder has its own lockfile and scripts; it is deliberately separate from
+the root Whop/Cloudflare Worker deployment. The root `npm run build` and
+`npm run deploy` still target the incumbent storefront, not this candidate.
+
+```sh
+cd sandbox/numinous2
+npm ci
+npm run test:smoke
+npm run preview -- --port 4173 --strictPort
+```
+
+Read [`SANDBOX_STATUS.md`](sandbox/numinous2/SANDBOX_STATUS.md) before proposing
+a launch. The current port 4173 preview can run either build; check its process
+label to see which is showing. **Do not deploy the candidate from the root.**
