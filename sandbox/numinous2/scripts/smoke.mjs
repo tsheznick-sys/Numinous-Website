@@ -24,7 +24,9 @@ check(readFileSync('scripts/mix-audio.py', 'utf8').includes('scripts/encode-sign
 check(signalReview.includes('Join The Signal free on Whop') && signalReview.includes('ch_wYXFulML0v6LIoJ'), 'Signal entry CTA must describe its destination and keep the free Whop checkout ID');
 check(render('/gates/signal').includes('href="/gates/signal/enter"'), 'Signal detail action must lead to its briefing before Whop');
 check(watcher.includes('plan_PQnMYNixMTjRQ') && watcher.includes('plan_Imfk0oedwYn7v'), 'monthly and annual Watcher doors');
+check(watcher.includes('href="#entry-choices"') && watcher.includes('id="entry-choices"') && signalReview.includes('id="entry-choices"'), 'briefing pages need an in-page way to reach entry choices');
 const agent = render('/gates/numinary-agent/enter');
+check(agent.includes('id="entry-choices"') && agent.indexOf('Confirm current prices') < agent.indexOf('Join the free Agent app'), 'Agent jump must land on the price verification warning before choices');
 for (const id of ['plan_DfdY0zchDNFfd', 'plan_1D3t48PqoC0VO', 'plan_JVsIaspu0MCOs', 'plan_adTlNP9y9zjvP'])
  check(agent.includes(id), `Agent choice ${id}`);
 for (const state of ['failed', 'declined', 'canceled', 'cancelled', 'pending', 'processing']) {
@@ -58,6 +60,7 @@ check(buttonSystem.includes(':focus-visible') && buttonSystem.includes('prefers-
 check(home.includes('Soundtrack credit pending review') && watcher.includes('Soundtrack credit pending review'), 'pre-entry music credit must await attribution');
 check(render('/gates/confirmed?offer=watcher&status=completed').includes('Soundtrack credit pending review'), 'return music credit must await attribution');
 check(home.includes('aria-controls="mobile-gates-menu"') && home.includes('aria-expanded="false"'), 'mobile menu control');
+check(render('/gates/signal').includes('Review Signal') && signalReview.includes('All gates'), 'header action adapts to the current gate');
 check(home.includes('The Numinary Agent') && home.includes('The Watcher'), 'four-gate navigation');
 check(render('/gates/vault').includes('Wallpaper Vault'), 'Vault route');
 check(render('/returns').includes('7 days free'), 'return terms');

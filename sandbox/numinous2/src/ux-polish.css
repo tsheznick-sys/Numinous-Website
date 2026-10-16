@@ -49,3 +49,45 @@
   .checkout-steps li { font-size: .85rem; }
   .checkout-page__intro { line-height: 1.65; }
 }
+
+/* Put the gate decision before the artwork on narrow screens, without cropping the art. */
+@media (max-width: 800px) {
+  .product-page > .product-hero { gap: 1.75rem; padding-top: 7.25rem; padding-bottom: 3.5rem; }
+  .product-hero__copy { order: 0; }
+  .product-hero__copy::before { margin-top: 0; }
+  .product-hero__art { order: 1; }
+  .product-hero__actions { gap: .6rem; margin-top: 1.25rem; }
+  .product-hero__actions > span { display: block; width: 100%; color: #e4d5b4; font-size: .78rem; line-height: 1.5; }
+}
+
+/* The briefing stays in place; readers can reach the actual choices without hunting below it. */
+.checkout-page__wayfinding {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .4rem 1.25rem;
+  margin: 1rem 0 0;
+  font-size: .8rem;
+  line-height: 1.5;
+}
+.checkout-page__wayfinding a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.75rem;
+  padding: .6rem .9rem;
+  border: 1px solid rgba(231, 197, 108, .55);
+  border-radius: .65rem;
+  background: rgba(218, 176, 80, .1);
+  color: #ffe6a5;
+  font-weight: 700;
+  text-decoration: none;
+}
+.checkout-page__wayfinding a:hover { background: rgba(218, 176, 80, .2); }
+.checkout-page__wayfinding > span { color: #d3c6ab; }
+#entry-choices { scroll-margin-top: 7rem; }
+#entry-choices:target { outline: 1px solid rgba(231, 197, 108, .55); outline-offset: .65rem; border-radius: .5rem; }
+@media (max-width: 650px) {
+  .checkout-page__wayfinding { align-items: flex-start; flex-direction: column; }
+}

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { legalRecords, productByGate, productById, productBySlug, products } from './data';
 import { SiteFrame } from './components/Layout';
@@ -35,6 +35,24 @@ function RouteMeta() {
  return null;
 }
 
+function RouteScroll() {
+ const location = useLocation();
+ const firstRoute = useRef(true);
+ useLayoutEffect(() => {
+  // In-page anchors keep their native behavior; route changes begin at the new page's start.
+  if (location.hash) return;
+  const initial = firstRoute.current;
+  firstRoute.current = false;
+  const root = document.documentElement;
+  const previous = root.style.scrollBehavior;
+  root.style.scrollBehavior = 'auto';
+  window.scrollTo(0, 0);
+  root.style.scrollBehavior = previous;
+  if (!initial) document.getElementById('main-content')?.focus({ preventScroll: true });
+ }, [location.pathname, location.search, location.hash]);
+ return null;
+}
+
 function LegacyProductRedirect() { const { slug } = useParams(); return products.some((p) => p.slug === slug) ? <Navigate to={`/gates/${productBySlug(slug).gate}`} replace /> : <Navigate to="/gates" replace />; }
 const legacyPlans: Record<string, string> = {
  ch_wYXFulML0v6LIoJ: 'signal', plan_PQnMYNixMTjRQ: 'watcher',
@@ -65,7 +83,7 @@ function LegacyConfirmationRedirect() {
 }
 
 export default function App() {
- return <SiteFrame><RouteMeta /><Routes>
+ return <SiteFrame><RouteMeta /><RouteScroll /><Routes>
   <Route path="/" element={<Home />} />
   <Route path="/gates" element={<CollectionPage />} />
   <Route path="/gates/herald" element={<Navigate to="/gates/numinary-agent" replace />} />
