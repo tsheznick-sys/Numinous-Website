@@ -37,6 +37,6 @@ Details of soundtrack provenance, editable media scripts, return links and outst
 
 ## Whop release
 
-`whop.app.json` targets the Whop website app for route `jointhenuminouses`. The manual [Whop one-off tasks](.github/workflows/whop-tasks.yml) workflow supports `deploy-preview` and `deploy`: both run the root build and verifier before upload, using the repository's `WHOP_API_KEY` Actions secret. Deploying promotes the site; a GitHub merge by itself does not. Do not use the sandbox's own `vite build` output for Whop hosting.
+`whop.app.json` targets the Whop website app for route `jointhenuminouses`. The [Whop one-off tasks](.github/workflows/whop-tasks.yml) workflow supports `deploy-preview` and `deploy`; both run the root build and verifier before upload, using the repository's `WHOP_API_KEY` Actions secret. **The approved merge of PR #13 triggers a one-time deployment job**; other PR merges do not deploy automatically. Check that job's success and the live site before claiming a release. Do not use the sandbox's own `vite build` output for Whop hosting.
 
 The old source pages under `reference/` and old `render-check.mjs` are archival, not production input. Payments stay on Whop; this website does not collect card details or store Whop credentials.
