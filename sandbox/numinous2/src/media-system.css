@@ -1,0 +1,53 @@
+/* A predictable, accessible playback surface on every controlled film. */
+.film-player { width: 100%; min-width: 0; align-self: center; }
+.film-player video {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  border: 1px solid rgba(237, 213, 159, .28);
+  border-radius: .85rem;
+  background: #050505;
+}
+.film-player__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .85rem;
+  align-items: center;
+  margin-top: .55rem;
+}
+.film-player__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.6rem;
+  padding: .35rem .1rem;
+  color: #ebd6a7;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .025em;
+  text-decoration: underline;
+  text-decoration-color: rgba(228, 190, 104, .5);
+  text-underline-offset: .28rem;
+  transition: color .2s ease, text-decoration-color .2s ease;
+}
+.film-player__links a:hover { color: #fff1c7; text-decoration-color: currentColor; }
+.film-player__error {
+  margin: .45rem 0 0;
+  padding: .8rem 1rem;
+  border-left: 2px solid #dfb967;
+  background: rgba(102, 69, 25, .3);
+  color: #fff0d1;
+  font-size: .8rem;
+  line-height: 1.5;
+}
+.checkout-film .film-player, .confirmation-film .film-player { padding: .35rem; }
+.home-film .film-player__links, .product-film .film-player__links { padding-inline: .2rem; }
+@media (max-width: 650px) {
+  .film-player__links { justify-content: center; gap: .2rem .8rem; }
+  .film-player__links a { font-size: .66rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-player__links a { transition: none; }
+}

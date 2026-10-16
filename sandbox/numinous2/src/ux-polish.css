@@ -1,0 +1,51 @@
+/* Readable detail, predictable wayfinding and keyboard paths across the sandbox. */
+.skip-link {
+  position: fixed;
+  z-index: 300;
+  top: .75rem;
+  left: .75rem;
+  padding: .8rem 1.1rem;
+  border: 2px solid #ffe4a0;
+  border-radius: .65rem;
+  background: #1b150b;
+  color: #fff2d2;
+  font-size: .85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(-180%);
+}
+.skip-link:focus, .skip-link:focus-visible { transform: translateY(0); }
+#main-content:focus { outline: none; }
+
+.site-nav__desktop-links a[aria-current="page"],
+.site-nav__mobile-menu a[aria-current="page"] {
+  color: #fff0c0;
+  text-decoration: underline;
+  text-decoration-color: #d9b763;
+  text-underline-offset: .35rem;
+}
+.site-nav__mobile-menu a[aria-current="page"] { background: rgba(225, 184, 94, .14); }
+
+.product-hero__story,
+.chapter-list article p,
+.collection-grid article p { font-size: .9rem; line-height: 1.7; }
+.checkout-offer p { font-size: .88rem; line-height: 1.55; }
+.checkout-offer small { font-size: .75rem; line-height: 1.45; }
+.checkout-steps li { font-size: .85rem; }
+.checkout-page__note { font-size: .8rem; line-height: 1.7; }
+.confirmation-page > section > p:not(.eyebrow),
+.access-page__hero > p:not(.eyebrow) { font-size: .95rem; line-height: 1.7; }
+.legal-page__body p, .legal-page__body li { font-size: .95rem; line-height: 1.8; }
+.site-footer__links a { font-size: .82rem; }
+.film-player__links a { min-height: 2.75rem; color: #f4dfb7; font-size: .76rem; }
+.film-credit, .checkout-film small, .confirmation-film small { font-size: .76rem; }
+
+@media (max-width: 800px) {
+  .site-nav__mobile-menu a { min-height: 3rem; }
+  .checkout-page__note { max-width: 56ch; }
+}
+@media (max-width: 650px) {
+  .film-player__links a { font-size: .75rem; }
+  .checkout-steps li { font-size: .85rem; }
+  .checkout-page__intro { line-height: 1.65; }
+}

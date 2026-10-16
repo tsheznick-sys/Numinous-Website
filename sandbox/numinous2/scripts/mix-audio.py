@@ -167,6 +167,7 @@ def mean_volume_of(exe: str, path: Path) -> float:
 def main() -> None:
  parser = argparse.ArgumentParser(description="Mix scene-aligned narration and music into the sandbox films")
  parser.add_argument("--film", choices=SEGMENTS, help="Re-mix one film without touching the other three")
+ parser.add_argument("--skip-webm", action="store_true", help="skip slow Signal fallback encode during temporary audio experiments only")
  cli = parser.parse_args()
  exe = ffmpeg_executable()
  scripts = transcripts()
@@ -248,6 +249,8 @@ def main() -> None:
    temp.unlink(missing_ok=True)
    if scratch:
     scratch.cleanup()
+  if signal and not cli.skip_webm:
+   subprocess.run([sys.executable, str(HERE / "scripts/encode-signal-webm.py")], check=True)
   print(f"Mixed {name}: {total}s, natural-speed narration, score gain {music_gain:.1f}dB, AAC and captions",flush=True)
 
 

@@ -40,7 +40,7 @@ export function SiteNav() {
   <button ref={menuButton} type="button" className="site-nav__menu" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="mobile-gates-menu" onClick={() => setOpen(!open)}><i /><i /><i /></button>
   <nav ref={menu} id="mobile-gates-menu" className="site-nav__mobile-menu" aria-label="Mobile navigation" hidden={!open} onClick={(event) => { if ((event.target as HTMLElement).closest('a')) setOpen(false); }}>
    <p>Explore Numinous</p>
-   <Link to="/gates">All four gates</Link><Link to="/gates/signal">The Signal · Free</Link><Link to="/gates/watcher">The Watcher</Link><Link to="/gates/vault">Wallpaper Vault</Link><Link to="/gates/numinary-agent">The Numinary Agent</Link><Link to="/returns">The Pact & returns</Link>
+   <NavLink end to="/gates">All four gates</NavLink><NavLink to="/gates/signal">The Signal · Free</NavLink><NavLink to="/gates/watcher">The Watcher</NavLink><NavLink to="/gates/vault">Wallpaper Vault</NavLink><NavLink to="/gates/numinary-agent">The Numinary Agent</NavLink><NavLink to="/returns">The Pact & returns</NavLink>
    <a className="site-nav__mobile-support" href="mailto:numinous.support@gmail.com" onClick={() => setOpen(false)}>Speak to a person ↗</a>
   </nav>
  </motion.header>;
@@ -51,5 +51,5 @@ export function SiteFooter() {
 }
 
 export function SiteFrame({ children }: { children: ReactNode }) {
- return <div className="site-frame"><AmbientCosmos /><SiteNav />{children}<SiteFooter /></div>;
+ return <div className="site-frame"><a className="skip-link" href="#main-content">Skip to content</a><AmbientCosmos /><SiteNav />{children}<SiteFooter /></div>;
 }

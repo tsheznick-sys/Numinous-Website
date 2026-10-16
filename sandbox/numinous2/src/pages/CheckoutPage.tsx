@@ -1,5 +1,6 @@
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { MotionPage, MotionSection, TiltArticle } from '../components/Motion';
+import { FilmPlayer } from '../components/FilmPlayer';
 import { productByGate, productById } from '../data';
 
 export function CheckoutPage() {
@@ -12,7 +13,7 @@ export function CheckoutPage() {
   <p className="checkout-page__intro">Know the work and its terms before you continue to Whop. Whop handles checkout, receipts and access.</p>
   {product.id === 'watcher' && <p className="checkout-page__terms">The monthly Watcher begins with 7 days free, then $28 every 28 days. The $280 annual option is separate. If you later make your first payment and it is not for you, request the seven-night return within seven nights of that payment.</p>}
   <TiltArticle className="checkout-offer"><img src={product.image} alt="" /><div><span>{product.label}</span><h2>{product.title}</h2><p>{product.description}</p><b>{product.price}</b><small>{product.fact}</small></div><Link className="checkout-offer__hit" to={`/gates/${product.gate}`} aria-label={`Read details about ${product.title}`} /></TiltArticle>
-  {product.checkoutFilm && <figure className="checkout-film"><figcaption><span className="eyebrow">Before entry · briefing film</span><strong>{product.title}, in its own rhythm.</strong><small>Watch before continuing to Whop.</small><small>Soundtrack credit pending review</small></figcaption><video controls preload="metadata" playsInline poster={product.image}><source src={product.checkoutFilm} type="video/mp4" /><track kind="captions" src={`/media/${product.id}-briefing-1440.vtt`} srcLang="en" label="English" default /></video></figure>}
+  {product.checkoutFilm && <figure className="checkout-film"><figcaption><span className="eyebrow">Before entry · briefing film</span><strong>{product.title}, in its own rhythm.</strong><small>Watch before continuing to Whop.</small><small>Soundtrack credit pending review</small></figcaption><FilmPlayer mp4={product.checkoutFilm} webm={product.id === 'signal' ? '/media/signal-briefing-720.webm' : undefined} captions={`/media/${product.id}-briefing-1440.vtt`} poster={product.image} label={`${product.title} pre-checkout briefing`} /></figure>}
   <ol className="checkout-steps"><li><span>I</span>Review your chosen gate</li><li><span>II</span>Complete the handoff on Whop</li><li><span>III</span>Verify your receipt and account access on Whop</li></ol>
   {product.checkoutOptions ? <div className="checkout-options" aria-label={`${product.title} choices`}>
    {product.id === 'agent' && <a className="checkout-option" href={product.checkout}><span><strong>Join the free Agent app</strong><small>Open the Whop product page; paid Keys are optional</small></span><b>Free entry <i aria-hidden="true">↗</i></b></a>}

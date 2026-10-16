@@ -133,6 +133,28 @@
   the 320 px mobile menu opens. Desktop and phone screenshots were inspected
   for alignment. This does not replace real-device or human audio review.
 
+## Firefox playback and full-route usability pass — sandbox only
+
+- The user reported that the Signal film did not play in Firefox or the Arena
+  file viewer. The site's controlled Signal player now offers a 2:43 VP9/Opus
+  WebM first, with the existing H.264/AAC MP4 as a browser fallback. Direct
+  open/download links and a visible failure message remain available if both
+  fail. The WebM uses the final Signal narration/score and the same Numinous
+  scene sequence (at 720p); it adds no new background audio. Future Signal
+  remixes refresh it via `scripts/encode-signal-webm.py`.
+- Locally, a browser loaded the WebM, advanced playback past 2 seconds, fell
+  back to MP4 when WebM was deliberately blocked, and displayed helpful links
+  when both were blocked. HTTP media range requests returned 206. This is not
+  a claim that Firefox on the user's device or Arena's file viewer has been
+  verified; use the surfaced port 4173 website preview and the WebM link.
+- Shared UI/UX updates cover the home, Gate details, pre-checkout and return
+  films. A reusable player keeps native controls, captions, codec fallback and
+  direct file options consistent. The hero loop stays muted. A keyboard skip
+  link targets the main content, the mobile menu marks its active Gate, and
+  body copy, checkout facts, legal records, footer links and media options have
+  more legible type and touch targets. Headless 320/390/768/1280 px checks on
+  seven routes found no horizontal overflow. Whop destinations are unchanged.
+
 ## Do not deploy yet — release gates
 
 1. **Hosting integration:** this archive is a standalone static SPA. The root

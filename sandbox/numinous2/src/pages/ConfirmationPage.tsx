@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { MotionPage, MotionSection } from '../components/Motion';
+import { FilmPlayer } from '../components/FilmPlayer';
 import { productById, products } from '../data';
 
 type ReturnState = 'completed' | 'failed' | 'canceled' | 'pending' | 'unverified';
@@ -38,7 +39,7 @@ export function ConfirmationPage() {
   <p className="eyebrow">Browser return · {known ? product.title : 'unknown gate'}</p>
   <h1>{heading}</h1><p>{copy}</p>
   {reference && <small>Provider reference for support: {reference}</small>}
-  {known && state === 'completed' && product.confirmationFilm && <figure className="confirmation-film"><figcaption><span className="eyebrow">The invitation</span><strong>The next room is ready when Whop grants access.</strong><small>Watch, then verify with Whop.</small><small>Soundtrack credit pending review</small></figcaption><video controls preload="metadata" playsInline poster={product.image}><source src={product.confirmationFilm} type="video/mp4" /><track kind="captions" src={`/media/${product.id}-invite-1440.vtt`} srcLang="en" label="English" default /></video></figure>}
+  {known && state === 'completed' && product.confirmationFilm && <figure className="confirmation-film"><figcaption><span className="eyebrow">The invitation</span><strong>The next room is ready when Whop grants access.</strong><small>Watch, then verify with Whop.</small><small>Soundtrack credit pending review</small></figcaption><FilmPlayer mp4={product.confirmationFilm} captions={`/media/${product.id}-invite-1440.vtt`} poster={product.image} label={`${product.title} return invitation`} /></figure>}
   <div className="confirmation-page__actions">
    {known && state === 'completed' && <Link className="button button--light" to={`/access?offer=${product.id}&from=confirmation`}>How to verify access</Link>}
    <a className="button" href="https://whop.com/thenuminouses/">Check my Whop account</a>

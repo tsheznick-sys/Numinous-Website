@@ -40,7 +40,14 @@ by a human listener in this environment.
 The Signal picture stream is byte-identical to the previous review mix
 (SHA-256 `a971def99b2c86514f849d467d02b170b78fcd5de8a3cbb24744233fcb0da205`).
 All four MP4s decoded without reported errors, retained 1920×1080 video,
-and measured the same durations: 2:43 / 2:42 / 1:20 / 1:13. Signal's
+and measured the same durations: 2:43 / 2:42 / 1:20 / 1:13. For browsers
+that cannot decode the Signal H.264/AAC MP4, the same final 2:43 film is also
+encoded as a 1280×720 VP9/Opus `signal-briefing-720.webm` fallback. It uses
+the final Signal audio and the same picture sequence; it is not another music
+source. The controlled player offers WebM before MP4, retains English VTT,
+and provides direct open/download links. The local browser played WebM, but
+the user's Firefox and Arena's file viewer still need their own confirmation.
+Signal's
 full-file AAC mean/peak now measures −18.0/−2.1 dB versus Watcher's unchanged
 −19.0/−2.6 dB. These are **technical measurements only**, not a human
 listening or caption-sync sign-off.
@@ -110,8 +117,10 @@ npm run test:smoke
 
 Pass the **original stereo** Signal extraction to `MUSIC_SIGNAL_BRIEFING`;
 `mix-audio.py` automatically calls `prepare-signal-bed.py` to center-reduce it
-for Signal only. Do not pass an already processed bed or it will be processed
-twice. The other three film beds are mixed as supplied.
+for Signal only, then refreshes `signal-briefing-720.webm` from the final MP4.
+Do not pass an already processed bed or it will be processed twice. The other
+three film beds are mixed as supplied. `--skip-webm` is only for short-lived
+audio experiments; run the full command before publishing a new Signal mix.
 
 Re-render first with `python3 scripts/render-films.py` **only** if the picture
 changes. It replaces the sandbox MP4s with silent visual masters; follow it

@@ -11,7 +11,7 @@ export function MotionSection({ children, className, delay = 0, ...accessibility
 
 export function MotionPage({ children, className }: Omit<ChildrenProps, 'delay'>) {
  const reduced = useReducedMotion();
- return <motion.main className={className} initial={reduced ? false : { opacity: 0, y: 18, rotateX: 2, transformPerspective: 1600 }} animate={{ opacity: 1, y: 0, rotateX: 0 }} transition={{ duration: .62, ease: [.16, 1, .3, 1] }}>{children}</motion.main>;
+ return <motion.main id="main-content" tabIndex={-1} className={className} initial={reduced ? false : { opacity: 0, y: 18, rotateX: 2, transformPerspective: 1600 }} animate={{ opacity: 1, y: 0, rotateX: 0 }} transition={{ duration: .62, ease: [.16, 1, .3, 1] }}>{children}</motion.main>;
 }
 
 function useTiltMotion() {
