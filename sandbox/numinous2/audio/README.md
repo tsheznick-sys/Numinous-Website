@@ -41,10 +41,26 @@ The Signal picture stream is byte-identical to the previous review mix
 (SHA-256 `a971def99b2c86514f849d467d02b170b78fcd5de8a3cbb24744233fcb0da205`).
 All four MP4s decoded without reported errors, retained 1920×1080 video,
 and measured the same durations: 2:43 / 2:42 / 1:20 / 1:13. Signal's
-full-file AAC mean/peak now measures −17.9/−2.0 dB versus Watcher's unchanged
-−19.0/−2.6 dB; one Signal speech window measured −17.3 dB and a following
-score-only window −29.6 dB. These are **technical measurements only**, not a
-human listening or caption-sync sign-off.
+full-file AAC mean/peak now measures −18.0/−2.1 dB versus Watcher's unchanged
+−19.0/−2.6 dB. These are **technical measurements only**, not a human
+listening or caption-sync sign-off.
+
+### Single-voice Signal bed treatment
+
+The user heard a second, underlying voice and chose to keep the selected
+feminine narrator **on the Signal pre-checkout film only**. The original
+supplied Signal Opus audio remains its sole score source. Before mixing,
+`prepare-signal-bed.py` derives a center-vocal-reduced intermediate: stereo
+left-minus-right cancels center-correlated speech; a quiet mid-channel bass
+below 115 Hz restores weight, while a 2.2 kHz notch and low-pass keep the
+source ambience dark. The intermediate is made in `/tmp` during mixing and
+is **not** committed; the film still uses the same Numinous picture stream.
+Music is ducked under the narrator. A dual-mono test narration lost about
+34 dB in the speech band with this treatment. That test does **not** prove
+that every off-center or reverberant word in the supplied soundtrack is gone.
+A human must listen to the whole film and, if any second voice remains, supply
+an instrumental-only version of this same background or approve a different
+bed before release.
 
 ## Four supplied background sources — review mix
 
@@ -91,6 +107,11 @@ MUSIC_WATCHER_INVITE=/tmp/watcher-invite.ogg \
   python3 scripts/mix-audio.py
 npm run test:smoke
 ```
+
+Pass the **original stereo** Signal extraction to `MUSIC_SIGNAL_BRIEFING`;
+`mix-audio.py` automatically calls `prepare-signal-bed.py` to center-reduce it
+for Signal only. Do not pass an already processed bed or it will be processed
+twice. The other three film beds are mixed as supplied.
 
 Re-render first with `python3 scripts/render-films.py` **only** if the picture
 changes. It replaces the sandbox MP4s with silent visual masters; follow it

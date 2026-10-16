@@ -114,6 +114,25 @@
   Creator/title credits and a human desktop/phone accessibility, caption and
   soundtrack review are still outstanding.
 
+## Signal single voice and precision pass — sandbox only
+
+- Per the user's choice, **only the Signal pre-checkout film** gets further
+  cleanup: the selected feminine narration remains; the source Signal score
+  is center-vocal-reduced before mixing to suppress its underlying voice. No
+  new music or pictures were added. The full film remains 2:43 and the other
+  three films are untouched. Center cancellation cannot guarantee removal of
+  off-center or reverberant words; a complete human listening review is still
+  mandatory. Remix and source limits: [`audio/README.md`](audio/README.md).
+- Added `src/precision.css` after the button system. It aligns desktop
+  pre-checkout offer/film pairs on a shared grid, makes the three review steps
+  equal columns, centers collection and checkout headings, balances the mobile
+  hero, and removes the cramped mobile header support label (support remains
+  in the mobile menu). The root storefront has not been changed.
+- Headless Chromium checks at 320, 390, 768 and 1280 px found no horizontal
+  overflow on the home, collection and Signal/Watcher pre-checkout routes;
+  the 320 px mobile menu opens. Desktop and phone screenshots were inspected
+  for alignment. This does not replace real-device or human audio review.
+
 ## Do not deploy yet — release gates
 
 1. **Hosting integration:** this archive is a standalone static SPA. The root

@@ -2,11 +2,12 @@
 
 Run render-films.py first if the picture/storyboards change. Re-running this
 script is safe: only the current MP4's video stream is copied, never its prior
-audio. MUSIC_PRE and MUSIC_POST are paths to the licensed, trimmed soundtrack
-files. Set MUSIC_SIGNAL_BRIEFING, MUSIC_WATCHER_BRIEFING,
-MUSIC_SIGNAL_INVITE and MUSIC_WATCHER_INVITE to use the four supplied beds;
-MUSIC_PRE/MUSIC_POST remain as shared-track fallbacks. Never use the original
-ambient fallback for the published mix. Requires ffmpeg or imageio-ffmpeg.
+audio. Set MUSIC_SIGNAL_BRIEFING to the original stereo Signal audio. Its centered
+voice is reduced automatically before the selected narrator is mixed in.
+Set MUSIC_WATCHER_BRIEFING, MUSIC_SIGNAL_INVITE and MUSIC_WATCHER_INVITE for
+the other three distinct beds. MUSIC_PRE/MUSIC_POST remain comparison fallbacks
+for those three, never for the final Signal mix. Requires ffmpeg or
+imageio-ffmpeg. Off-center/reverberant voice may remain: human review required.
 """
 from __future__ import annotations
 
@@ -15,6 +16,8 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import sys
+import tempfile
 
 HERE = Path(__file__).resolve().parents[1]
 REPO = HERE.parents[1]
@@ -196,11 +199,21 @@ def main() -> None:
   # second after the matching picture, with score-only pauses between blocks.
   # Sidechain compression raises the score between phrases and ducks it under
   # speech; gentle EQ in the speech range improves intelligibility.
-  score_mean = mean_volume_of(exe, music)
-  # Signal's score has more energy around the speech range. Give its voice
-  # greater separation than Watcher while keeping room below the peak ceiling.
   signal = name == "signal-briefing"
-  music_gain = max(-18.0, min(0.0, (-27.0 if signal else -22.0) - score_mean))
+  scratch = tempfile.TemporaryDirectory(prefix="numinous-signal-bed-") if signal else None
+  mix_music = music
+  if signal:
+   if music_env not in os.environ:
+    raise SystemExit("Supply MUSIC_SIGNAL_BRIEFING with the original Signal soundtrack; do not use the old ambient fallback")
+   # Remove the center-correlated underlying voice from this one supplied bed
+   # before ducking it under the selected narrator. Keep the intermediate out
+   # of Git, and never process an already center-reduced bed a second time.
+   mix_music = Path(scratch.name) / "signal-center-reduced.flac"
+   subprocess.run([sys.executable, str(HERE / "scripts/prepare-signal-bed.py"),
+                   str(music), str(mix_music)], check=True)
+  score_mean = mean_volume_of(exe, mix_music)
+  # The prepared Signal bed is deliberately quieter in speech frequencies.
+  music_gain = max(-18.0, min(0.0, (-31.0 if signal else -22.0) - score_mean))
   filters = [f"[1:a]atrim=duration={total},asetpts=PTS-STARTPTS,"
              f"afade=t=in:st=0:d=2,afade=t=out:st={total-3}:d=3,"
              f"equalizer=f=2400:t=q:w=1:g={-5 if signal else -3},volume={music_gain:.2f}dB[bed]"]
@@ -222,7 +235,7 @@ def main() -> None:
   limiter = "alimiter=limit=0.78:level=0" if signal else "alimiter=limit=0.95"
   filters.append(f"[ducked][dialog]amix=inputs=2:duration=longest:normalize=0,volume={master_gain}dB,{limiter}[a]")
   temp=target.with_suffix(".mix.mp4")
-  args=[exe,"-hide_banner","-loglevel","error","-y","-i",str(target),"-i",str(music)]
+  args=[exe,"-hide_banner","-loglevel","error","-y","-i",str(target),"-i",str(mix_music)]
   for voice in voices:
    args.extend(["-i",str(voice)])
   args.extend(["-filter_complex",";".join(filters),"-map","0:v:0","-map","[a]",
@@ -233,6 +246,8 @@ def main() -> None:
    temp.replace(target)
   finally:
    temp.unlink(missing_ok=True)
+   if scratch:
+    scratch.cleanup()
   print(f"Mixed {name}: {total}s, natural-speed narration, score gain {music_gain:.1f}dB, AAC and captions",flush=True)
 
 

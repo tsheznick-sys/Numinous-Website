@@ -40,7 +40,13 @@ check((collection.match(/class="collection-card__hit"/g) || []).length === 4, 'f
 check(watcher.includes('class="checkout-offer__hit"') && watcher.includes('aria-label="Read details about The Watcher"'), 'pre-checkout product card links to details');
 check(home.includes('muted=""') && home.includes('controls=""'), 'hero is silent but selected briefing has controls');
 check(home.includes('Review The Signal') && home.includes('Explore The Watcher'), 'home CTAs must describe review rather than granted access');
-check(readFileSync('src/main.tsx', 'utf8').includes("import './button-system.css'"), 'site-wide action styles loaded');
+const cssEntry = readFileSync('src/main.tsx', 'utf8');
+check(cssEntry.includes("import './button-system.css'") && cssEntry.includes("import './precision.css'"), 'site-wide action and alignment styles loaded');
+const precision = readFileSync('src/precision.css', 'utf8');
+check(precision.includes('.checkout-steps') && precision.includes('.site-nav--minimal .site-nav__support') && precision.includes('minmax(0, 1fr)'), 'checkout grid and mobile header need precise responsive rules');
+const bedPrep = readFileSync('scripts/prepare-signal-bed.py', 'utf8');
+const audioMixer = readFileSync('scripts/mix-audio.py', 'utf8');
+check(bedPrep.includes('pan=mono|c0=0.5*c0-0.5*c1') && audioMixer.includes('scripts/prepare-signal-bed.py') && audioMixer.includes('if signal:'), 'Signal must reduce center-correlated underlying voice before mixing');
 const buttonSystem = readFileSync('src/button-system.css', 'utf8');
 check(buttonSystem.includes(':focus-visible') && buttonSystem.includes('prefers-reduced-motion') && buttonSystem.includes('touch-action: manipulation'), 'actions need keyboard, reduced-motion and touch affordances');
 check(home.includes('Soundtrack credit pending review') && watcher.includes('Soundtrack credit pending review'), 'pre-entry music credit must await attribution');
