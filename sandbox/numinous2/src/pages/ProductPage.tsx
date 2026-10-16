@@ -5,9 +5,7 @@ import { productByGate, productBySlug } from '../data';
 export function ProductPage() {
  const { gate, slug } = useParams();
  const product = gate ? productByGate(gate) : productBySlug(slug);
- const heroAction = product.id === 'signal'
-  ? <a className="button button--light" href={product.checkout}>Receive {product.title} <b>↗</b></a>
-  : <Link className="button button--light" to={`/gates/${product.gate}/enter`}>Review {product.title} <b>↗</b></Link>;
+ const heroAction = <Link className="button button--light" to={`/gates/${product.gate}/enter`}>Review {product.title} <b aria-hidden="true">↗</b></Link>;
 
  return <MotionPage className={`product-page product-page--${product.id}`}>
   <MotionSection className="product-hero"><div className="product-hero__copy" data-gate={product.gate.toUpperCase()}><p className="eyebrow">{product.number} · {product.label}</p><h1>{product.title}</h1><p className="product-hero__lede">{product.description}</p><p className="product-hero__story">{product.longDescription}</p><div className="product-hero__actions">{heroAction}<span>{product.price} · {product.fact}</span></div></div><TiltFrame className="product-hero__art"><img src={product.image} alt={`${product.title} artwork`} /></TiltFrame></MotionSection>

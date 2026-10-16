@@ -10,12 +10,31 @@ text, scene progress, and corrected pre-entry/return language. The output is
 WebVTT captions cover the spoken dialogue; the on-screen text is not a
 substitute for subtitles.
 
-The ten numbered MP3 clips here are the user's selected feminine narrator.
-Their factual scripts are in [`full-length-scripts.md`](full-length-scripts.md)
-and track the films' original scene groups. `mix-audio.py` now places each recording at its **natural speed**. It no
-longer stretches or compresses the voice to fill a chapter. Three invitation
-clips were re-recorded shorter to fit naturally. Score-only pauses separate
-spoken blocks, and the voice still reaches each final scene.
+The MP3 clips here use the user's selected feminine narrator. The **active**
+Signal briefing takes `signal-briefing-scene-01.mp3` through `-10.mp3`; its old
+`signal-briefing-1.mp3` through `-3.mp3` are retained only for comparison. The
+other films still use their numbered clips. Their factual scripts are in
+[`full-length-scripts.md`](full-length-scripts.md) and track each film's scene
+groups. `mix-audio.py` places each recording at its **natural speed**; it does
+not stretch or compress the voice to fill a chapter. Three invitation clips
+were re-recorded shorter to fit naturally. Score-only pauses separate spoken
+blocks, and the voice still reaches each final scene.
+
+For the Signal pre-checkout revision, the ten cue groups start at seconds
+`0, 11, 24, 34, 48, 63, 90, 106, 122, 147` and finish at 163. Two groups
+span related adjacent images. Narration begins one second into each group;
+short English captions begin at the same cue starts. The supplied Signal bed
+is retained but lowered and notched around speech; sidechain ducking and a
+stronger narration gain separate the voice. Master gain was reduced to leave
+peak headroom. The Watcher briefing remains the unchanged pacing/presentation
+reference, not a claim that an automated mix matches its perceived loudness.
+The Signal picture stream is byte-identical to the previous review mix
+(SHA-256 `a971def99b2c86514f849d467d02b170b78fcd5de8a3cbb24744233fcb0da205`).
+All four current MP4s decoded without reported errors, retained 1920×1080
+video, and measured the same durations: 2:43 / 2:42 / 1:20 / 1:13. Signal's
+full-file AAC mean/peak measured −19.6/−1.7 dB versus Watcher's unchanged
+−19.0/−2.6 dB. These are **technical measurements only**, not a human
+listening or caption-sync sign-off.
 
 ## Four supplied background sources — review mix
 

@@ -1,17 +1,38 @@
 # Scene-matched narration — sandbox draft
 
-These scripts are designed for the existing four film lengths and the selected feminine voice. Each numbered block starts at an original storyboard scene boundary. Whop is the authority for checkout and access; a browser return is not proof of payment. Music replacement is pending the two licensed, shorter files from the user.
+These scripts are designed for the existing four film lengths and the selected feminine voice. Each numbered block starts at an original storyboard scene boundary. Whop is the authority for checkout and access; a browser return is not proof of payment. Each film uses audio only from its own user-supplied background video; creator credits and human listening review are still pending.
 
-## Signal briefing (2:43, pre-checkout)
+## Signal briefing (2:43, pre-checkout · revised scene cues)
 
-### 00:00–00:48 — the threshold, Whop, free gate, Dispatches
-Before you open The Signal, here is what the free first gate is for. Numinous is a place to meet each new vision without rushing to the next image. This film is an orientation, not a receipt and not proof that any account has access. When you choose to enter, the gate opens through Whop. There is no card requirement and no recurring charge for The Signal. The room is meant to stay free. Start with Dispatches: a place to find announcements and follow what is new in the realms. You do not have to buy a second product to remain here. Take the time to look around before making that choice.
+### 00:00–00:11 — the free threshold
+The Signal is your free first gate into Numinous. This is a preview of the work, not a receipt or proof of access.
 
-### 00:48–01:46 — First Vision, chambers, Realm, Process, Records
-The First Vision is the entry reading for this world. It introduces the chambers and gives you a way to approach the record before you follow a larger cycle. The rooms have different purposes, and this tour is only a preview of their names. The Signal is the open beginning. The Realm is where a new being comes into view. The Process turns attention to the craft behind the vision: what was made and how it was shaped. The Records hold the story underneath the image, so the work can be revisited rather than scrolled past. These rooms are shown here as a map, not as a promise that your browser has already unlocked them. Check your Whop library for the access available to your account.
+### 00:11–00:24 — entry through Whop
+To enter, choose The Signal through Whop. Afterwards, sign in to the same account and check its library. This storefront cannot grant access by itself.
 
-### 01:46–02:43 — Session, Sanctuary, calendar and next step
-The Session marks a moment to return to the work and ask questions. The Field Journal leaves room for your own notes as the story changes. The Sanctuary is the shared space around the gates: a place to stay connected to other travellers. The calendar shows the rhythm of future realms and announcements. You can follow those signals at your own pace. No additional gate is required to keep The Signal. The Watcher is a separate membership if you later want a structured twenty-eight-day cycle. The Vault and the Agent are also separate choices, not conditions for entry here. If you want the free gate, use the button below this film to review the Whop entry. After you join, verify the room in the Whop account you used; this page cannot grant access by itself.
+### 00:24–00:34 — no card, no renewal
+The Signal stays free. No card is required, and no recurring charge begins when you enter this gate.
+
+### 00:34–00:48 — Dispatches
+Dispatches is where the record begins. Follow announcements and upcoming realms there, then return whenever a new vision calls your attention back to the work.
+
+### 00:48–01:03 — the First Vision
+The First Vision is an entry reading for this world. It introduces the chambers and gives you a place to begin before you explore the rooms available in your verified Whop library.
+
+### 01:03–01:30 — the rooms and the Realm
+The rooms are a map, not a promise that this browser has unlocked them. The Signal begins in the open; other spaces follow different parts of the work. In the Realm, a new being comes into view. Stay with its atmosphere and story, and check your Whop account for the rooms available to you.
+
+### 01:30–01:46 — the Process and Records
+The Process turns toward the craft behind the vision. The Records keep its names, context and story. Together they make an image something you can return to rather than scroll past.
+
+### 01:46–02:02 — the Session and Field Journal
+The Session is a moment for questions and the next turn of the work. The Field Journal is space for your own notes as you follow what each vision becomes.
+
+### 02:02–02:27 — the Sanctuary and calendar
+The Sanctuary is a shared space around the gates. Travellers can return to the work there and make room for one another's questions and discoveries. The calendar marks the rhythm of future realms and announcements. Follow it at your own pace. No other purchase is needed to keep The Signal.
+
+### 02:27–02:43 — verify after entry
+When you are ready, choose the free Signal gate below. After Whop confirms your entry, read the First Vision and check Dispatches. A return page is never proof of access.
 
 ## Watcher briefing (2:42, pre-checkout)
 

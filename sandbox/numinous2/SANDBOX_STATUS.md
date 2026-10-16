@@ -84,6 +84,28 @@
   speech/promotional audio and caption/audio timing. File hashes and remix
   instructions: [`audio/README.md`](audio/README.md).
 
+## Signal narration and sandbox actions — review update
+
+- The Signal pre-checkout video now uses ten scene-aligned narration clips,
+  its original distinct supplied audio bed, and matching upper-frame captions.
+  Its 2:43 Numinous picture stream is unchanged. The Watcher briefing remains
+  the 2:42 reference; both return invitations remain 1:20 and 1:13.
+  [`audio/README.md`](audio/README.md) records the measurements and remix path.
+- Corrected the Signal `/gates/signal/enter` route, which previously redirected
+  to the detail page instead of showing its pre-checkout film. Product-detail,
+  homepage and legacy Signal checkout CTAs now reach the Signal review page;
+  the final free Whop link is still the same supplied checkout ID.
+- A sandbox-only action layer unifies primary/secondary links, plan choices,
+  mobile menu, touch targets, hover, keyboard focus and reduced-motion states.
+  CTA labels describe their actual destinations rather than presuming access.
+  No root-storefront CSS or routing was changed. `npm run test:smoke` checks
+  the pre-checkout video route, Signal scene cue starts, card destinations,
+  trial terms and return states. The existing port 4173 preview serves the
+  updated build without a production deployment.
+- Technical decode and signal-level checks are not a listening assessment.
+  Creator/title credits and a human desktop/phone accessibility, caption and
+  soundtrack review are still outstanding.
+
 ## Do not deploy yet — release gates
 
 1. **Hosting integration:** this archive is a standalone static SPA. The root

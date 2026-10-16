@@ -10,6 +10,7 @@ ambient fallback for the published mix. Requires ffmpeg or imageio-ffmpeg.
 """
 from __future__ import annotations
 
+import argparse
 import os
 from pathlib import Path
 import re
@@ -19,7 +20,7 @@ HERE = Path(__file__).resolve().parents[1]
 REPO = HERE.parents[1]
 FALLBACK = REPO / "reference/web-version/public/assets/briefing/ambient.m4a"
 SEGMENTS = {
- "signal-briefing": [0, 48, 106, 163],
+ "signal-briefing": [0, 11, 24, 34, 48, 63, 90, 106, 122, 147, 163],
  "watcher-briefing": [0, 51, 109, 162],
  "signal-invite": [0, 46, 80],
  "watcher-invite": [0, 38, 73],
@@ -104,9 +105,13 @@ def mean_volume_of(exe: str, path: Path) -> float:
 
 
 def main() -> None:
+ parser = argparse.ArgumentParser(description="Mix scene-aligned narration and music into the sandbox films")
+ parser.add_argument("--film", choices=SEGMENTS, help="Re-mix one film without touching the other three")
+ cli = parser.parse_args()
  exe = ffmpeg_executable()
  scripts = transcripts()
- for name, timeline in SEGMENTS.items():
+ for name in ([cli.film] if cli.film else SEGMENTS):
+  timeline = SEGMENTS[name]
   kind = "PRE" if name.endswith("briefing") else "POST"
   music_env = f"MUSIC_{name.upper().replace('-', '_')}"
   music = Path(os.environ.get(music_env, os.environ.get(f"MUSIC_{kind}", str(FALLBACK))))
@@ -118,7 +123,7 @@ def main() -> None:
   if duration_of(exe, music) < total:
    raise ValueError(f"{kind} music is shorter than {total}s: {music}")
   target = HERE / "public/media" / f"{name}-1440.mp4"
-  voices = [HERE / "audio" / f"{name}-{i}.mp3" for i in range(1,len(timeline))]
+  voices = [HERE / "audio" / (f"{name}-scene-{i:02}.mp3" if name == "signal-briefing" else f"{name}-{i}.mp3") for i in range(1,len(timeline))]
   if not target.is_file() or any(not voice.is_file() for voice in voices):
    raise SystemExit(f"Missing polished film or narration for {name}")
   voice_seconds = [duration_of(exe, voice) for voice in voices]
@@ -132,20 +137,25 @@ def main() -> None:
   # Sidechain compression raises the score between phrases and ducks it under
   # speech; gentle EQ in the speech range improves intelligibility.
   score_mean = mean_volume_of(exe, music)
-  music_gain = max(-18.0, min(0.0, -22.0 - score_mean))
+  # Signal's score has more energy around the speech range. Give its voice
+  # a little more separation than Watcher while keeping the same loudness cap.
+  signal = name == "signal-briefing"
+  music_gain = max(-18.0, min(0.0, (-25.0 if signal else -22.0) - score_mean))
   filters = [f"[1:a]atrim=duration={total},asetpts=PTS-STARTPTS,"
              f"afade=t=in:st=0:d=2,afade=t=out:st={total-3}:d=3,"
-             f"equalizer=f=2400:t=q:w=1:g=-3,volume={music_gain:.2f}dB[bed]"]
+             f"equalizer=f=2400:t=q:w=1:g={-4 if signal else -3},volume={music_gain:.2f}dB[bed]"]
   for i, voice in enumerate(voices):
    start = timeline[i]
    filters.append(f"[{i+2}:a]atrim=duration={voice_seconds[i]:.3f},"
-                  f"afade=t=in:st=0:d=0.12,adelay={(start+1)*1000}:all=1,"
+                  f"afade=t=in:st=0:d=0.12,volume={1.25 if signal else 1},adelay={(start+1)*1000}:all=1,"
                   f"apad,atrim=duration={total}[voice{i}]")
   narrators="".join(f"[voice{i}]" for i in range(len(voices)))
   filters.append(f"{narrators}amix=inputs={len(voices)}:duration=longest:normalize=0[narr]")
   filters.append("[narr]asplit=2[guide][dialog]")
-  filters.append("[bed][guide]sidechaincompress=threshold=0.015:ratio=8:attack=120:release=850[ducked]")
-  filters.append("[ducked][dialog]amix=inputs=2:duration=longest:normalize=0,volume=3dB,alimiter=limit=0.95[a]")
+  filters.append(f"[bed][guide]sidechaincompress=threshold={0.012 if signal else 0.015}:ratio={10 if signal else 8}:attack=120:release=850[ducked]")
+  # Signal needs a little more peak headroom without changing voice-to-score balance.
+  master_gain = 1.5 if signal else 3
+  filters.append(f"[ducked][dialog]amix=inputs=2:duration=longest:normalize=0,volume={master_gain}dB,alimiter=limit=0.95[a]")
   temp=target.with_suffix(".mix.mp4")
   args=[exe,"-hide_banner","-loglevel","error","-y","-i",str(target),"-i",str(music)]
   for voice in voices:

@@ -50,9 +50,9 @@ export function legacyOffer(value: string | null) {
 function LegacyCheckoutRedirect() {
  const [params] = useSearchParams();
  const product = legacyOffer(params.get('offer') || params.get('from') || params.get('plan'));
- return <Navigate to={!product ? '/gates' : product.id === 'signal' ? '/gates/signal' : `/gates/${product.gate}/enter`} replace />;
+ return <Navigate to={!product ? '/gates' : `/gates/${product.gate}/enter`} replace />;
 }
-function LegacyPlanRedirect() { const { planId } = useParams(); const product = legacyOffer(planId || ''); return <Navigate to={!product ? '/gates' : product.id === 'signal' ? '/gates/signal' : `/gates/${product.gate}/enter`} replace />; }
+function LegacyPlanRedirect() { const { planId } = useParams(); const product = legacyOffer(planId || ''); return <Navigate to={!product ? '/gates' : `/gates/${product.gate}/enter`} replace />; }
 function ValidProductRoute({ checkout = false }: { checkout?: boolean }) { const { gate } = useParams(); if (!products.some((p) => p.gate === gate)) return <Navigate to="/gates" replace />; return checkout ? <CheckoutPage /> : <ProductPage />; }
 function ValidLegalRoute() { const { record } = useParams(); return record && legalRecords[record] ? <LegalPage /> : <Navigate to="/gates" replace />; }
 function LegacyConfirmationRedirect() {
@@ -71,7 +71,6 @@ export default function App() {
   <Route path="/gates/herald" element={<Navigate to="/gates/numinary-agent" replace />} />
   <Route path="/gates/herald/enter" element={<Navigate to="/gates/numinary-agent/enter" replace />} />
   <Route path="/gates/confirmed" element={<ConfirmationPage />} />
-  <Route path="/gates/signal/enter" element={<Navigate to="/gates/signal" replace />} />
   <Route path="/gates/:gate/enter" element={<ValidProductRoute checkout />} />
   <Route path="/gates/:gate" element={<ValidProductRoute />} />
   <Route path="/collections/all" element={<Navigate to="/gates" replace />} />
