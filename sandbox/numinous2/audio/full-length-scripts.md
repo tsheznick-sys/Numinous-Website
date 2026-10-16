@@ -11,28 +11,28 @@ The Signal is your free first gate into Numinous. This is a preview of the work,
 To enter, choose The Signal through Whop. Afterwards, sign in to the same account and check its library. This storefront cannot grant access by itself.
 
 ### 00:24–00:34 — no card, no renewal
-The Signal stays free. No card is required, and no recurring charge begins when you enter this gate.
+The Signal stays free. No card is required, and no recurring charge begins when you enter this gate. Take your time.
 
 ### 00:34–00:48 — Dispatches
-Dispatches is where the record begins. Follow announcements and upcoming realms there, then return whenever a new vision calls your attention back to the work.
+Dispatches is where the record begins. Follow announcements and upcoming realms there, then return whenever a new vision calls your attention back to the work. You decide when to return.
 
 ### 00:48–01:03 — the First Vision
 The First Vision is an entry reading for this world. It introduces the chambers and gives you a place to begin before you explore the rooms available in your verified Whop library.
 
 ### 01:03–01:30 — the rooms and the Realm
-The rooms are a map, not a promise that this browser has unlocked them. The Signal begins in the open; other spaces follow different parts of the work. In the Realm, a new being comes into view. Stay with its atmosphere and story, and check your Whop account for the rooms available to you.
+The rooms are a map, not a promise that this browser has unlocked them. The Signal begins in the open; other spaces follow different parts of the work. In the Realm, a new being comes into view. Let the image breathe before you move on. Stay with its atmosphere and story, and check your Whop account for the rooms available to you.
 
 ### 01:30–01:46 — the Process and Records
 The Process turns toward the craft behind the vision. The Records keep its names, context and story. Together they make an image something you can return to rather than scroll past.
 
 ### 01:46–02:02 — the Session and Field Journal
-The Session is a moment for questions and the next turn of the work. The Field Journal is space for your own notes as you follow what each vision becomes.
+The Session is a moment for questions and the next turn of the work. The Field Journal is space for your own notes as you follow what each vision becomes. There is no need to rush through either room.
 
 ### 02:02–02:27 — the Sanctuary and calendar
-The Sanctuary is a shared space around the gates. Travellers can return to the work there and make room for one another's questions and discoveries. The calendar marks the rhythm of future realms and announcements. Follow it at your own pace. No other purchase is needed to keep The Signal.
+The Sanctuary is a shared space around the gates. Travellers can return to the work there and make room for one another's questions and discoveries. The calendar marks the rhythm of future realms and announcements. Look ahead, then return when the next chapter calls. Follow it at your own pace. No other purchase is needed to keep The Signal.
 
 ### 02:27–02:43 — verify after entry
-When you are ready, choose the free Signal gate below. After Whop confirms your entry, read the First Vision and check Dispatches. A return page is never proof of access.
+When you are ready, choose the free Signal gate below. Your choice stays free. After Whop confirms your entry, read the First Vision and check Dispatches. A return page is never proof of access.
 
 ## Watcher briefing (2:42, pre-checkout)
 

@@ -23,18 +23,28 @@ blocks, and the voice still reaches each final scene.
 For the Signal pre-checkout revision, the ten cue groups start at seconds
 `0, 11, 24, 34, 48, 63, 90, 106, 122, 147` and finish at 163. Two groups
 span related adjacent images. Narration begins one second into each group;
-short English captions begin at the same cue starts. The supplied Signal bed
-is retained but lowered and notched around speech; sidechain ducking and a
-stronger narration gain separate the voice. Master gain was reduced to leave
-peak headroom. The Watcher briefing remains the unchanged pacing/presentation
-reference, not a claim that an automated mix matches its perceived loudness.
+short English captions begin at each recorded speech onset. After feedback
+that voice, scene pacing **and** captions still needed work, the Signal bed
+was lowered further and notched around speech, and the selected voice received
+speech-only compression plus stronger score ducking. Six of the ten Signal
+clips were re-recorded in the **same selected voice** with slightly fuller,
+scene-specific copy, bringing spoken time to about 134.5 seconds versus about
+137.7 seconds in the unchanged Watcher briefing. Each new clip still fits its
+own scene group at natural speed. The new captions use recorded voice pauses
+for sentence boundaries and leave a brief empty interval between sentences.
+Phrase transitions within a sentence are still estimated by word length,
+**not** forced-aligned or human-approved. The film's last cue ends during its
+final scene. The Watcher briefing remains the unchanged
+pacing/presentation reference; the music and narrator have not been judged
+by a human listener in this environment.
 The Signal picture stream is byte-identical to the previous review mix
 (SHA-256 `a971def99b2c86514f849d467d02b170b78fcd5de8a3cbb24744233fcb0da205`).
-All four current MP4s decoded without reported errors, retained 1920×1080
-video, and measured the same durations: 2:43 / 2:42 / 1:20 / 1:13. Signal's
-full-file AAC mean/peak measured −19.6/−1.7 dB versus Watcher's unchanged
-−19.0/−2.6 dB. These are **technical measurements only**, not a human
-listening or caption-sync sign-off.
+All four MP4s decoded without reported errors, retained 1920×1080 video,
+and measured the same durations: 2:43 / 2:42 / 1:20 / 1:13. Signal's
+full-file AAC mean/peak now measures −17.9/−2.0 dB versus Watcher's unchanged
+−19.0/−2.6 dB; one Signal speech window measured −17.3 dB and a following
+score-only window −29.6 dB. These are **technical measurements only**, not a
+human listening or caption-sync sign-off.
 
 ## Four supplied background sources — review mix
 

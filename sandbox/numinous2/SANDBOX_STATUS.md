@@ -102,6 +102,14 @@
   the pre-checkout video route, Signal scene cue starts, card destinations,
   trial terms and return states. The existing port 4173 preview serves the
   updated build without a production deployment.
+- On further feedback that Signal's voice, pacing and subtitles all need work,
+  six clips were re-recorded in the same selected voice for fuller but still
+  scene-matched pacing. The voice was compressed for clearer phrases, the same
+  supplied score was lowered/ducked further, and captions were anchored to
+  detected speech/sentence pauses rather than evenly divided across each MP3.
+  Short score-only gaps between scene groups remain deliberate. The current
+  Signal mix measures −17.9 dB mean and −2.0 dB peak; exact listening quality
+  and word-level sync cannot be validated from waveform measurements alone.
 - Technical decode and signal-level checks are not a listening assessment.
   Creator/title credits and a human desktop/phone accessibility, caption and
   soundtrack review are still outstanding.

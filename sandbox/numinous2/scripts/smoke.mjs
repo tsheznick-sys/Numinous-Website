@@ -65,17 +65,26 @@ for (const [film, end] of [['signal-briefing', 163], ['watcher-briefing', 162], 
  check(existsSync(`audio/${film === 'signal-briefing' ? film + '-scene-01' : film + '-1'}.mp3`), `${film} needs its first narrated block`);
 }
 const signalCues = readFileSync('dist/media/signal-briefing-1440.vtt', 'utf8');
-const signalStarts = ['00:00:01.000', '00:00:12.000', '00:00:25.000', '00:00:35.000', '00:00:49.000', '00:01:04.000', '00:01:31.000', '00:01:47.000', '00:02:03.000', '00:02:28.000'];
-for (const [i, start] of signalStarts.entries()) {
- check(signalCues.includes(`${start} -->`), `Signal narration needs scene cue at ${start}`);
- check(existsSync(`audio/signal-briefing-scene-${String(i + 1).padStart(2, '0')}.mp3`), `Signal scene ${i+1} needs its active narration`);
-}
+const signalBoundaries = [0, 11, 24, 34, 48, 63, 90, 106, 122, 147, 163];
 const signalRanges = [...signalCues.matchAll(/([\d:.]+) --> ([\d:.]+) line:18%/g)];
 const seconds = (time) => { const [h,m,s] = time.split(':'); return Number(h)*3600 + Number(m)*60 + Number(s); };
-for (const [i, cue] of signalRanges.entries()) {
- check(seconds(cue[1]) < seconds(cue[2]) && seconds(cue[2]) <= 163, `Signal caption ${i+1} fits the film`);
- if (i) check(seconds(signalRanges[i-1][2]) <= seconds(cue[1]), `Signal captions ${i} and ${i+1} cannot overlap`);
+for (let i = 0; i < 10; i++) {
+ const cueStart = signalBoundaries[i] + 1;
+ check(signalRanges.some((cue) => seconds(cue[1]) >= cueStart+.12 && seconds(cue[1]) < cueStart+.5), `Signal scene ${i+1} needs an audio-onset cue`);
+ check(existsSync(`audio/signal-briefing-scene-${String(i+1).padStart(2, '0')}.mp3`), `Signal scene ${i+1} needs its active narration`);
 }
+for (const [i, cue] of signalRanges.entries()) {
+ const start = seconds(cue[1]), end = seconds(cue[2]);
+ check(start < end && end <= 163, `Signal caption ${i+1} fits the film`);
+ check(signalBoundaries.some((boundary, scene) => scene < 10 && start >= boundary+1 && end < signalBoundaries[scene+1]), `Signal caption ${i+1} stays in its scene group`);
+ if (i) check(seconds(signalRanges[i-1][2]) <= start, `Signal captions ${i} and ${i+1} cannot overlap`);
+}
+check(signalRanges.some((cue, i) => i && seconds(cue[1])-seconds(signalRanges[i-1][2]) > .25 && seconds(cue[1]) < 11), 'Signal subtitles leave natural sentence pauses instead of racing the voice');
+const scriptSection = readFileSync('audio/full-length-scripts.md', 'utf8').split('## Signal briefing')[1].split('## Watcher briefing')[0];
+const spokenScript = scriptSection.split(/^### .*$/m).slice(1).map((block) => block.trim()).join(' ');
+const captionWords = signalCues.split('\n').filter((line) => line && line !== 'WEBVTT' && !line.includes('-->')).join(' ');
+const normalizeSpeech = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+check(normalizeSpeech(captionWords) === normalizeSpeech(spokenScript), 'Signal captions must contain every word of the active script in order');
 check(render('/gates/signal').includes('/media/signal-briefing-1440.vtt'), 'Signal briefing captions linked');
 check(render('/gates/confirmed?offer=watcher&status=success').includes('/media/watcher-invite-1440.vtt'), 'Watcher invitation captions linked');
 check(existsSync('dist/assets'), 'built client assets');
