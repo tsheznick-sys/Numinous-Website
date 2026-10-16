@@ -80,3 +80,10 @@ Signal/Watcher briefing and invitation videos now contain ambient music and
 spoken factual narration, with matching English captions. The homepage
 background stays silent; sound begins only when a visitor plays a controlled
 video. See [`audio/README.md`](audio/README.md) to reproduce the mix.
+
+### Current film review state
+
+The four original films have been re-rendered with accurate on-screen wording
+and full-length narration; see [`audio/README.md`](audio/README.md). The
+requested licensed music replacement is **pending shorter audio files**. The
+preview's old ambient bed is provisional, not release-approved.

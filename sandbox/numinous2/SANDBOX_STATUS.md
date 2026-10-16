@@ -49,6 +49,22 @@
   pre-checkout summary card, AAC audio in every built MP4, caption files, and
   that the homepage background remains muted.
 
+## Full-length film pass — soundtrack approval pending
+
+- All four sandbox films have been re-rendered from their original local
+  scene plates at the **same lengths and scene order**, with gentle motion,
+  improved readable typography/contrast and a progress marker. Misleading
+  pre-checkout lines such as “Checkout has finished” have been replaced with
+  offer-review language; post-return films explicitly defer access to Whop.
+- The selected feminine voice now narrates across every film. The ten voiced
+  blocks span all four original timelines; captions reach three seconds from
+  each end. This is not a claim that Whop payment or entitlement was tested.
+- The audio bed is **still the old ambient file as a placeholder**, not the
+  two replacement recordings the user requested. Their full Drive MP3s are
+  over the connector's 100 MB cap; the user is preparing shorter licensed
+  excerpts. Do not publish these provisional mixes. Instructions and script
+  transcripts: [`audio/README.md`](audio/README.md).
+
 ## Do not deploy yet — release gates
 
 1. **Hosting integration:** this archive is a standalone static SPA. The root

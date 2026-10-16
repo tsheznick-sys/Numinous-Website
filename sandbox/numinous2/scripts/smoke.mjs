@@ -43,10 +43,12 @@ const source = [readFileSync('src/data.ts', 'utf8'), ...readdirSync('src/pages')
 for (const asset of new Set([...source.matchAll(/\/media\/([\w.-]+\.(?:jpg|webp|png|mp4))/g)].map((m) => m[1]))) {
  check(existsSync(join('dist/media', asset)), `missing built media ${asset}`);
 }
-for (const film of ['signal-briefing', 'watcher-briefing', 'signal-invite', 'watcher-invite']) {
+for (const [film, end] of [['signal-briefing', '02:40.000'], ['watcher-briefing', '02:39.000'], ['signal-invite', '01:17.000'], ['watcher-invite', '01:10.000']]) {
  const video = readFileSync(`dist/media/${film}-1440.mp4`);
  check(video.includes(Buffer.from('soun')) && video.includes(Buffer.from('mp4a')), `${film} needs AAC audio`);
- check(readFileSync(`dist/media/${film}-1440.vtt`, 'utf8').startsWith('WEBVTT'), `${film} needs English captions`);
+ const captions = readFileSync(`dist/media/${film}-1440.vtt`, 'utf8');
+ check(captions.startsWith('WEBVTT') && captions.includes(`00:${end}`), `${film} needs captions through final scene`);
+ check(existsSync(`audio/${film}-1.mp3`), `${film} needs its first narrated block`);
 }
 check(render('/gates/signal').includes('/media/signal-briefing-1440.vtt'), 'Signal briefing captions linked');
 check(render('/gates/confirmed?offer=watcher&status=success').includes('/media/watcher-invite-1440.vtt'), 'Watcher invitation captions linked');
