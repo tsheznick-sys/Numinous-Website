@@ -147,7 +147,12 @@
   open/download links and a visible failure message remain available if both
   fail. The WebM uses the final Signal narration/score and the same Numinous
   scene sequence (at 720p); it adds no new background audio. Future Signal
-  remixes refresh it via `scripts/encode-signal-webm.py`.
+  remixes refresh it via `scripts/encode-signal-webm.py`. The 1:20 Signal
+  return invitation shown on the post-checkout confirmation page gets the same
+  treatment: `signal-invite-720.webm` (VP9/Opus, 720p, encoded from the final
+  invitation MP4) is offered first, with the MP4 as the browser fallback. The
+  script refreshes both Signal fallbacks, and the smoke test verifies the
+  invitation WebM's codecs and its presence on a completed Signal return.
 - Locally, a browser loaded the WebM, advanced playback past 2 seconds, fell
   back to MP4 when WebM was deliberately blocked, and displayed helpful links
   when both were blocked. HTTP media range requests returned 206. This is not
